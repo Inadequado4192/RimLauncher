@@ -31,7 +31,7 @@ jobs:
         run: npm run make -- --platform=linux
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3  # Оновлена версія
         with:
           name: builds
           path: out/
