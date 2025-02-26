@@ -1,0 +1,40 @@
+{
+    "compilerOptions": {
+      "target": "ESNext",
+      "module": "commonjs",
+      "jsx": "react-jsx",
+      "allowJs": true,
+      "skipLibCheck": true,
+      "esModuleInterop": true,
+      "noImplicitAny": true,
+      "sourceMap": true,
+      "outDir": "dist",
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+      
+      "removeComments": true,
+      "strict": true,
+      "downlevelIteration": true,
+      "forceConsistentCasingInFileNames": true,
+      "allowSyntheticDefaultImports": true,
+      "useUnknownInCatchVariables": true,
+      "alwaysStrict": true,
+      "noUncheckedIndexedAccess": true,
+      "incremental": true,
+  
+      "baseUrl": ".",
+      "paths": {
+        "@mui/material": ["./node_modules/@mui/joy"],
+        "@common/*": ["./src/common/*"],
+        "@localization": ["./src/localization"],
+        "@localization/*": ["./src/localization/*"],
+
+
+        "@Icons/*": ["src/view/assets/scripts/Icons/*"],
+        "@Context/*": ["./src/view/assets/scripts/Context/*"],
+        "@Services/*": ["./src/view/assets/scripts/Services/*"],
+      }
+    },
+    "include": ["src/**/*", "test.ts"]
+  }
+  

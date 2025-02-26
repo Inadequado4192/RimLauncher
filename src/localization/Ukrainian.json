@@ -1,0 +1,52 @@
+{
+    "name": "Українська",
+    "localName": "Українська",
+    "keys": {
+        "yes": "Так",
+        "no": "Ні",
+        "change": "Змінити",
+        "open": "Відкрити",
+        "save": "Зберегти",
+        "load": "Завантажити",
+        "update": "Оновити",
+        "rename": "Перейменувати",
+        "sort": "Сортувати",
+        "run": "Запустити",
+        "search": "Шукати",
+        "import": "Імпортувати",
+        "install": "Встановити",
+
+        "openDirectory": "Відкрити каталог",
+        "userConfig": "Конфігурація користувача",
+        "openModsConfig": "Відкрити ModsConfig.xml",
+        "openUserConfig": "Відкрити конфігурацію користувача",
+        "modPacks": "Мод-паки",
+        "clearActiveMods": "Очистити активні моди",
+        
+        "toDisableMod": "Вимкнути мод",
+        "toSelectMod": "Вибрати мод",
+        "toActiveMod": "Активний мод",
+        
+        "modChoiceScreenText": "Оберіть мод",
+        
+        "authors": "Автори",
+        "description": "Опис",
+
+        "modPacks_Table_Name": "Назва",
+        "modPacks_Table_Count": "Кількість модів",
+        "modPacks_Table_DLC": "DLC",
+        "modPacks_Table_GameVersion": "Версія гри",
+
+        "config": "Конфігурація",
+        "pathToSteam": "Шлях до Steam",
+        "pathToGame": "Шлях до гри",
+        "pathToModsConfig": "Шлях до ModsConfig.xml",
+        "argumentsForRunning": "Аргументи для запуску",
+        "argumentsForRunning_placeholder": "Приклад: -popupwindow",
+        "closeWindowAfterRun": "Закрити вікно після запуску",
+        "theme": "Тема",
+        "theme_dark": "Темна",
+        "theme_light": "Світла",
+        "language": "Мова"
+    }
+}

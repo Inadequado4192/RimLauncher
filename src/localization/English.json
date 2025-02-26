@@ -1,0 +1,61 @@
+{
+    "name": "English",
+    "localName": "English",
+    "keys": {
+        "yes": "Yes",
+        "no": "No",
+        "change": "Change",
+        "open": "Open",
+        "save": "Save",
+        "load": "Load",
+        "update": "Update",
+        "rename": "Rename",
+        "sort": "Sort",
+        "run": "Run",
+        "search": "Search",
+        "import": "Import",
+        "install": "Install",
+        "delete": "Delete",
+
+
+        "gameConfig": "Game config",
+        "userConfig": "User config",
+        "modPacks": "Mod Packs",
+        "clearActiveMods": "Clear active mods",
+        
+        "openDirectory": "Open directory",
+        "modChoiceScreenText": "Select mod",
+        "open_pathes": "Open...",
+
+
+        "authors": "Authors",
+        "description": "Description",
+        "toDisableMod": "Disable mod",
+        "toSelectMod": "Select mod",
+        "toActiveMod": "Active mod",
+
+
+        "modPacks_Table_Name": "Name",
+        "modPacks_Table_Count": "Count of mods",
+        "modPacks_Table_DLC": "DLC",
+        "modPacks_Table_GameVersion": "GameVersion",
+
+
+        "config": "Config",
+        "pathToSteam": "Path to Steam",
+        "pathToGame": "Path to Game",
+        "pathToModsConfig": "Path to ModsConfig.xml",
+        "argumentsForRunning": "Arguments for running",
+        "argumentsForRunning_placeholder": "Example: -popupwindow",
+        "closeWindowAfterRun": "Close window after run",
+        "theme": "Theme",
+        "theme_dark": "Dark",
+        "theme_light": "Light",
+        "language": "Language",
+
+
+        "confirmTheAction": "Confirm the action",
+        "confirmDeletionModpack": "Are you sure you want to delete this modpack?",
+        "confirmUpdationModpack": "Are you sure you want to update this modpack?"
+    }
+}
