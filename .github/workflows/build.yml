@@ -3,18 +3,12 @@ name: Build Electron App
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - main  # Кожен пуш в main triggerить збірку
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platform: [win32, darwin, linux]
-    
+    runs-on: ubuntu-latest  # Використовуємо Linux для збірки інсталяторів
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -27,5 +21,24 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build app for ${{ matrix.platform }}
-        run: npm run make --platform=${{ matrix.platform }}
+      - name: Build for macOS
+        run: npm run make -- --platform=darwin
+
+      - name: Build for Windows
+        run: npm run make -- --platform=win32
+
+      - name: Build for Linux
+        run: npm run make -- --platform=linux
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: builds
+          path: out/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./out/**/*  # Завантажуємо файли з папки out/
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Це автоматичний токен для доступу до репозиторіїв
