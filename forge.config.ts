@@ -10,22 +10,23 @@ import { FuseV1Options, FuseVersion } from "@electron/fuses";
 
 import { mainConfig } from "./webpack.main.config";
 import { rendererConfig } from "./webpack.renderer.config";
+import path from "path";
 
 
-const iconPath = "./icons/icon";
+// const iconPath = path.join(__dirname, "./icons/icon");
 
 const config: ForgeConfig = {
     packagerConfig: {
-        icon: iconPath,
+        // icon: iconPath,
         asar: true,
         extraResource: ["./src/localization"],
     },
     rebuildConfig: {},
     makers: [
+        new MakerZIP({}, ["darwin"]),
         new MakerSquirrel({
             // setupIcon: iconPath
         }),
-        new MakerZIP({}, ["darwin"]),
         new MakerRpm({
             options: {
                 // icon: iconPath
