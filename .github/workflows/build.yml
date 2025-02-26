@@ -1,5 +1,4 @@
-name: Build/release
-
+name: Publish
 on: push
 
 jobs:
@@ -12,20 +11,51 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v3
+      - name: Cache node_modules
+        uses: actions/cache@v4
         with:
-          node-version: 20
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json')}}
 
-      - name: Build/release Electron app
-        uses: samuelmeuli/action-electron-builder@v1
+      # - name: Install Node.js, NPM and Yarn
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: '>=16.8.0'
+
+      - name: apt-update
+        if: startsWith(matrix.os, 'ubuntu-latest')
+        run: sudo apt-get update
+
+      - name: autoremove
+        if: startsWith(matrix.os, 'ubuntu-latest')
+        run: sudo apt autoremove
+
+      - name: Install libarchive rpm on Linux
+        if: startsWith(matrix.os, 'ubuntu-latest')
+        run: sudo apt-get install libarchive-tools rpm
+
+      - name: Build Electron App
+        uses: heliomarpm/action-electron-builder@2.0.0
         with:
-          # GitHub token, automatically provided to the action
-          # (No need to define this secret in the repo settings)
+          max_attempts: 3
           github_token: ${{ secrets.github_token }}
+          release: true
+      
+      - name: Build Electron App Win32
+        if: startsWith(matrix.os, 'windows-latest')
+        uses: heliomarpm/action-electron-builder@2.0.0
+        with:
+          args: --ia32
+          max_attempts: 3
+          github_token: ${{ secrets.github_token }}
+          release: true
 
-          # If the commit is tagged with a version (e.g. "v1.0.0"),
-          # release the app after building
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      - name: see directory
+        if: startsWith(matrix.os, 'windows-latest') == false
+        run: ls ./dist
+
+      - name: see directory
+        if: startsWith(matrix.os, 'windows-latest')
+        run: dir dist
