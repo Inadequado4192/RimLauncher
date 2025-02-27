@@ -1,13 +1,17 @@
-import { Button, ButtonGroup, Stack, Tooltip, Typography } from "@mui/joy";
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import SettingsIcon from '@mui/icons-material/Settings';
-import FolderIcon from '@mui/icons-material/Folder';
+import { Button, ButtonGroup, Tooltip } from "@mui/joy";
+import SteamIcon from "@Icons/Steam";
+import RimWorldIcon from "@Icons/RimWorld";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import SettingsIcon from "@mui/icons-material/Settings";
+import FolderIcon from "@mui/icons-material/Folder";
+import PagesIcon from "@mui/icons-material/Pages";
+import PersonIcon from "@mui/icons-material/Person";
 import React from "react";
-import { ConfigContext } from "../Context/ConfigContext";
-import { Localize } from "../Localize";
 import UserConfigWindowModal from "../Windows/UserConfigWindowModal";
+import { LocalContext } from "@Context/LocalContext";
 
 export default function Actions() {
+    const { Localize } = React.useContext(LocalContext);
 
     return (
         <>
@@ -24,46 +28,53 @@ export default function Actions() {
 
 
 function UserConfigButton() {
+    const { Localize } = React.useContext(LocalContext);
     const [open, setOpen] = React.useState(false);
-    const { errors } = React.useContext(ConfigContext);
-
-    const isError = (errors && errors.length > 0) || false;
-
     return (
         <>
             <UserConfigWindowModal open={open} onClose={() => setOpen(false)} />
 
             <Button
                 onClick={() => setOpen(true)}
-                color={isError ? "danger" : void 0}
                 startDecorator={<SettingsIcon />}
-                endDecorator={isError && <Typography color="danger" level="body-xs">Err ({errors?.length})</Typography>}
             >{Localize("userConfig")}</Button>
         </>
     )
 }
 
 function OpenPath() {
+    const { Localize } = React.useContext(LocalContext);
     const [isOpen, setOpen] = React.useState(false);
 
     const [pathes, setPathes] = React.useState<{
         label: string
         path: string
+        icon: React.ReactNode
     }[]>([]);
 
     React.useEffect(() => {
         invoke.getPathes().then(p => {
             setPathes([
-                { label: "modPacks", path: p.ModPacks },
-                { label: "gameConfig", path: p.RimWorldUser },
-                { label: "userConfig", path: p.userConfig },
+                { label: Localize("modPacks"), path: p.ModPacks, icon: <PagesIcon /> },
+                { label: Localize("gameConfig"), path: p.RimWorldUser, icon: <SettingsIcon /> },
+                { label: Localize("userConfig"), path: p.userConfig, icon: <PersonIcon /> },
+                { label: Localize("steam"), path: p.Steam, icon: <SteamIcon /> },
+                { label: Localize("game"), path: p.Game, icon: <RimWorldIcon /> },
             ]);
         });
     }, []);
 
     function PathButtons() {
         return (
-            <ButtonGroup orientation="vertical">{pathes.map(p => <Button key={p.path} onClick={() => invoke.openPath(p.path)}>{Localize(p.label)}</Button>)}</ButtonGroup>
+            <ButtonGroup orientation="vertical">
+                {pathes.map(p =>
+                    <Button
+                        key={p.path}
+                        onClick={() => invoke.openPath(p.path)}
+                        startDecorator={p.icon}
+                    >{p.label}</Button>
+                )}
+            </ButtonGroup>
         )
     }
 

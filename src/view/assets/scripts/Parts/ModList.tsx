@@ -1,8 +1,8 @@
 import { CircularProgress, ColorPaletteProp, Input, List, ListItemButton, ListItemDecorator, Stack, Tooltip, Typography } from "@mui/joy";
 import React, { JSX } from "react";
 import FolderIcon from "@mui/icons-material/Folder";
-import RimWorldIcon from "@mui/icons-material/Star";
-import SteamIcon from "../Icons/Steam";
+import RimWorldIcon from "@Icons/RimWorld";
+import SteamIcon from "@Icons/Steam";
 import MainBody from "./MainBody";
 import { formatCamelCase } from "@common/utils";
 import { openUrl } from "../utils";
@@ -15,7 +15,6 @@ export default function ModList() {
         selectedMod, setSelectedMod,
         sortedMods,
         isPending,
-        g_errors,
         problems,
     } = React.useContext(MainBody.Context);
     const [searchText, setSearchText] = React.useState("");
@@ -210,26 +209,15 @@ export default function ModList() {
                     }
                 }}
             >
-                {g_errors.length
-                    ? (
-                        <Stack spacing={1}>
-                            <Typography level="title-md" color="danger">Unable to load the list of features due to these errors:</Typography>
-                            {g_errors.map(i => <Typography level="body-xs" color="danger">{`${i.path.join(".")}: ${i.message}`}</Typography>)}
-                        </Stack>
-                    ) : (
-                        <>
-                            <List variant="outlined">
-                                {isPending ? <LoadingElement /> : sortedMods?.unactives.filter(filterBySearch).map(mapping.bind({}, false))}
-                            </List>
-                            <List
-                                variant="outlined"
-                                color={problems?.modListErrors.length ? "danger" : void 0}
-                            >
-                                {isPending ? <LoadingElement /> : sortedMods?.actives.filter(filterBySearch).map(mapping.bind({}, true))}
-                            </List>
-                        </>
-                    )
-                }
+                <List variant="outlined">
+                    {isPending ? <LoadingElement /> : sortedMods?.unactives.filter(filterBySearch).map(mapping.bind({}, false))}
+                </List>
+                <List
+                    variant="outlined"
+                    color={problems?.modListErrors.length ? "danger" : void 0}
+                >
+                    {isPending ? <LoadingElement /> : sortedMods?.actives.filter(filterBySearch).map(mapping.bind({}, true))}
+                </List>
             </Stack>
             {/* <Problems problems={problems} /> */}
         </Stack >

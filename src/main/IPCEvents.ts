@@ -4,7 +4,7 @@ import path from "path";
 import UserConfig from "./Config";
 import { win } from ".";
 import { buildModsConfig, getModsConfig, getModsConfigAsString, loadModPacks, mkdirIfDontExists, modPackExt, parser } from "./utilts";
-import Pathes from "@common/Pathes";
+import Pathes from "src/main/Pathes";
 import { execFile, execFileSync, spawn } from "child_process";
 import Schemes from "@common/Schemes";
 import Local from "./localization";
@@ -71,16 +71,10 @@ export const IPCEvents = {
     setUserConfig: (e, data: UserConfig) => UserConfig.Set(data),
     setUserConfigByKey: <K extends keyof UserConfig>(e: any, key: K, data: UserConfig[K]) => UserConfig.Set(key, data),
 
-    "UserConfigValidate": async () => await UserConfig.Validate(),
+    // "UserConfigValidate": async () => await UserConfig.Validate(),
     "getModList": async () => {
-        const res = await UserConfig.GetWithValidate();
-        if (!res.success) return res;
-        const conf = res.data;
-
-        const steamFolder = conf.pathes.steam;
-        const gameFolder = conf.pathes.game;
-        const gameWorkshopFolder = path.join(steamFolder, "steamapps/workshop/content/294100");
-
+        // const res = await UserConfig.GetWithValidate();
+        // if (!res.success) return res;
 
         const list: ModInfo[] = [], warnings: {
             dirpath: string,
@@ -117,9 +111,10 @@ export const IPCEvents = {
             }
         }
 
-        if (fs.existsSync(gameWorkshopFolder)) Read("Steam", gameWorkshopFolder);
-        Read("DLC", path.join(gameFolder, "Data"));
-        Read("Local", path.join(gameFolder, "Mods"));
+        
+        if (fs.existsSync(Pathes.GameWorkshopFolder)) Read("Steam", Pathes.GameWorkshopFolder);
+        Read("DLC", path.join(Pathes.Game, "Data"));
+        Read("Local", path.join(Pathes.Game, "Mods"));
 
         return {
             success: true as const,
@@ -153,32 +148,30 @@ export const IPCEvents = {
     //#endregion
 
     async runGame() {
-        const res = await UserConfig.GetWithValidate();
-        if (!res.success) return res;
+        const data = await UserConfig.Get();
 
-        const child = spawn(path.join(res.data.pathes.game, "RimWorldWin64.exe"), res.data.runArg?.split(/\s+/) ?? [], {
+        // res.data.runArg?.split(/\s+/) ?? 
+        const child = spawn(path.join(Pathes.Game, "RimWorldWin64.exe"), [], {
             detached: true, // Від’єднує процес від Electron
             stdio: "ignore", // Не чекає вхідних/вихідних даних
         });
         child.unref(); // Дозволяє Electron закритися незалежно від процесу
 
-        if (res.data.closeWindowAfterRun) win.close();
+        if (data.closeWindowAfterRun) win.close();
     },
 
 
     async getGameInfo() {
-        const res = await UserConfig.GetWithValidate();
-        if (!res.success) return res;
-        const uc = res.data;
-
-
-        const gameVersionFull = fs.readFileSync(path.join(uc.pathes.game, "Version.txt")).toString().trim() as FullVersion;
+        // const res = await UserConfig.GetWithValidate();
+        // if (!res.success) return res;
+        // const uc = res.data;
+        const gameVersionFull = fs.readFileSync(path.join(Pathes.Game, "Version.txt")).toString().trim() as FullVersion;
         const gameVersionShort = gameVersionFull.match(/^(\d+\.\d+)./)![1]! as ShortVersion;
 
         return {
             success: true,
             data: {
-                gamePath: uc.pathes.game,
+                gamePath: Pathes.Game,
                 gameVersionFull, gameVersionShort,
             } satisfies GameInfo
         } as const;

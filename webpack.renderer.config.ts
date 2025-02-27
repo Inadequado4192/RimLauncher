@@ -19,10 +19,14 @@ export const rendererConfig: Configuration = {
             new TsconfigPathsPlugin()
         ]
     },
+    devtool: "inline-source-map",
     optimization: {
         minimize: true, // Мінімізувати ваш код для зменшення розміру
         splitChunks: {
             chunks: "all", // Розділяти код на окремі частини
         },
+    },
+    cache: {
+        type: "filesystem",
     },
 };

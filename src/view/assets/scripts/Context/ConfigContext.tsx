@@ -5,15 +5,15 @@ export const ConfigContext = React.createContext<ReturnType<typeof useDate>>(nul
 
 function useDate() {
     const [config, setConfig] = React.useState<UserConfig>();
-    const [errors, setErrors] = React.useState<Awaited<ReturnType<typeof invoke.UserConfigValidate>>>();
+    // const [errors, setErrors] = React.useState<Awaited<ReturnType<typeof invoke.UserConfigValidate>>>();
 
     React.useEffect(() => {
         invoke.getUserConfig().then(setConfig);
-        invoke.UserConfigValidate().then(setErrors);
+        // invoke.UserConfigValidate().then(setErrors);
 
         async function onCnfChange(e: Electron.IpcRendererEvent, data: UserConfig) {
             setConfig(data);
-            setErrors(await invoke.UserConfigValidate());
+            // setErrors(await invoke.UserConfigValidate());
         }
         on("changeConfig", onCnfChange);
         return () => {
@@ -23,7 +23,7 @@ function useDate() {
 
     return {
         config, setConfig,
-        errors, setErrors,
+        // errors, setErrors,
     }
 }
 

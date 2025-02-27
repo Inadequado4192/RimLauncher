@@ -1,116 +1,97 @@
 import path from "path";
-import fs from "fs";
 import { z } from "zod";
+import { app } from "electron";
+
+
+// app.on("ready", () => {
+//     console.log("LOCAL", {
+//         getLocale: app.getLocale(),
+//         getLocaleCountryCode: app.getLocaleCountryCode(),
+//         getSystemLocale: app.getSystemLocale(),
+//         getPreferredSystemLanguages: app.getPreferredSystemLanguages(),
+//     });
+// });
 
 namespace Schemes {
     export const StoreGet = z.object({
-        pathes: z.object({
-            steam: z.string().catch(""),
-            game: z.string().catch(""),
-        }).default({}),
         closeWindowAfterRun: z.boolean().catch(false),
-        runArg: z.string().optional().catch(undefined),
-        language: z.string().catch("English")
+        // runArg: z.string().optional().catch(undefined),
+        language: z.string().catch(() => app.getSystemLocale()),
     }).default({});
 
 
-    export const StoreSet = z.object({
-        pathes: z.object({
-            steam: z.preprocess(d => d === "" ? void 0 : d, z.string()),
-            game: z.preprocess(d => d === "" ? void 0 : d, z.string()),
-        }),
-        closeWindowAfterRun: z.boolean(),
-        runArg: z.preprocess(v => !String(v).trim() ? undefined : String(v).trim(), z.string()),
-        language: z.string(),
-    });
+    // export const StoreSet = z.object({
+    //     closeWindowAfterRun: z.boolean(),
+    //     // runArg: z.preprocess(v => !String(v).trim() ? undefined : String(v).trim(), z.string()),
+    //     language: z.string(),
+    // });
 
 
 
-    export const StoreDebug = z.object({
-        pathes: z.object({
-            game: z.string().superRefine((_path, ctx) => {
-                try {
-                    if (!_path) return ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "The path is undefined",
-                        fatal: true
-                    });
+    // export const StoreDebug = z.object({
+    //     pathes: z.object({
+    //         game: z.string().superRefine((_path, ctx) => {
+    //             try {
+    //                 if (!_path) return ctx.addIssue({
+    //                     code: z.ZodIssueCode.custom,
+    //                     message: "The path is undefined",
+    //                     fatal: true
+    //                 });
 
-                    if (!fs.existsSync(_path)) return ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "The path does not exist",
-                        fatal: true
-                    });
+    //                 if (!fs.existsSync(_path)) return ctx.addIssue({
+    //                     code: z.ZodIssueCode.custom,
+    //                     message: "The path does not exist",
+    //                     fatal: true
+    //                 });
 
-                    if (!fs.existsSync(path.join(_path, "steam_appid.txt"))) return ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "This may be the wrong directory",
-                        fatal: true
-                    });
+    //                 if (!fs.existsSync(path.join(_path, "steam_appid.txt"))) return ctx.addIssue({
+    //                     code: z.ZodIssueCode.custom,
+    //                     message: "This may be the wrong directory",
+    //                     fatal: true
+    //                 });
 
-                    if (fs.readFileSync(path.join(_path, "steam_appid.txt")).toString() !== "294100") return ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "This is not Rimworld",
-                        fatal: true
-                    });
-                } catch (e) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: JSON.stringify(e),
-                        fatal: true
-                    });
-                }
-            }),
-            steam: z.string().superRefine((_path, ctx) => {
-                try {
-                    if (!_path) return ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "The path is undefined",
-                        fatal: false
-                    });
+    //                 if (fs.readFileSync(path.join(_path, "steam_appid.txt")).toString() !== "294100") return ctx.addIssue({
+    //                     code: z.ZodIssueCode.custom,
+    //                     message: "This is not Rimworld",
+    //                     fatal: true
+    //                 });
+    //             } catch (e) {
+    //                 ctx.addIssue({
+    //                     code: z.ZodIssueCode.custom,
+    //                     message: JSON.stringify(e),
+    //                     fatal: true
+    //                 });
+    //             }
+    //         }),
+    //         steam: z.string().superRefine((_path, ctx) => {
+    //             try {
+    //                 if (!_path) return ctx.addIssue({
+    //                     code: z.ZodIssueCode.custom,
+    //                     message: "The path is undefined",
+    //                     fatal: false
+    //                 });
 
-                    if (!fs.existsSync(_path)) return ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "The path does not exist",
-                        fatal: true
-                    });
+    //                 if (!fs.existsSync(_path)) return ctx.addIssue({
+    //                     code: z.ZodIssueCode.custom,
+    //                     message: "The path does not exist",
+    //                     fatal: true
+    //                 });
 
-                    if (!fs.readdirSync(_path).includes("steam.exe")) return ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "This may be the wrong directory.",
-                        fatal: false
-                    });
-                } catch (e) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: JSON.stringify(e),
-                        fatal: true
-                    });
-                }
-            }),
-            // config: z.string().superRefine((_path, ctx) => {
-            //     try {
-            //         if (!_path) return ctx.addIssue({
-            //             code: z.ZodIssueCode.custom,
-            //             message: "The path is undefined",
-            //             fatal: true
-            //         });
-
-            //         if (path.basename(_path) !== "ModsConfig.xml") return ctx.addIssue({
-            //             code: z.ZodIssueCode.custom,
-            //             message: "This may be ModsConfig.xml",
-            //             fatal: true
-            //         });
-            //     } catch (e) {
-            //         ctx.addIssue({
-            //             code: z.ZodIssueCode.custom,
-            //             message: JSON.stringify(e),
-            //             fatal: true
-            //         });
-            //     }
-            // }),
-        })
-    });
+    //                 if (!fs.existsSync(path.join(_path, "steamapps"))) return ctx.addIssue({
+    //                     code: z.ZodIssueCode.custom,
+    //                     message: "This may be the wrong directory.",
+    //                     fatal: false
+    //                 });
+    //             } catch (e) {
+    //                 ctx.addIssue({
+    //                     code: z.ZodIssueCode.custom,
+    //                     message: JSON.stringify(e),
+    //                     fatal: true
+    //                 });
+    //             }
+    //         }),
+    //     })
+    // });
 
 
 
@@ -145,7 +126,7 @@ namespace Schemes {
             forceLoadAfter: XMLList(PackageId).optional(),
             incompatibleWith: XMLList(PackageId).optional(),
         });
-        export const ModMetaData = (dirpath: string) =>  z.union([
+        export const ModMetaData = (dirpath: string) => z.union([
             z.object({ ModMetaData: ModMetaDataScehema(dirpath) }),
             z.object({ modMetaData: ModMetaDataScehema(dirpath) }),
         ]).transform(v => ({ ModMetaData: "modMetaData" in v ? v.modMetaData : v.ModMetaData }));
@@ -156,7 +137,7 @@ namespace Schemes {
 
     export const Localization = z.object({
         name: z.string(),
-        localName: z.string(),
+        // localName: z.string(),
         keys: z.record(z.string()),
     });
 }

@@ -20,6 +20,7 @@ const config: ForgeConfig = {
         // icon: iconPath,
         asar: true,
         extraResource: ["./src/localization"],
+        executableName: "rimlauncher"
     },
     rebuildConfig: {},
     makers: [

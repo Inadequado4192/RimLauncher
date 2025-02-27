@@ -1,56 +1,12 @@
-import Pathes from "@common/Pathes";
-import Schemes from "@common/Schemes";
-import { formatCamelCase } from "@common/utils";
 import { ConfigContext } from "@Context/ConfigContext";
 import { LocalContext } from "@Context/LocalContext";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, CircularProgress, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormHelperText, FormLabel, Input, Modal, ModalDialog, Option, Radio, RadioGroup, RadioGroupProps, RadioProps, Select, Table, Typography, useColorScheme } from "@mui/joy";
+import { CircularProgress, DialogContent, DialogTitle, Divider, ModalDialog, Option, Radio, RadioGroup, RadioGroupProps, RadioProps, Select, Table, Typography, useColorScheme } from "@mui/joy";
 import ModalClose from "@mui/joy/ModalClose";
 import React from "react";
-import { useForm } from "react-hook-form";
 
 export default function UserConfigWindowDialog() {
     const { Localize } = React.useContext(LocalContext);
-    const { config, errors } = React.useContext(ConfigContext);
-
-    const { register, formState, handleSubmit, ...form } = useForm<UserConfig>({
-        resolver: zodResolver(Schemes.StoreDebug),
-        defaultValues: config,
-    });
-
-    React.useEffect(() => void form.trigger(), [errors]);
-
-    const onSave = handleSubmit(data => {
-        invoke.setUserConfig(data);
-        location.reload();
-    }, console.warn);
-
-    function PathConfig<P extends keyof UserConfig["pathes"]>({ pathName }: { pathName: P }) {
-        const vpath = `pathes.${pathName}` as const;
-        return (
-            <FormControl error={!!formState.errors.pathes?.[pathName]}>
-                <FormLabel>{Localize(`pathTo${formatCamelCase(pathName) as Capitalize<P>}`)}</FormLabel>
-                <Input
-                    {...register(vpath)}
-                    startDecorator={
-                        <>
-                            <Button onClick={() =>
-                                invoke.selectFile({ type: "folder" }).then(p => {
-                                    if (p.filePaths[0])
-                                        form.setValue(vpath, p.filePaths[0] as any, { shouldValidate: true })
-                                })
-                            }>{Localize("change")}</Button>
-                            <Button onClick={() => invoke.openPath(form.getValues(vpath))}>{Localize("open")}</Button>
-                        </>
-                    }
-                />
-                {formState.errors.pathes?.[pathName] && <FormHelperText>{formState.errors.pathes?.[pathName].message}</FormHelperText>}
-            </FormControl>
-        )
-    }
-
-    const [pathes, setPathes] = React.useState<typeof Pathes>();
-    React.useEffect(() => void invoke.getPathes().then(setPathes), []);
+    const { config } = React.useContext(ConfigContext);
 
     return !config ? <CircularProgress /> : (
         <ModalDialog minWidth="md">
@@ -58,27 +14,6 @@ export default function UserConfigWindowDialog() {
                 <ModalClose />
                 {Localize("config")}
             </DialogTitle>
-            <Divider />
-            <DialogContent sx={{ gap: 1 }}>
-                <PathConfig pathName="steam" />
-                <PathConfig pathName="game" />
-
-                <FormControl>
-                    <FormLabel>{Localize("openModsConfig")}</FormLabel>
-                    <Input
-                        startDecorator={<Button onClick={async () => pathes && invoke.openPath(pathes.ModsConfigXML)}>{Localize("open")}</Button>}
-                        value={pathes?.ModsConfigXML ?? ""}
-                        slotProps={{
-                            input: { disabled: true, sx: { opacity: .5, overflow: "hidden" } }
-                        }}
-                    />
-                </FormControl>
-                <FormControl>
-                    <FormLabel>{Localize("argumentsForRunning")}</FormLabel>
-                    <Input {...register("runArg")} placeholder={Localize("argumentsForRunning_placeholder")} />
-                    <FormHelperText>{formState.errors.runArg?.message}</FormHelperText>
-                </FormControl>
-            </DialogContent>
             <Divider />
             <DialogContent>
                 <Table borderAxis="none" variant="plain" sx={{ width: "auto", alignSelf: "baseline" }}>
@@ -89,10 +24,6 @@ export default function UserConfigWindowDialog() {
                     </tbody>
                 </Table>
             </DialogContent>
-            <Divider />
-            <DialogActions>
-                <Button onClick={onSave}>{Localize("save")}</Button>
-            </DialogActions>
         </ModalDialog>
     )
 }
@@ -183,7 +114,7 @@ function ThemeChanger() {
 }
 function Language() {
     const { Localize, local, setLocal } = React.useContext(LocalContext);
-    const [locals, setLocals] = React.useState<SomeLocal[]>();
+    const [locals, setLocals] = React.useState<Awaited<ReturnType<typeof invoke.getAccessLanguages>>>();
 
     React.useEffect(() => {
         invoke.getAccessLanguages().then(setLocals);
@@ -194,14 +125,14 @@ function Language() {
             <td><Typography>{Localize("language")}</Typography></td>
             <td>
                 <Select
-                    value={local?.name}
+                    value={locals?.find(l => l.data.name == local?.name)!.name ?? null}
                     onChange={async (e, v) => {
                         if (!v || !locals) return;
                         await invoke.setLocal(v);
-                        setLocal(locals.find(l => l.name == v)!);
+                        setLocal(locals.find(l => l.name == v)!.data);
                     }}
                 >
-                    {locals?.map(l => <Option key={l.name} value={l.name}>{l.localName}</Option>)}
+                    {locals?.map(l => <Option key={l.name} value={l.name}>{l.data.name}</Option>)}
                 </Select>
             </td>
         </tr>

@@ -25,4 +25,7 @@ export const mainConfig: Configuration = {
     optimization: {
         minimize: true, // Мінімізувати код
     },
+    cache: {
+        type: 'filesystem',
+    },
 };

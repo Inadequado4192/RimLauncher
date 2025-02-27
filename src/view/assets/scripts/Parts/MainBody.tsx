@@ -61,22 +61,18 @@ function MainBodyContextData() {
         wrongVersion: ModInfo[],
         missingModVersion: ModInfo[],
     }>();
-    // const [test_problems, test_setProblems] = React.useState<ProblemGroup[]>();
 
     const [modList, setModList] = React.useState<ModInfo[]>();
     const [activeMods, setActiveModsIds] = React.useState<PackageId[]>();
     const [isPending, setIsPending] = React.useState(true);
 
-    const [g_errors, set_g_errors] = React.useState<z.ZodIssue[]>([]);
 
     function proccesData_List(res: Awaited<ReturnType<typeof invoke.getModList>>) {
         if (res.success) {
             if (res.warnings.length) console.warn(res.warnings);
             setModList(res.data);
-            set_g_errors([]);
         } else {
             setModList([]);
-            set_g_errors(res.errors);
         }
     }
 
@@ -202,6 +198,5 @@ function MainBodyContextData() {
         activeMods,
         sortedMods,
         isPending,
-        g_errors,
     }
 }

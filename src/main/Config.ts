@@ -14,17 +14,17 @@ namespace UserConfig {
 
     // const noCatchStore = Schemes.Store._def.innerType;
 
-    export async function GetWithValidate() {
-        const e = await Validate();
-        if (e) return { success: false as const, errors: e };
-        else return { success: true as const, data: Get() };
-    }
+    // export async function GetWithValidate() {
+    //     const e = await Validate();
+    //     if (e) return { success: false as const, errors: e };
+    //     else return { success: true as const, data: Get() };
+    // }
 
-    export async function Validate() {
-        const result = await Schemes.StoreDebug.safeParseAsync(UserConfig.Get());
-        if (result.success) return null;
-        return result.error.issues;
-    }
+    // export async function Validate() {
+    //     const result = await Schemes.StoreDebug.safeParseAsync(UserConfig.Get());
+    //     if (result.success) return null;
+    //     return result.error.issues;
+    // }
 
     export function Get(): UserConfig;
     export function Get<K extends keyof UserConfig>(key: K): UserConfig[K];
