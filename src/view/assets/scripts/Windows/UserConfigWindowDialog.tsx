@@ -1,11 +1,13 @@
+import Localize from "@common/Localize";
+import Schemes from "@common/Schemes";
 import { ConfigContext } from "@Context/ConfigContext";
 import { LocalContext } from "@Context/LocalContext";
-import { CircularProgress, DialogContent, DialogTitle, Divider, ModalDialog, Option, Radio, RadioGroup, RadioGroupProps, RadioProps, Select, Table, Typography, useColorScheme } from "@mui/joy";
+import { Button, ButtonGroup, CircularProgress, DialogContent, DialogTitle, Divider, FormControl, FormHelperText, FormLabel, Input, ModalDialog, Option, Radio, RadioGroup, RadioGroupProps, RadioProps, Select, Table, Typography, useColorScheme } from "@mui/joy";
 import ModalClose from "@mui/joy/ModalClose";
 import React from "react";
+import { z } from "zod";
 
 export default function UserConfigWindowDialog() {
-    const { Localize } = React.useContext(LocalContext);
     const { config } = React.useContext(ConfigContext);
 
     return !config ? <CircularProgress /> : (
@@ -14,6 +16,7 @@ export default function UserConfigWindowDialog() {
                 <ModalClose />
                 {Localize("config")}
             </DialogTitle>
+            <Section_Pathes />
             <Divider />
             <DialogContent>
                 <Table borderAxis="none" variant="plain" sx={{ width: "auto", alignSelf: "baseline" }}>
@@ -29,7 +32,63 @@ export default function UserConfigWindowDialog() {
 }
 
 
-const RadioProps: RadioProps = {
+function Section_Pathes() {
+    const { config } = React.useContext(ConfigContext);
+    const [errors, setErrors] = React.useState<z.ZodIssue[] | null>(null);
+
+    React.useEffect(() => {
+        invoke.UserConfigDebug().then(setErrors);
+    }, [config]);
+
+
+    function PathInput({ pkey, label }: { label: string, pkey: Extract<keyof UserConfig, "steamPath" | "gamePath"> }) {
+        const [errorMessage, setErrorMessage] = React.useState("");
+        
+        React.useEffect(() => {
+            const tError = errors?.find(e => e.path[0] == pkey);
+            setErrorMessage(tError ? tError.message : "");
+        }, [errors]);
+
+        return (
+            <FormControl error={!!errorMessage}>
+                <FormLabel>{label}</FormLabel>
+                <Input
+                    value={config?.[pkey] ?? ""}
+                    startDecorator={
+                        <ButtonGroup>
+                            <Button
+                                onClick={() =>
+                                    invoke.selectFile({ type: "folder" }).then(async p => {
+                                        if (p.filePaths[0])
+                                            invoke.setUserConfigByKey(pkey, p.filePaths[0]);
+                                    })
+                                }
+                            >{Localize("change")}</Button>
+                            <Button
+                                onClick={() => config?.[pkey] && invoke.openPath(config[pkey])}
+                            >{Localize("open")}</Button>
+                        </ButtonGroup>
+                    }
+                />
+                {errorMessage && <FormHelperText>{errorMessage}</FormHelperText>}
+            </FormControl>
+        )
+    }
+
+    return (
+        <>
+            <Divider>
+                <Typography>{Localize("config_sectionPathes")}</Typography>
+            </Divider>
+            <DialogContent>
+                <PathInput pkey="steamPath" label={Localize("pathToSteam")} />
+                <PathInput pkey="gamePath" label={Localize("pathToGame")} />
+            </DialogContent>
+        </>
+    )
+}
+
+const _RadioProps: RadioProps = {
     disableIcon: true,
     variant: "plain",
     sx: { px: 2, py: 1, alignItems: "center" },
@@ -47,7 +106,7 @@ const RadioProps: RadioProps = {
         }),
     }
 }
-const RadioGroupProps: RadioGroupProps = {
+const _RadioGroupProps: RadioGroupProps = {
     orientation: "horizontal",
     sx: {
         display: "inline-flex",
@@ -71,26 +130,24 @@ const RadioGroupProps: RadioGroupProps = {
 //     )
 // }
 function CloseWindowAfterRun({ checked }: { checked: boolean }) {
-    const { Localize } = React.useContext(LocalContext);
     return (
         <tr>
             <td><Typography>{Localize("closeWindowAfterRun")}</Typography></td>
 
             <td>
                 <RadioGroup
-                    {...RadioGroupProps}
+                    {..._RadioGroupProps}
                     value={checked}
                     onChange={e => invoke.setUserConfigByKey("closeWindowAfterRun", e.currentTarget.value == "true")}
                 >
-                    <Radio {...RadioProps} value={true} label={Localize("yes")} />
-                    <Radio {...RadioProps} value={false} label={Localize("no")} />
+                    <Radio {..._RadioProps} value={true} label={Localize("yes")} />
+                    <Radio {..._RadioProps} value={false} label={Localize("no")} />
                 </RadioGroup>
             </td>
         </tr>
     )
 }
 function ThemeChanger() {
-    const { Localize } = React.useContext(LocalContext);
     const coolotScheme = useColorScheme();
 
     const isDark = coolotScheme.mode == "dark";
@@ -100,20 +157,20 @@ function ThemeChanger() {
             <td><Typography>{Localize("theme")}</Typography></td>
             <td>
                 <RadioGroup
-                    {...RadioGroupProps}
+                    {..._RadioGroupProps}
                     value={coolotScheme.mode}
                     onChange={e => coolotScheme.setMode(isDark ? "light" : "dark")}
                 >
 
-                    <Radio {...RadioProps} value="light" label={Localize("theme_light")} />
-                    <Radio {...RadioProps} value="dark" label={Localize("theme_dark")} />
+                    <Radio {..._RadioProps} value="light" label={Localize("theme_light")} />
+                    <Radio {..._RadioProps} value="dark" label={Localize("theme_dark")} />
                 </RadioGroup>
             </td>
         </tr>
     )
 }
 function Language() {
-    const { Localize, local, setLocal } = React.useContext(LocalContext);
+    const { local, setLocal } = React.useContext(LocalContext);
     const [locals, setLocals] = React.useState<Awaited<ReturnType<typeof invoke.getAccessLanguages>>>();
 
     React.useEffect(() => {

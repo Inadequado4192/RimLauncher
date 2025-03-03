@@ -24,15 +24,26 @@
   
       "baseUrl": ".",
       "paths": {
-        "@mui/material": ["./node_modules/@mui/joy"],
+        // "@mui/material": ["./node_modules/@mui/joy"],
         "@common/*": ["./src/common/*"],
         "@localization": ["./src/localization"],
         "@localization/*": ["./src/localization/*"],
 
 
-        "@Icons/*": ["src/view/assets/scripts/Icons/*"],
+        "@Components": ["./src/view/assets/scripts/Components"],
+        "@Components/*": ["./src/view/assets/scripts/Components/*"],
+        "@Parts": ["./src/view/assets/scripts/Components/Parts"],
+        "@Parts/*": ["./src/view/assets/scripts/Components/Parts/*"],
+        "@Icons": ["./src/view/assets/scripts/Components/Icons"],
+        "@Icons/*": ["src/view/assets/scripts/Components/Icons/*"],
+        "@Context": ["./src/view/assets/scripts/Context"],
         "@Context/*": ["./src/view/assets/scripts/Context/*"],
+        "@Services": ["./src/view/assets/scripts/Services"],
         "@Services/*": ["./src/view/assets/scripts/Services/*"],
+        "@Windows": ["./src/view/assets/scripts/Windows"],
+        "@Windows/*": ["./src/view/assets/scripts/Windows/*"],
+        "@Modules": ["./src/view/assets/scripts/Modules"],
+        "@Modules/*": ["./src/view/assets/scripts/Modules/*"],
       }
     },
     "include": ["src/**/*", "test.ts"]

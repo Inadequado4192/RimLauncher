@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import fs from "fs";
-import Pathes from "src/main/Pathes";
+import { Pathes } from "src/main/Pathes";
 import path from "path";
 import { formatCamelCase } from "@common/utils";
 

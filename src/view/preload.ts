@@ -66,4 +66,4 @@ addEventListener("keydown", function(e) {
 });
 
 
-console.log("Pathes", process.resourcesPath, __dirname, path.resolve("./"));
+// console.log("Pathes", process.resourcesPath, __dirname, path.resolve("./"));

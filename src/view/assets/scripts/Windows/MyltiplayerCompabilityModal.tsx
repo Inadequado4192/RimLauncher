@@ -1,6 +1,5 @@
-import { Modal } from "@mui/material";
+import { Modal } from "@mui/joy";
 import React from "react";
-
 
 export default function MyltiplayerCompabilityModal(props: { open: boolean, onClose: () => void }) {
     return (

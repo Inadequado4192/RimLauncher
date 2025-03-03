@@ -1,5 +1,5 @@
 import { LocalContext } from "@Context/LocalContext";
-import { ListItemButton, ModalDialog, DialogTitle, Divider, DialogContent, Table, DialogActions, Button } from "@mui/material";
+import { ListItemButton, ModalDialog, DialogTitle, Divider, DialogContent, Table, DialogActions, Button } from "@mui/joy";
 import { ConfirmService } from "@Services/Confirm";
 import { PromptData, PromptService } from "@Services/Prompt";
 import React from "react";
@@ -10,9 +10,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import InstallDesktopIcon from "@mui/icons-material/InstallDesktop";
 import ArrowCircleUpIcon from "@mui/icons-material/ArrowCircleUp";
 import DeleteIcon from "@mui/icons-material/Delete";
+import Localize from "@common/Localize";
 
 export default function ModPackListWindowDialog() {
-    const { Localize } = React.useContext(LocalContext);
     const [list, setList] = React.useState<ModPackInfo[]>([]);
     const [selectedPack, setSelectedPack] = React.useState<ModPackInfo>();
 

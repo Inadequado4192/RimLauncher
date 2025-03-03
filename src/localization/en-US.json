@@ -55,6 +55,13 @@
 
         "confirmTheAction": "Confirm the action",
         "confirmDeletionModpack": "Are you sure you want to delete this modpack?",
-        "confirmUpdationModpack": "Are you sure you want to update this modpack?"
+        "confirmUpdationModpack": "Are you sure you want to update this modpack?",
+
+
+
+
+
+        "error_modsConfigXmlNotFound": "The program could not find the path to “modsConfix.xml”. Contact Support. The path where we are looking for the file: {0}",
+        "error_gamePathIsUndefined": "The path to the game is not specified. Go to the config and specify the path to the game."
     }
 }

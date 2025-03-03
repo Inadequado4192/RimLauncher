@@ -1,4 +1,5 @@
 "use client";
+import Localize from "@common/Localize";
 import { LocalContext } from "@Context/LocalContext";
 import { Button, Modal, ModalDialog, DialogContent, DialogActions, DialogTitle, Input, FormHelperText, Typography } from "@mui/joy";
 import React from "react";
@@ -6,7 +7,6 @@ import React from "react";
 
 
 export function ConfirmContainer() {
-    const { Localize } = React.useContext(LocalContext);
     const [list, setList] = React.useState<ConfirmData_Internal[]>([]);
 
     React.useEffect(() => {

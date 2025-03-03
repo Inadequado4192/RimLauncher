@@ -4,11 +4,12 @@ import path from "path";
 import UserConfig from "./Config";
 import { win } from ".";
 import { buildModsConfig, getModsConfig, getModsConfigAsString, loadModPacks, mkdirIfDontExists, modPackExt, parser } from "./utilts";
-import Pathes from "src/main/Pathes";
+import { Pathes } from "src/main/Pathes";
 import { execFile, execFileSync, spawn } from "child_process";
 import Schemes from "@common/Schemes";
 import Local from "./localization";
 import { z } from "zod";
+import Localize from "@common/Localize";
 
 
 export const IPCEvents = {
@@ -16,10 +17,7 @@ export const IPCEvents = {
     "winMinimize": () => win.minimize(),
     "winToggleMaximize": () => win.isMaximized() ? win.restore() : win.maximize(),
 
-    getPathes: () => ({
-        ...Pathes,
-        userConfig: UserConfig.getConfigPath()
-    }),
+    getPathes: () => ({ ...Pathes }),
 
     "openConfigFile": async () => {
         await shell.openPath(UserConfig.getConfigPath());
@@ -71,8 +69,8 @@ export const IPCEvents = {
     setUserConfig: (e, data: UserConfig) => UserConfig.Set(data),
     setUserConfigByKey: <K extends keyof UserConfig>(e: any, key: K, data: UserConfig[K]) => UserConfig.Set(key, data),
 
-    // "UserConfigValidate": async () => await UserConfig.Validate(),
-    "getModList": async () => {
+    UserConfigDebug: async () => await UserConfig.Debug(),
+    getModList: async () => {
         // const res = await UserConfig.GetWithValidate();
         // if (!res.success) return res;
 
@@ -83,9 +81,10 @@ export const IPCEvents = {
             issues: z.ZodFormattedError<any>
         }[] = [];
 
-        function Read(type: ModInfo["type"], folder: string) {
-            for (const folderName of fs.readdirSync(folder)) {
-                const dirPath = path.join(folder, folderName);
+        function Read(type: ModInfo["type"], folderPath: string) {
+            if (!fs.existsSync(folderPath)) return;
+            for (const folderName of fs.readdirSync(folderPath)) {
+                const dirPath = path.join(folderPath, folderName);
                 if (!fs.lstatSync(dirPath).isDirectory()) continue;
 
                 const xmlText = fs.readFileSync(path.join(dirPath, "About/About.xml")).toString();
@@ -111,8 +110,12 @@ export const IPCEvents = {
             }
         }
 
-        
-        if (fs.existsSync(Pathes.GameWorkshopFolder)) Read("Steam", Pathes.GameWorkshopFolder);
+
+        if (Pathes.GameWorkshopFolder) Read("Steam", Pathes.GameWorkshopFolder);
+        if (!Pathes.Game) return {
+            success: false as const,
+            message: Localize("error_gamePathIsUndefined"),
+        }
         Read("DLC", path.join(Pathes.Game, "Data"));
         Read("Local", path.join(Pathes.Game, "Mods"));
 
@@ -148,6 +151,7 @@ export const IPCEvents = {
     //#endregion
 
     async runGame() {
+        if (!Pathes.Game) return dialog.showErrorBox("Error", Localize("error_gamePathIsUndefined"));
         const data = await UserConfig.Get();
 
         // res.data.runArg?.split(/\s+/) ?? 
@@ -162,19 +166,30 @@ export const IPCEvents = {
 
 
     async getGameInfo() {
+        if (!Pathes.Game) return {
+            success: false as const,
+            message: Localize("error_gamePathIsUndefined"),
+        }
         // const res = await UserConfig.GetWithValidate();
         // if (!res.success) return res;
         // const uc = res.data;
+
+        if (!fs.existsSync(path.join(Pathes.Game, "Version.txt"))) {
+            return {
+                success: false as const,
+            }
+        }
+
         const gameVersionFull = fs.readFileSync(path.join(Pathes.Game, "Version.txt")).toString().trim() as FullVersion;
         const gameVersionShort = gameVersionFull.match(/^(\d+\.\d+)./)![1]! as ShortVersion;
 
         return {
-            success: true,
+            success: true as const,
             data: {
                 gamePath: Pathes.Game,
                 gameVersionFull, gameVersionShort,
             } satisfies GameInfo
-        } as const;
+        };
     },
 
 
@@ -185,6 +200,9 @@ export const IPCEvents = {
 } satisfies Record<string, (event: Electron.IpcMainInvokeEvent, ...args: any[]) => any>
 
 
+// type FindFunction<O> = { [K in keyof O]: O[K] extends (...args: any[]) => any ? K : never }[keyof O]; 
+// const __DEBUG__: { [K in keyof typeof test]: typeof test[K] extends (...args: any[]) => any ? 0 : 1 } extends infer O ?  O[keyof O] extends 1? 1 : 0 : never
+//     = 1;
 
 declare global {
     namespace Electron {

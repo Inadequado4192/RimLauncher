@@ -1,20 +1,26 @@
-import { Button, ButtonGroup, Tooltip } from "@mui/joy";
-import SteamIcon from "@Icons/Steam";
-import RimWorldIcon from "@Icons/RimWorld";
+import { Button, ButtonGroup, Dropdown, Menu, MenuButton, Tooltip } from "@mui/joy";
+import SteamIcon from "src/view/assets/scripts/Components/Icons/Steam";
+import RimWorldIcon from "src/view/assets/scripts/Components/Icons/RimWorld";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import SettingsIcon from "@mui/icons-material/Settings";
 import FolderIcon from "@mui/icons-material/Folder";
 import PagesIcon from "@mui/icons-material/Pages";
 import PersonIcon from "@mui/icons-material/Person";
 import React from "react";
-import UserConfigWindowModal from "../Windows/UserConfigWindowModal";
+import UserConfigWindowModal from "../../Windows/UserConfigWindowModal";
 import { LocalContext } from "@Context/LocalContext";
+import { ConfigContext } from "@Context/ConfigContext";
+import Localize from "@common/Localize";
 
 export default function Actions() {
-    const { Localize } = React.useContext(LocalContext);
-
     return (
-        <>
+        <ButtonGroup
+            sx={{
+                "& > button": {
+                    "--ButtonGroup-radius": "0px"
+                }
+            }}
+        >
             <OpenPath />
             <UserConfigButton />
             <Button
@@ -22,13 +28,12 @@ export default function Actions() {
                 startDecorator={<PlayArrowIcon />}
                 onClick={() => invoke.runGame()}
             >{Localize("run")}</Button>
-        </>
+        </ButtonGroup>
     )
 }
 
 
 function UserConfigButton() {
-    const { Localize } = React.useContext(LocalContext);
     const [open, setOpen] = React.useState(false);
     return (
         <>
@@ -43,7 +48,7 @@ function UserConfigButton() {
 }
 
 function OpenPath() {
-    const { Localize } = React.useContext(LocalContext);
+    const { config } = React.useContext(ConfigContext);
     const [isOpen, setOpen] = React.useState(false);
 
     const [pathes, setPathes] = React.useState<{
@@ -53,16 +58,17 @@ function OpenPath() {
     }[]>([]);
 
     React.useEffect(() => {
+        if (!config) return;
         invoke.getPathes().then(p => {
             setPathes([
                 { label: Localize("modPacks"), path: p.ModPacks, icon: <PagesIcon /> },
                 { label: Localize("gameConfig"), path: p.RimWorldUser, icon: <SettingsIcon /> },
-                { label: Localize("userConfig"), path: p.userConfig, icon: <PersonIcon /> },
-                { label: Localize("steam"), path: p.Steam, icon: <SteamIcon /> },
-                { label: Localize("game"), path: p.Game, icon: <RimWorldIcon /> },
+                { label: Localize("userConfig"), path: p.UserConfig, icon: <PersonIcon /> },
+                ...(config.steamPath ? [{ label: Localize("steam"), path: config.steamPath, icon: <SteamIcon /> }] : []),
+                ...(config.gamePath ? [{ label: Localize("game"), path: config.gamePath, icon: <RimWorldIcon /> }] : []),
             ]);
         });
-    }, []);
+    }, [config]);
 
     function PathButtons() {
         return (

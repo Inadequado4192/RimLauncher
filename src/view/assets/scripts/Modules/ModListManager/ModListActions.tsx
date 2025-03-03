@@ -4,13 +4,12 @@ import ListAltIcon from "@mui/icons-material/ListAlt";
 import ClearIcon from "@mui/icons-material/Clear";
 import React from "react";
 import MainBody from "./MainBody";
-import { Localize } from "../Localize";
-import ModPackListWindowModal from "../Windows/ModPackListWindowModal";
-import MyltiplayerCompabilityModal from "../Windows/MyltiplayerCompabilityModal";
+import ModPackListWindowModal from "@Windows/ModPackListWindowModal";
+import MyltiplayerCompabilityModal from "@Windows/MyltiplayerCompabilityModal";
 import { LocalContext } from "@Context/LocalContext";
+import Localize from "@common/Localize";
 
 export default function ModListActions() {
-    const { Localize } = React.useContext(LocalContext);
 
     return (
         <Stack flex={0} sx={{ whiteSpace: "nowrap" }} gap={1}>
@@ -27,7 +26,6 @@ export default function ModListActions() {
 }
 
 function OpenPacks() {
-    const { Localize } = React.useContext(LocalContext);
     const [isOpen, setOpen] = React.useState(false);
 
     const onLoad = () => setOpen(true);
@@ -66,7 +64,6 @@ function Sort() {
     )
 }
 function MultiplayerCompability() {
-    const { Localize } = React.useContext(LocalContext);
     const [isOpen, setOpen] = React.useState(false);
 
     const onLoad = () => setOpen(true);

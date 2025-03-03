@@ -1,6 +1,9 @@
+import fs from "fs";
 import path from "path";
 import { z } from "zod";
 import { app } from "electron";
+import { execSync } from "child_process";
+import { DebugPathes, FindPathes } from "src/main/Pathes";
 
 
 // app.on("ready", () => {
@@ -14,84 +17,42 @@ import { app } from "electron";
 
 namespace Schemes {
     export const StoreGet = z.object({
+        steamPath: z.string().nullable().default(() => FindPathes.Steam() ?? null),
+        gamePath: z.string().nullable().default(() => FindPathes.RimWorldGamePath() ?? null),
         closeWindowAfterRun: z.boolean().catch(false),
-        // runArg: z.string().optional().catch(undefined),
         language: z.string().catch(() => app.getSystemLocale()),
     }).default({});
+    type StoreGet = z.infer<typeof StoreGet>;
+
+    export const StoreSet = z.object({
+        steamPath: z.string().nullable(),
+        // .superRefine((a, ctx) => {
+        //     if (a === null) return;
+        //     const res = DebugPathes.isSteam(a);
+        //     if (!res.success) ctx.addIssue({ ...res, code: "custom" })
+        // }),
+        gamePath: z.string().nullable(),
+        // .superRefine((a, ctx) => {
+        //     if (a === null) return;
+        //     const res = DebugPathes.isRimWorldGamePath(a);
+        //     if (!res.success) ctx.addIssue({ ...res, code: "custom" })
+        // }),
+        closeWindowAfterRun: z.boolean(),
+        language: z.string(),
+    });
 
 
-    // export const StoreSet = z.object({
-    //     closeWindowAfterRun: z.boolean(),
-    //     // runArg: z.preprocess(v => !String(v).trim() ? undefined : String(v).trim(), z.string()),
-    //     language: z.string(),
-    // });
 
-
-
-    // export const StoreDebug = z.object({
-    //     pathes: z.object({
-    //         game: z.string().superRefine((_path, ctx) => {
-    //             try {
-    //                 if (!_path) return ctx.addIssue({
-    //                     code: z.ZodIssueCode.custom,
-    //                     message: "The path is undefined",
-    //                     fatal: true
-    //                 });
-
-    //                 if (!fs.existsSync(_path)) return ctx.addIssue({
-    //                     code: z.ZodIssueCode.custom,
-    //                     message: "The path does not exist",
-    //                     fatal: true
-    //                 });
-
-    //                 if (!fs.existsSync(path.join(_path, "steam_appid.txt"))) return ctx.addIssue({
-    //                     code: z.ZodIssueCode.custom,
-    //                     message: "This may be the wrong directory",
-    //                     fatal: true
-    //                 });
-
-    //                 if (fs.readFileSync(path.join(_path, "steam_appid.txt")).toString() !== "294100") return ctx.addIssue({
-    //                     code: z.ZodIssueCode.custom,
-    //                     message: "This is not Rimworld",
-    //                     fatal: true
-    //                 });
-    //             } catch (e) {
-    //                 ctx.addIssue({
-    //                     code: z.ZodIssueCode.custom,
-    //                     message: JSON.stringify(e),
-    //                     fatal: true
-    //                 });
-    //             }
-    //         }),
-    //         steam: z.string().superRefine((_path, ctx) => {
-    //             try {
-    //                 if (!_path) return ctx.addIssue({
-    //                     code: z.ZodIssueCode.custom,
-    //                     message: "The path is undefined",
-    //                     fatal: false
-    //                 });
-
-    //                 if (!fs.existsSync(_path)) return ctx.addIssue({
-    //                     code: z.ZodIssueCode.custom,
-    //                     message: "The path does not exist",
-    //                     fatal: true
-    //                 });
-
-    //                 if (!fs.existsSync(path.join(_path, "steamapps"))) return ctx.addIssue({
-    //                     code: z.ZodIssueCode.custom,
-    //                     message: "This may be the wrong directory.",
-    //                     fatal: false
-    //                 });
-    //             } catch (e) {
-    //                 ctx.addIssue({
-    //                     code: z.ZodIssueCode.custom,
-    //                     message: JSON.stringify(e),
-    //                     fatal: true
-    //                 });
-    //             }
-    //         }),
-    //     })
-    // });
+    export const StoreDebug = z.object({
+        steamPath: z.string().superRefine((_path, ctx) => {
+            const result = DebugPathes.isSteam(_path);
+            if (!result.success) ctx.addIssue({ code: "custom", ...result });
+        }),
+        gamePath: z.string().superRefine((_path, ctx) => {
+            const result = DebugPathes.isRimWorldGamePath(_path);
+            if (!result.success) ctx.addIssue({ code: "custom", ...result });
+        }),
+    });
 
 
 

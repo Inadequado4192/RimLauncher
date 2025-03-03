@@ -16,7 +16,9 @@ export const rendererConfig: Configuration = {
     resolve: {
         extensions: [".js", ".ts", ".jsx", ".tsx", ".css"],
         plugins: [
-            new TsconfigPathsPlugin()
+            new TsconfigPathsPlugin({
+                 extensions: [".ts", ".tsx", ".js"]
+            })
         ]
     },
     devtool: "inline-source-map",

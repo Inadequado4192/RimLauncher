@@ -1,13 +1,12 @@
 import { CircularProgress, ColorPaletteProp, Input, List, ListItemButton, ListItemDecorator, Stack, Tooltip, Typography } from "@mui/joy";
 import React, { JSX } from "react";
 import FolderIcon from "@mui/icons-material/Folder";
-import RimWorldIcon from "@Icons/RimWorld";
-import SteamIcon from "@Icons/Steam";
+import RimWorldIcon from "src/view/assets/scripts/Components/Icons/RimWorld";
+import SteamIcon from "src/view/assets/scripts/Components/Icons/Steam";
 import MainBody from "./MainBody";
 import { formatCamelCase } from "@common/utils";
-import { openUrl } from "../utils";
-import { Localize } from "../Localize";
-
+import { openUrl } from "../../utils";
+import Localize from "@common/Localize";
 
 
 export default function ModList() {

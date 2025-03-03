@@ -1,7 +1,7 @@
 import { Box, Sheet, Stack, Typography } from "@mui/joy";
+import { GameInfoContext } from "@Context/GameInfoContext";
 import Actions from "./Actions";
 import React from "react";
-import { GameInfoContext } from "../Context/GameInfoContext";
 
 export default function Footer() {
     const { gameInfo } = React.useContext(GameInfoContext);

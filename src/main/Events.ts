@@ -2,7 +2,7 @@ import fs from "fs";
 import { win } from ".";
 import UserConfig from "./Config";
 import { getModsConfig, loadModPacks, mkdirIfDontExists } from "./utilts";
-import Pathes from "src/main/Pathes";
+import { Pathes } from "src/main/Pathes";
 
 export interface Events {
     changeConfig: [config: UserConfig],

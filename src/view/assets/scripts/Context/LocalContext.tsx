@@ -9,11 +9,7 @@ function useDate() {
         invoke.getTargetLocalJSON().then(setLocal);
     }, []);
 
-    function Localize(key: keyof SomeLocal["keys"] | (string & {}), args?: any[]) {
-        return local?.keys[key as keyof SomeLocal["keys"]] ?? key;
-    }
-    
-    return { local, setLocal, Localize };
+    return { local, setLocal };
 }
 
 export function LocalContextProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {

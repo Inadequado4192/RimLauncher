@@ -1,4 +1,4 @@
-import { Link, List, ListItem, Sheet, Table, Typography } from "@mui/material";
+import { Link, List, ListItem, Sheet, Table, Typography } from "@mui/joy";
 import React from "react";
 
 const Rules = {

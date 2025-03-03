@@ -3,8 +3,9 @@ import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Box, But
 import MainBody from "./MainBody";
 import { GameInfoContext } from "@Context/GameInfoContext";
 import { LocalContext } from "@Context/LocalContext";
-import { openUrl } from "../utils";
-import ModSupportedVersions from "../Components/ModSupportedVersions";
+import ModSupportedVersions from "@Components/ModSupportedVersions";
+import { openUrl } from "../../utils";
+import Localize from "@common/Localize";
 
 export default function ModInfo() {
     const { selectedMod } = React.useContext(MainBody.Context);
@@ -16,7 +17,6 @@ export default function ModInfo() {
 
 
 function ModChoiceScreen() {
-    const { Localize } = React.useContext(LocalContext);
     return (
         <Sheet variant="soft" sx={{
             flex: 1,
@@ -36,7 +36,6 @@ function ModChoiceScreen() {
 
 function Info({ mod }: { mod: ModInfo }) {
     const { activeMods } = React.useContext(MainBody.Context);
-    const { Localize } = React.useContext(LocalContext);
 
     const isActive = activeMods?.includes(mod?.about.packageId);
 
@@ -91,7 +90,6 @@ function ModData({ label, value }: { label: string, value: React.ReactNode }) {
 
 
 function SupportedVersions({ mod }: { mod: ModInfo }) {
-    const { Localize } = React.useContext(LocalContext);
     const { gameInfo } = React.useContext(GameInfoContext);
 
     return mod.about.supportedVersions && (
@@ -107,7 +105,6 @@ function SupportedVersions({ mod }: { mod: ModInfo }) {
 }
 
 function Description({ mod }: { mod: ModInfo }) {
-    const { Localize } = React.useContext(LocalContext);
     return mod.about.description && (
         <AccordionGroup variant="outlined" sx={{ flexGrow: 0 }}>
             <Accordion>
