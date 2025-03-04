@@ -1,7 +1,7 @@
-import { LocalContext } from "@Context/LocalContext";
+import { LocalContext } from "src/view/scripts/Context/LocalContext";
 import { ListItemButton, ModalDialog, DialogTitle, Divider, DialogContent, Table, DialogActions, Button } from "@mui/joy";
-import { ConfirmService } from "@Services/Confirm";
-import { PromptData, PromptService } from "@Services/Prompt";
+import { ConfirmService } from "src/view/scripts/Services/Confirm";
+import { PromptData, PromptService } from "src/view/scripts/Services/Prompt";
 import React from "react";
 import SaveIcon from "@mui/icons-material/Save";
 import DownloadIcon from "@mui/icons-material/Download";

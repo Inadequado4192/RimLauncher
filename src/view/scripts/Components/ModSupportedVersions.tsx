@@ -1,4 +1,4 @@
-import { GameInfoContext } from "@Context/GameInfoContext";
+import { GameInfoContext } from "src/view/scripts/Context/GameInfoContext";
 import { Chip } from "@mui/joy";
 import React from "react";
 

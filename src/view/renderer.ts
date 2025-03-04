@@ -30,7 +30,7 @@ import "./index.css";
 // import "@fontsource/inter";
 import React from "react";
 import { createRoot } from "react-dom/client";
-import App from "./assets/scripts/App";
+import App from "./scripts/App";
 
 
 createRoot(document.getElementById("root")!).render(React.createElement(App));

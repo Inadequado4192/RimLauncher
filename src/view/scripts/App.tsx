@@ -1,14 +1,15 @@
 import { CssVarsProvider, Stack } from "@mui/joy";
-import { TitleBar, Footer } from "@Parts";
-import { theme } from "@Context/Theme";
-import { MainContextProvider } from "@Context/MainContext";
-import { GameInfoContextProvider } from "@Context/GameInfoContext";
-import { ConfigContextProvider } from "@Context/ConfigContext";
-import { LocalContextProvider } from "@Context/LocalContext";
-import { AlertContainer } from "@Services/Alert";
-import { PromptContainer } from "@Services/Prompt";
-import { ConfirmContainer } from "@Services/Confirm";
-import { MainBody } from "@Modules/ModListManager";
+import { TitleBar, Footer } from "src/view/scripts/Components/Parts";
+import { theme } from "src/view/scripts/Context/Theme";
+import { MainContextProvider } from "src/view/scripts/Context/MainContext";
+import { GameInfoContextProvider } from "src/view/scripts/Context/GameInfoContext";
+import { ConfigContextProvider } from "src/view/scripts/Context/ConfigContext";
+import { LocalContextProvider } from "src/view/scripts/Context/LocalContext";
+import { AlertContainer } from "src/view/scripts/Services/Alert";
+import { PromptContainer } from "src/view/scripts/Services/Prompt";
+import { ConfirmContainer } from "src/view/scripts/Services/Confirm";
+import { MainBody } from "src/view/scripts/Modules/ModListManager";
+import ModuleTabs from "@Modules/ModuleTabs";
 
 export default function App() {
     return (
@@ -19,6 +20,7 @@ export default function App() {
                         <ConfigContextProvider>
                             <Stack>
                                 <TitleBar />
+                                {/* <ModuleTabs /> */}
                                 <MainBody />
                                 <Footer />
 

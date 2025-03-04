@@ -4,7 +4,7 @@ import ModInfo from "./ModInfo";
 import React from "react";
 import ModListActions from "./ModListActions";
 import { z } from "zod";
-import { GameInfoContext } from "@Context/GameInfoContext";
+import { GameInfoContext } from "src/view/scripts/Context/GameInfoContext";
 
 export default function MainBody() {
     const value = MainBodyContextData();

@@ -21,7 +21,7 @@ interface XML_ModMetaData {
         packageId: string
         steamWorkshopUrl: string
     }>
-    
+
     loadBefore?: XMLList<PackageId>
     loadAfter?: XMLList<PackageId>
     forceLoadBefore?: XMLList<PackageId>;
@@ -67,3 +67,11 @@ interface ModListErrorReport {
         incompatibleWith?: ModInfo[]
     }
 }
+
+
+
+
+
+type ReturnedData<D = any> =
+    | { success: true, data?: D }
+    | { success: false, message: string, fatal: boolean }

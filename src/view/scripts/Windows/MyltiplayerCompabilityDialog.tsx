@@ -1,6 +1,6 @@
 import Localize from "@common/Localize";
-import { LocalContext } from "@Context/LocalContext";
-import MainBody from "@Modules/ModListManager/MainBody";
+import { LocalContext } from "src/view/scripts/Context/LocalContext";
+import MainBody from "src/view/scripts/Modules/ModListManager/MainBody";
 import { CircularProgress, ColorPaletteProp, DialogContent, DialogTitle, Dropdown, ListDivider, ListItem, Menu, MenuButton, MenuItem, ModalDialog, Sheet, Stack, Table, Typography } from "@mui/joy";
 import React from "react";
 

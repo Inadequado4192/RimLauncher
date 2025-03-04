@@ -1,4 +1,4 @@
-import { app, BrowserWindow, session, shell } from "electron";
+import { app, autoUpdater, BrowserWindow, session, shell } from "electron";
 import { InitIPCEvents } from "./IPCEvents";
 import { InitEvents } from "./Events";
 import path from "path";
@@ -10,6 +10,11 @@ import { EnsurePathExists } from "./Pathes";
 // whether you"re running in development or production).
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
+
+// app.whenReady().then(() => {
+//     autoUpdater.checkForUpdatesAndNotify();
+// });
+
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {

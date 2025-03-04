@@ -1,5 +1,5 @@
 import { Box, Sheet, Stack, Typography } from "@mui/joy";
-import { GameInfoContext } from "@Context/GameInfoContext";
+import { GameInfoContext } from "src/view/scripts/Context/GameInfoContext";
 import Actions from "./Actions";
 import React from "react";
 

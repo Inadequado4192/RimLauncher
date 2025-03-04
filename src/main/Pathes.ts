@@ -28,25 +28,33 @@ export namespace FindPathes {
                 } catch { }
             },
             linux() {
-                const target = path.join(app.getPath("home"), ".var/app/com.valvesoftware.Steam/.steam/steam");
-                if (DebugPathes.isSteam(target).success) return target;
+                const posiblePathes = [
+                    path.join(app.getPath("home"), ".steam / steam"),
+                    path.join(app.getPath("home"), ".var/app/com.valvesoftware.Steam/.steam/steam"),
+                ];
+                for (const target of posiblePathes)
+                    if (DebugPathes.isSteam(target).success) return target;
             },
             darwin() {
-                const target = path.join(app.getPath("home"), "Library", "Application Support", "Steam")
-                if (DebugPathes.isSteam(target).success) return target;
+                const posiblePathes = [
+                    path.join(app.getPath("home"), "Library", "Application Support", "Steam"),
+                ];
+                for (const target of posiblePathes)
+                    if (DebugPathes.isSteam(target).success) return target;
             },
         });
     }
     export function RimWorldGamePath() {
-        const steamPath = Steam();
+        const steamPath = UserConfig.Get("steamPath");
         if (!steamPath) return;
+        
         const target = path.join(steamPath, "steamapps", "common", "RimWorld");
         if (DebugPathes.isRimWorldGamePath(target).success) return target;
     }
 }
 
 export namespace DebugPathes {
-    export function isSteam(_path: string) {
+    export function isSteam(_path: string): ReturnedData {
         try {
             if (!_path) return {
                 success: false,
@@ -74,7 +82,7 @@ export namespace DebugPathes {
             };
         }
     }
-    export function isRimWorldGamePath(_path: string) {
+    export function isRimWorldGamePath(_path: string): ReturnedData {
         try {
             if (!_path) return {
                 success: false,
@@ -137,7 +145,14 @@ export const Pathes = {
         return UserConfig.Get("gamePath");
     },
     get GameWorkshopFolder() {
-        if (this.Steam) return path.join(this.Steam, "steamapps", "workshop", "content", "294100");
+        if (this.Steam) {
+            const target = path.join(this.Steam, "steamapps", "workshop", "content", "294100");
+            if (fs.existsSync(target)) return target; 
+        }
+        if (this.Game) {
+            const target = path.join(this.Game, "../../", "workshop", "content", "294100");
+            if (fs.existsSync(target)) return target; 
+        }
     }
 }
 
@@ -147,6 +162,5 @@ export function EnsurePathExists() {
         dialog.showErrorBox("Error", Localize("error_modsConfigXmlNotFound", [Pathes.ModsConfigXML]));
         app.quit();
     }
-    if (!fs.existsSync(Pathes.Config)) fs.mkdirSync(Pathes.Config);
     if (!fs.existsSync(Pathes.UserConfig)) fs.writeFileSync(Pathes.UserConfig, "{}");
 }

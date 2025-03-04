@@ -1,7 +1,7 @@
 import Localize from "@common/Localize";
 import Schemes from "@common/Schemes";
-import { ConfigContext } from "@Context/ConfigContext";
-import { LocalContext } from "@Context/LocalContext";
+import { ConfigContext } from "src/view/scripts/Context/ConfigContext";
+import { LocalContext } from "src/view/scripts/Context/LocalContext";
 import { Button, ButtonGroup, CircularProgress, DialogContent, DialogTitle, Divider, FormControl, FormHelperText, FormLabel, Input, ModalDialog, Option, Radio, RadioGroup, RadioGroupProps, RadioProps, Select, Table, Typography, useColorScheme } from "@mui/joy";
 import ModalClose from "@mui/joy/ModalClose";
 import React from "react";

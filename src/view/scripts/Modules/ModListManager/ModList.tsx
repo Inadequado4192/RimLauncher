@@ -1,8 +1,8 @@
 import { CircularProgress, ColorPaletteProp, Input, List, ListItemButton, ListItemDecorator, Stack, Tooltip, Typography } from "@mui/joy";
 import React, { JSX } from "react";
 import FolderIcon from "@mui/icons-material/Folder";
-import RimWorldIcon from "src/view/assets/scripts/Components/Icons/RimWorld";
-import SteamIcon from "src/view/assets/scripts/Components/Icons/Steam";
+import RimWorldIcon from "src/view/scripts/Components/Icons/RimWorld";
+import SteamIcon from "src/view/scripts/Components/Icons/Steam";
 import MainBody from "./MainBody";
 import { formatCamelCase } from "@common/utils";
 import { openUrl } from "../../utils";
@@ -59,6 +59,7 @@ export default function ModList() {
 
         const Element = (
             <ListItemButton
+                draggable
                 selected={isSelected}
                 onClick={() => setSelectedMod(mod)}
                 onFocus={() => setSelectedMod(mod)}
@@ -68,6 +69,11 @@ export default function ModList() {
                 }}
                 color={color}
                 variant={color !== "neutral" ? "soft" : undefined}
+                // onDragOver={(e) => e.preventDefault()}
+                // onDragStart={(e) => e.dataTransfer.setData("text/plain", mod.about.packageId)}
+                // onDrop={(e) => {
+                //     console.log("onDrop", e.dataTransfer.getData("text/plain"));
+                // }}
             >
                 <ListItemDecorator>{icon}</ListItemDecorator>
                 <Typography color={color} noWrap title={mod.about.name}>{mod.about.name}</Typography>

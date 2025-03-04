@@ -1,6 +1,6 @@
 import { Button, ButtonGroup, Dropdown, Menu, MenuButton, Tooltip } from "@mui/joy";
-import SteamIcon from "src/view/assets/scripts/Components/Icons/Steam";
-import RimWorldIcon from "src/view/assets/scripts/Components/Icons/RimWorld";
+import SteamIcon from "src/view/scripts/Components/Icons/Steam";
+import RimWorldIcon from "src/view/scripts/Components/Icons/RimWorld";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import SettingsIcon from "@mui/icons-material/Settings";
 import FolderIcon from "@mui/icons-material/Folder";
@@ -8,8 +8,8 @@ import PagesIcon from "@mui/icons-material/Pages";
 import PersonIcon from "@mui/icons-material/Person";
 import React from "react";
 import UserConfigWindowModal from "../../Windows/UserConfigWindowModal";
-import { LocalContext } from "@Context/LocalContext";
-import { ConfigContext } from "@Context/ConfigContext";
+import { LocalContext } from "src/view/scripts/Context/LocalContext";
+import { ConfigContext } from "src/view/scripts/Context/ConfigContext";
 import Localize from "@common/Localize";
 
 export default function Actions() {

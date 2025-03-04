@@ -18,7 +18,9 @@ export const mainConfig: Configuration = {
     resolve: {
         extensions: [".js", ".ts", ".jsx", ".tsx", ".css", ".json"],
         plugins: [
-            new TsconfigPathsPlugin()
+            new TsconfigPathsPlugin({
+                extensions: [".ts", ".tsx", ".js"]
+            })
         ]
     },
     devtool: "inline-source-map",

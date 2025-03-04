@@ -4,9 +4,9 @@ import ListAltIcon from "@mui/icons-material/ListAlt";
 import ClearIcon from "@mui/icons-material/Clear";
 import React from "react";
 import MainBody from "./MainBody";
-import ModPackListWindowModal from "@Windows/ModPackListWindowModal";
-import MyltiplayerCompabilityModal from "@Windows/MyltiplayerCompabilityModal";
-import { LocalContext } from "@Context/LocalContext";
+import ModPackListWindowModal from "src/view/scripts/Windows/ModPackListWindowModal";
+import MyltiplayerCompabilityModal from "src/view/scripts/Windows/MyltiplayerCompabilityModal";
+import { LocalContext } from "src/view/scripts/Context/LocalContext";
 import Localize from "@common/Localize";
 
 export default function ModListActions() {

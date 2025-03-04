@@ -1,6 +1,6 @@
 "use client";
 import Localize from "@common/Localize";
-import { LocalContext } from "@Context/LocalContext";
+import { LocalContext } from "src/view/scripts/Context/LocalContext";
 import { Button, Modal, ModalDialog, DialogContent, DialogActions, DialogTitle, Input, FormHelperText, Typography } from "@mui/joy";
 import React from "react";
 
