@@ -38,12 +38,55 @@ export const IPCEvents = {
 
 
 
-    "activeMod": async (e, packageId: PackageId) => {
+    activeMod: async (e, packageId: PackageId) => {
         const modsConfig = await getModsConfig();
         modsConfig.activeMods.li.push(packageId); // ERROR
         fs.writeFileSync(Pathes.ModsConfigXML, buildModsConfig(modsConfig));
     },
-    "disableMod": async (e, packageId: PackageId) => {
+    activeModBefore: async (e, targetId: PackageId, beforeId: PackageId) => {
+        const modsConfig = await getModsConfig();
+
+        if (targetId == beforeId) return;
+
+        const targetIndex = modsConfig.activeMods.li.indexOf(targetId);
+        const beforeIndex = modsConfig.activeMods.li.indexOf(beforeId);
+
+        if (beforeIndex === -1) {
+            if (targetIndex !== -1) modsConfig.activeMods.li.splice(targetIndex, 1);
+            return;
+        }
+        if (targetIndex < beforeIndex) {
+            modsConfig.activeMods.li.splice(beforeIndex, 0, targetId);
+            if (targetIndex !== -1) modsConfig.activeMods.li.splice(targetIndex, 1);
+        } else {
+            if (targetIndex !== -1) modsConfig.activeMods.li.splice(targetIndex, 1);
+            modsConfig.activeMods.li.splice(beforeIndex, 0, targetId);
+        }
+        fs.writeFileSync(Pathes.ModsConfigXML, buildModsConfig(modsConfig));
+    },
+    activeModAfter: async (e, targetId: PackageId, afterId: PackageId) => {
+        const modsConfig = await getModsConfig();
+
+        if (targetId == afterId) return;
+
+        const targetIndex = modsConfig.activeMods.li.indexOf(targetId);
+        const afterIndex = modsConfig.activeMods.li.indexOf(afterId);
+
+        if (afterIndex === -1) {
+            if (targetIndex !== -1) modsConfig.activeMods.li.splice(targetIndex, 1);
+            return;
+        }
+
+        if (targetIndex < afterIndex) {
+            modsConfig.activeMods.li.splice(afterIndex + 1, 0, targetId);
+            if (targetIndex !== -1) modsConfig.activeMods.li.splice(targetIndex, 1);
+        } else {
+            if (targetIndex !== -1) modsConfig.activeMods.li.splice(targetIndex, 1);
+            modsConfig.activeMods.li.splice(afterIndex + 1, 0, targetId);
+        }
+        fs.writeFileSync(Pathes.ModsConfigXML, buildModsConfig(modsConfig));
+    },
+    disableMod: async (e, packageId: PackageId) => {
         const modsConfig = await getModsConfig();
         modsConfig.activeMods.li = modsConfig.activeMods.li.filter(a => a !== packageId);
         fs.writeFileSync(Pathes.ModsConfigXML, buildModsConfig(modsConfig));
@@ -75,10 +118,11 @@ export const IPCEvents = {
         // if (!res.success) return res;
 
         const list: ModInfo[] = [], warnings: {
-            dirpath: string,
-            xml: any,
-            xmlText: string,
-            issues: z.ZodFormattedError<any>
+            dirPath: string,
+            message: string,
+            // xml: any,
+            // xmlText: string,
+            // issues: z.ZodFormattedError<any>
         }[] = [];
 
         function Read(type: ModInfo["type"], folderPath: string) {
@@ -87,13 +131,39 @@ export const IPCEvents = {
                 const dirPath = path.join(folderPath, folderName);
                 if (!fs.lstatSync(dirPath).isDirectory()) continue;
 
-                const xmlText = fs.readFileSync(path.join(dirPath, "About/About.xml")).toString();
+
+                
+                const aboutDirPath = (ps => ps.find(p => fs.existsSync(p)))([
+                    path.join(dirPath, "About"),
+                    path.join(dirPath, "about"),
+                ]);
+                
+                if (!aboutDirPath) {
+                    warnings.push({
+                        dirPath, message: `${path.join(dirPath, "About")} is not found`
+                    });
+                    continue;
+                }
+
+                const aboutXmlPath = (ps => ps.find(p => fs.existsSync(p)))([
+                    path.join(aboutDirPath, "About.xml"),
+                    path.join(aboutDirPath, "about.xml"),
+                ]);
+
+                if (!aboutXmlPath) {
+                    warnings.push({
+                        dirPath, message: `${path.join(dirPath, "About/About.xml")} is not found`
+                    });
+                    continue;
+                }
+
+                const xmlText = fs.readFileSync(aboutXmlPath).toString();
                 const xml = parser.parse(xmlText);
                 const result = Schemes.XML.ModMetaData(dirPath).safeParse(xml);
                 if (!result.success) {
                     warnings.push({
-                        dirpath: dirPath, xml, xmlText,
-                        issues: result.error.format()
+                        dirPath,
+                        message: result.error.formErrors.formErrors.join("\n"),
                     });
                     continue;
                 }
@@ -101,9 +171,12 @@ export const IPCEvents = {
                 const about = result.data.ModMetaData;
                 if (about.name === undefined) about.name = folderName;
 
-                const previewPath = (p => fs.existsSync(p) ? p : undefined)(path.join(dirPath, "About/Preview.png"));
+                const previewPath = (ps => ps.find(p => fs.existsSync(p)))([
+                    path.join(aboutDirPath, "Preview.png"),
+                    path.join(aboutDirPath, "preview.png"),
+                ]);
                 const steamId = type == "Steam"
-                    ? (p => fs.existsSync(p) ? fs.readFileSync(p).toString() : undefined)(path.join(dirPath, "About/PublishedFileId.txt"))
+                    ? (p => fs.existsSync(p) ? fs.readFileSync(p).toString() : undefined)(path.join(aboutDirPath, "PublishedFileId.txt"))
                     : undefined;
 
                 list.push({ type, dirPath, previewPath, about, steamId });

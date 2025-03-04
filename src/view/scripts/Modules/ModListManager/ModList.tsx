@@ -59,6 +59,7 @@ export default function ModList() {
 
         const Element = (
             <ListItemButton
+                className="mod-list-item"
                 draggable
                 selected={isSelected}
                 onClick={() => setSelectedMod(mod)}
@@ -69,11 +70,22 @@ export default function ModList() {
                 }}
                 color={color}
                 variant={color !== "neutral" ? "soft" : undefined}
-                // onDragOver={(e) => e.preventDefault()}
-                // onDragStart={(e) => e.dataTransfer.setData("text/plain", mod.about.packageId)}
-                // onDrop={(e) => {
-                //     console.log("onDrop", e.dataTransfer.getData("text/plain"));
-                // }}
+                onDragOver={(e) => e.preventDefault()}
+                onDragStart={(e) => e.dataTransfer.setData("packageId", mod.about.packageId)}
+                onDrop={(e) => {
+                    const targetId = e.dataTransfer.getData("packageId") as PackageId || "";
+                    if (!targetId) return;
+
+                    const elem = e.currentTarget.closest(".mod-list-item");
+                    if (!elem) return invoke.activeModAfter(targetId, mod.about.packageId);
+
+                    const rect = elem.getBoundingClientRect();
+
+                    if (e.pageY > rect.top + rect.height / 2)
+                        invoke.activeModAfter(targetId, mod.about.packageId);
+                    else
+                        invoke.activeModBefore(targetId, mod.about.packageId);
+                }}
             >
                 <ListItemDecorator>{icon}</ListItemDecorator>
                 <Typography color={color} noWrap title={mod.about.name}>{mod.about.name}</Typography>

@@ -2,7 +2,6 @@ import React from "react";
 import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Box, Button, Chip, Sheet, Stack, Table, Typography } from "@mui/joy";
 import MainBody from "./MainBody";
 import { GameInfoContext } from "src/view/scripts/Context/GameInfoContext";
-import { LocalContext } from "src/view/scripts/Context/LocalContext";
 import ModSupportedVersions from "src/view/scripts/Components/ModSupportedVersions";
 import { openUrl } from "../../utils";
 import Localize from "@common/Localize";

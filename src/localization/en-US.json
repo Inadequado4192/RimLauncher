@@ -24,7 +24,7 @@
         
         "openDirectory": "Open directory",
         "modChoiceScreenText": "Select mod",
-        "open_pathes": "Open...",
+        "open_paths": "Open...",
 
 
         "authors": "Authors",
@@ -58,7 +58,8 @@
         "confirmUpdationModpack": "Are you sure you want to update this modpack?",
 
 
-
+        "config_sectionPaths": "Paths",
+        "config_sectionPaths_hint": "After changing the path, you need to restart the program for the changes to take effect.",
 
 
         "error_modsConfigXmlNotFound": "The program could not find the path to “modsConfix.xml”. Contact Support. The path where we are looking for the file: {0}",

@@ -61,9 +61,13 @@ declare global {
 
 
 
-addEventListener("keydown", function(e) { 
+addEventListener("keydown", function (e) {
     if (e.code == "Tab") e.preventDefault();
 });
 
 
-// console.log("Pathes", process.resourcesPath, __dirname, path.resolve("./"));
+console.log("Pathes", {
+    "process.resourcesPath": process.resourcesPath,
+    "__dirname": __dirname,
+    "path.resolve(\"./\")": path.resolve("./")
+});

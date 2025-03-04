@@ -8,7 +8,6 @@ import PagesIcon from "@mui/icons-material/Pages";
 import PersonIcon from "@mui/icons-material/Person";
 import React from "react";
 import UserConfigWindowModal from "../../Windows/UserConfigWindowModal";
-import { LocalContext } from "src/view/scripts/Context/LocalContext";
 import { ConfigContext } from "src/view/scripts/Context/ConfigContext";
 import Localize from "@common/Localize";
 

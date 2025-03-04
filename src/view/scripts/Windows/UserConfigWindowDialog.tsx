@@ -16,7 +16,10 @@ export default function UserConfigWindowDialog() {
                 <ModalClose />
                 {Localize("config")}
             </DialogTitle>
-            <Section_Pathes />
+
+            <Divider><Typography>{Localize("config_sectionPaths")}</Typography></Divider>
+            <Section_Paths />
+
             <Divider />
             <DialogContent>
                 <Table borderAxis="none" variant="plain" sx={{ width: "auto", alignSelf: "baseline" }}>
@@ -32,7 +35,7 @@ export default function UserConfigWindowDialog() {
 }
 
 
-function Section_Pathes() {
+function Section_Paths() {
     const { config } = React.useContext(ConfigContext);
     const [errors, setErrors] = React.useState<z.ZodIssue[] | null>(null);
 
@@ -43,7 +46,7 @@ function Section_Pathes() {
 
     function PathInput({ pkey, label }: { label: string, pkey: Extract<keyof UserConfig, "steamPath" | "gamePath"> }) {
         const [errorMessage, setErrorMessage] = React.useState("");
-        
+
         React.useEffect(() => {
             const tError = errors?.find(e => e.path[0] == pkey);
             setErrorMessage(tError ? tError.message : "");
@@ -76,15 +79,22 @@ function Section_Pathes() {
     }
 
     return (
-        <>
-            <Divider>
-                <Typography>{Localize("config_sectionPathes")}</Typography>
-            </Divider>
-            <DialogContent>
-                <PathInput pkey="steamPath" label={Localize("pathToSteam")} />
-                <PathInput pkey="gamePath" label={Localize("pathToGame")} />
-            </DialogContent>
-        </>
+        <DialogContent sx={{ overflow: "hidden" }}>
+            <Typography
+                variant="soft"
+                level="body-xs"
+                sx={t => ({
+                    p: 1,
+                    pl: 2,
+                    borderRadius: t.radius,
+                    borderLeftWidth: 8,
+                    borderLeftStyle: "solid",
+                    borderLeftColor: "inherit"
+                })}
+            >{Localize("config_sectionPaths_hint")}</Typography>
+            <PathInput pkey="steamPath" label={Localize("pathToSteam")} />
+            <PathInput pkey="gamePath" label={Localize("pathToGame")} />
+        </DialogContent>
     )
 }
 
@@ -187,6 +197,7 @@ function Language() {
                         if (!v || !locals) return;
                         await invoke.setLocal(v);
                         setLocal(locals.find(l => l.name == v)!.data);
+                        location.reload();
                     }}
                 >
                     {locals?.map(l => <Option key={l.name} value={l.name}>{l.data.name}</Option>)}
