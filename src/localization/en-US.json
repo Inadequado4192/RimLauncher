@@ -16,6 +16,8 @@
         "install": "Install",
         "delete": "Delete",
 
+        "windows": "Windows",
+        "modList": "Mod List",
 
         "gameConfig": "Game config",
         "userConfig": "User config",
@@ -39,6 +41,8 @@
         "modPacks_Table_DLC": "DLC",
         "modPacks_Table_GameVersion": "GameVersion",
 
+
+        "multiplayerCompability": "Multiplayer Compability",
 
         "config": "Config",
         "pathToSteam": "Path to Steam",

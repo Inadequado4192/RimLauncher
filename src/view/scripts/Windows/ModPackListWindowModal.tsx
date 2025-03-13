@@ -1,4 +1,4 @@
-import { Modal } from "@mui/material";
+import { Modal } from "@mui/joy";
 import React from "react";
 
 

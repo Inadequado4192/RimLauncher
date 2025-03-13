@@ -98,7 +98,7 @@ function OpenPath() {
             <Button
                 startDecorator={<FolderIcon />}
                 onClick={() => setOpen(o => !o)}
-            >{Localize("open_pathes")}</Button>
+            >{Localize("open_paths")}</Button>
         </Tooltip>
     )
 }

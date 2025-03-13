@@ -224,16 +224,16 @@ export const IPCEvents = {
     //#endregion
 
     async runGame() {
-        if (!Pathes.Game) return dialog.showErrorBox("Error", Localize("error_gamePathIsUndefined"));
+        // if (!Pathes.Game) return dialog.showErrorBox("Error", Localize("error_gamePathIsUndefined"));
         const data = await UserConfig.Get();
 
-        // res.data.runArg?.split(/\s+/) ?? 
-        const child = spawn(path.join(Pathes.Game, "RimWorldWin64.exe"), [], {
-            detached: true, // Від’єднує процес від Electron
-            stdio: "ignore", // Не чекає вхідних/вихідних даних
-        });
-        child.unref(); // Дозволяє Electron закритися незалежно від процесу
+        // const child = spawn(path.join(Pathes.Game, "RimWorldWin64.exe"), [], {
+        //     detached: true, // Від’єднує процес від Electron
+        //     stdio: "ignore", // Не чекає вхідних/вихідних даних
+        // });
+        // child.unref(); // Дозволяє Electron закритися незалежно від процесу
 
+        shell.openExternal("steam://launch/294100");
         if (data.closeWindowAfterRun) win.close();
     },
 

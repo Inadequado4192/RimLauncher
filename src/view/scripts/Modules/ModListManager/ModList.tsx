@@ -172,37 +172,48 @@ export default function ModList() {
 
 
     // Move By Arrows
-    // React.useEffect(() => {
-    //     function keyDown(this: Window, ev: KeyboardEvent) {
-    //         if (!selectedMod || !activeMods) return;
+    React.useEffect(() => {
+        function keyDown(this: Window, ev: KeyboardEvent) {
+            if (!sortedMods) return;
 
-    //         const targetList = activeMods.includes(selectedMod.about.packageId) ? SortedMods.actives : SortedMods.unactives;
+            let targetList = !selectedMod || sortedMods.actives.some(m => m.about.packageId == selectedMod.about.packageId) ? sortedMods.actives : sortedMods.unactives;
 
-    //         const ind = targetList.findIndex(m => m.about.packageId === selectedMod.about.packageId);
+            let targetId = !selectedMod ? 0 : targetList.findIndex(m => m.about.packageId === selectedMod.about.packageId);
 
-    //         let targetId: number;
-    //         switch (ev.code) {
-    //             case "ArrowUp":
-    //                 targetId = ind - 1;
-    //                 break;
-    //             case "ArrowDown":
-    //                 targetId = ind + 1;
-    //                 break;
-    //             default: return;
-    //         }
+            switch (ev.code) {
+                case "ArrowUp":
+                    targetId--;
+                    break;
+                case "ArrowDown":
+                    targetId++;
+                    break;
+                case "ArrowRight": case "ArrowLeft":
+                    targetList = targetList == sortedMods.actives ? sortedMods.unactives : sortedMods.actives;
+                    break;
+                case "Enter":
+                    if (selectedMod) {
+                        if (targetList == sortedMods.actives) {
+                            invoke.disableMod(selectedMod.about.packageId);
+                        } else {
+                            invoke.activeMod(selectedMod.about.packageId);
+                        }
+                    }
+                    break;
+                default: return;
+            }
 
-    //         if (targetId < 0) targetId = targetList.length - 1;
-    //         else if (targetId >= targetList.length) targetId = 0;
+            if (targetId < 0) targetId = targetList.length - 1;
+            else if (targetId >= targetList.length) targetId = 0;
 
-    //         setSelectedMod(targetList.at(targetId));
+            setSelectedMod(targetList.at(targetId));
 
-    //         ev.preventDefault();
-    //     }
-    //     addEventListener("keydown", keyDown);
-    //     return () => {
-    //         removeEventListener("keydown", keyDown);
-    //     }
-    // }, [selectedMod, activeMods]);
+            ev.preventDefault();
+        }
+        addEventListener("keydown", keyDown);
+        return () => {
+            removeEventListener("keydown", keyDown);
+        }
+    }, [sortedMods, selectedMod]);
 
     return (
         <Stack gap={1} width="40%">

@@ -44,9 +44,8 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
-            devTools: true,
+            devTools: !app.isPackaged,
             webSecurity: false,
-            // allowRunningInsecureContent: false,
             preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         },
         frame: false,
@@ -78,7 +77,7 @@ function createWindow() {
     });
 
     // Open the DevTools.
-    win.webContents.openDevTools();
+    if (!app.isPackaged) win.webContents.openDevTools();
 }
 
 // This method will be called when Electron has finished

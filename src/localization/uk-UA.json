@@ -11,30 +11,35 @@
         "rename": "Перейменувати",
         "sort": "Сортувати",
         "run": "Запустити",
-        "search": "Шукати",
+        "search": "Пошук",
         "import": "Імпортувати",
         "install": "Встановити",
+        "delete": "Видалити",
 
-        "openDirectory": "Відкрити каталог",
+        "windows": "Вікна",
+        "modList": "Список модів",
+
+        "gameConfig": "Конфігурація гри",
         "userConfig": "Конфігурація користувача",
-        "openModsConfig": "Відкрити ModsConfig.xml",
-        "openUserConfig": "Відкрити конфігурацію користувача",
-        "modPacks": "Мод-паки",
+        "modPacks": "Набори модів",
         "clearActiveMods": "Очистити активні моди",
-        
+
+        "openDirectory": "Відкрити теку",
+        "modChoiceScreenText": "Виберіть мод",
+        "open_paths": "Відкрити...",
+
+        "authors": "Автори",
+        "description": "Опис",
         "toDisableMod": "Вимкнути мод",
         "toSelectMod": "Вибрати мод",
         "toActiveMod": "Активний мод",
-        
-        "modChoiceScreenText": "Оберіть мод",
-        
-        "authors": "Автори",
-        "description": "Опис",
 
         "modPacks_Table_Name": "Назва",
         "modPacks_Table_Count": "Кількість модів",
         "modPacks_Table_DLC": "DLC",
         "modPacks_Table_GameVersion": "Версія гри",
+
+        "multiplayerCompability": "Сумісність з мультиплеєром",
 
         "config": "Конфігурація",
         "pathToSteam": "Шлях до Steam",
@@ -46,6 +51,16 @@
         "theme": "Тема",
         "theme_dark": "Темна",
         "theme_light": "Світла",
-        "language": "Мова"
+        "language": "Мова",
+
+        "confirmTheAction": "Підтвердьте дію",
+        "confirmDeletionModpack": "Ви впевнені, що хочете видалити цей набір модів?",
+        "confirmUpdationModpack": "Ви впевнені, що хочете оновити цей набір модів?",
+
+        "config_sectionPaths": "Шляхи",
+        "config_sectionPaths_hint": "Після зміни шляху необхідно перезапустити програму, щоб зміни набули чинності.",
+
+        "error_modsConfigXmlNotFound": "Програма не змогла знайти шлях до “modsConfig.xml”. Зверніться в підтримку. Шлях, за яким ми шукаємо файл: {0}",
+        "error_gamePathIsUndefined": "Шлях до гри не вказано. Перейдіть у конфігурацію та вкажіть шлях до гри."
     }
 }
