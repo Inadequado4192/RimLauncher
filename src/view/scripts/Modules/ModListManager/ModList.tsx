@@ -1,24 +1,31 @@
-import { CircularProgress, ColorPaletteProp, Input, List, ListItemButton, ListItemDecorator, Stack, Tooltip, Typography } from "@mui/joy";
+import { Box, Button, Chip, CircularProgress, ColorPaletteProp, IconButton, Input, List, ListItemButton, ListItemDecorator, Stack, Tooltip, Typography } from "@mui/joy";
 import React, { JSX } from "react";
 import FolderIcon from "@mui/icons-material/Folder";
 import RimWorldIcon from "src/view/scripts/Components/Icons/RimWorld";
 import SteamIcon from "src/view/scripts/Components/Icons/Steam";
-import MainBody from "./MainBody";
-import { formatCamelCase } from "@common/utils";
 import { openUrl } from "../../utils";
-import Localize from "@common/Localize";
+import Localize from "@Common/Localize";
+import { LocalModListContext } from "./Context/LocalModListContext";
+import { Mod, ModErrorType } from "../../Classes/Mod";
+import CloseIcon from '@mui/icons-material/Close';
+import ModTagList from "@Components/ModTagList";
+import { TagsVisibilityContext } from "./Context/TagsVisibilityContext";
 
+const modListItemClass = "mod-list-item";
 
 export default function ModList() {
     const {
-        selectedMod, setSelectedMod,
-        sortedMods,
-        isPending,
-        problems,
-    } = React.useContext(MainBody.Context);
+        modList,
+        selectedMod,
+        selectedModId, setSelectedModId
+    } = React.useContext(LocalModListContext);
+    const { tagsV } = React.useContext(TagsVisibilityContext);
     const [searchText, setSearchText] = React.useState("");
-    // const [selectedElementRef, setSelectedElementRef] = React.useState<HTMLDivElement>();
 
+    const [isOpenModTooltip, setModTooltip] = React.useState<Parameters<typeof ModTooltip>[0]["data"]>();
+
+    const selectedElementRef = React.useRef<null | HTMLDivElement>(null);
+    useKeySelectEvents();
 
 
 
@@ -30,190 +37,125 @@ export default function ModList() {
         )
     }
 
-    const Item = React.useCallback(React.memo(function ({ mod, isSelected, isActive, errorReport, wrongVersion, missingVersion }: {
-        mod: ModInfo,
+    const Item = React.useCallback(React.memo(function ({ mod, isSelected, errorType, show }: {
+        mod: Mod,
         isSelected: boolean,
-        isActive: boolean,
-        errorReport?: ModListErrorReport,
-        wrongVersion: boolean,
-        missingVersion: boolean,
+        errorType: ModErrorType,
+        show: boolean
     }) {
-        const [isTooltipOpen, setTooltipOpen] = React.useState(false);
-        // const { gameInfo } = React.useContext(GameInfoContext);
+        // console.log("[ITEM]");
+        const ref = React.useRef<HTMLDivElement>(null);
 
-        let icon: JSX.Element, color: ColorPaletteProp;
-
-        {
-            switch (mod.type) {
-                case "Steam": icon = <SteamIcon />; break;
-                case "Local": icon = <FolderIcon />; break;
-                case "DLC": icon = <RimWorldIcon />; break;
+        React.useEffect(() => {
+            if (isSelected) {
+                // Has been selected
+                selectedElementRef.current = ref.current;
+                selectedElementRef.current?.focus();
+            } else {
+                // Has been deselected
+                if (selectedElementRef.current == ref.current) {
+                    selectedElementRef.current = null;
+                }
             }
-
-            if (errorReport) color = "danger";
-            else if (wrongVersion && mod.type !== "DLC") color = "warning";
-            else if (missingVersion && mod.type !== "DLC") color = "warning";
-            else color = "neutral";
-        }
+        }, [isSelected]);
 
 
-        const Element = (
+        const icon: JSX.Element = React.useMemo(() => {
+            switch (mod.type) {
+                case "Steam": return <SteamIcon />;
+                case "Local": return <FolderIcon />;
+                case "DLC": return <RimWorldIcon />;
+            }
+        }, [mod.type]);
+        const color: ColorPaletteProp = React.useMemo(() => {
+            if (errorType == 2) return "danger";
+            else if (errorType == 1) return "warning";
+            else return "neutral";
+        }, [errorType]);
+
+        if (!show) return null;
+
+        return (
             <ListItemButton
-                className="mod-list-item"
+                ref={ref}
+                className={modListItemClass}
                 draggable
                 selected={isSelected}
-                onClick={() => setSelectedMod(mod)}
-                onFocus={() => setSelectedMod(mod)}
-                onDoubleClick={() => {
-                    if (!isActive) invoke.activeMod(mod.about.packageId);
-                    else invoke.disableMod(mod.about.packageId);
-                }}
                 color={color}
                 variant={color !== "neutral" ? "soft" : undefined}
+
+                onContextMenu={() => setModTooltip({ pacageId: mod.packageId, anchorEl: ref.current! })}
+                onMouseEnter={() => errorType && setModTooltip({ pacageId: mod.packageId, anchorEl: ref.current! })}
+                onMouseLeave={(e) => {
+                    if (
+                        e.relatedTarget instanceof HTMLElement &&
+                        (
+                            e.relatedTarget.classList.contains("MuiTooltip-root") ||
+                            e.relatedTarget.classList.contains("MuiTooltip-arrow")
+                        )
+                    ) return;
+                    setModTooltip(undefined);
+                }}
+
+                onDoubleClick={() => mod.toggleState()}
+                onClick={() => setSelectedModId(mod.packageId)}
                 onDragOver={(e) => e.preventDefault()}
-                onDragStart={(e) => e.dataTransfer.setData("packageId", mod.about.packageId)}
+                onDragStart={(e) => e.dataTransfer.setData("packageId", mod.packageId)}
                 onDrop={(e) => {
                     const targetId = e.dataTransfer.getData("packageId") as PackageId || "";
                     if (!targetId) return;
 
-                    const elem = e.currentTarget.closest(".mod-list-item");
-                    if (!elem) return invoke.activeModAfter(targetId, mod.about.packageId);
+                    const elem = e.currentTarget.closest(`.${modListItemClass}`);
+                    if (!elem) return invoke.activeModAfter(targetId, mod.packageId);
 
                     const rect = elem.getBoundingClientRect();
 
                     if (e.pageY > rect.top + rect.height / 2)
-                        invoke.activeModAfter(targetId, mod.about.packageId);
+                        invoke.activeModAfter(targetId, mod.packageId);
                     else
-                        invoke.activeModBefore(targetId, mod.about.packageId);
+                        invoke.activeModBefore(targetId, mod.packageId);
                 }}
+                sx={{ border: "none" }}
             >
+                <Box
+                    sx={{
+                        position: "absolute",
+                        top: 0, bottom: 0,
+                        left: 0, right: 0,
+                        background: `linear-gradient(90deg, transparent 50%, ${mod.tags.map(t => t.color).join(", ")})`
+                    }}
+                />
                 <ListItemDecorator>{icon}</ListItemDecorator>
-                <Typography color={color} noWrap title={mod.about.name}>{mod.about.name}</Typography>
+                <Typography
+                    color={color}
+                    noWrap
+                    title={mod.name}
+                    sx={{ zIndex: 1 }}
+                >{mod.name}</Typography>
             </ListItemButton>
-        )
-
-        // const wrongVersion = gameInfo ? mod.about. : undefined
-
-        if (color === "neutral") return Element;
-
-        // const anyReason = !!report || ;
-
-        const ErrorReport = errorReport?.errors && (
-            <Stack direction="row" spacing={2}>
-                {Object.keys(errorReport.errors).map(key =>
-                    <Stack key={key} spacing={1}>
-                        <Typography color="danger" level="body-sm">{formatCamelCase(key)}</Typography>
-                        <List size="sm">
-                            {errorReport.errors[key as keyof typeof errorReport.errors]!.map(a => (
-                                !("steamWorkshopUrl" in a)
-                                    ? (
-                                        <ListItemButton key={a.about.packageId} onClick={() => setSelectedMod(a)} >
-                                            <Typography level="body-xs">{a.about.name} ({a.about.packageId})</Typography>
-                                        </ListItemButton>
-                                    ) : (
-                                        <ListItemButton key={a.packageId} onClick={() => openUrl(a.steamWorkshopUrl)}>
-                                            <Typography level="body-xs">{a.displayName} ({a.packageId})</Typography>
-                                        </ListItemButton>
-                                    )
-                            ))}
-                        </List>
-                    </Stack>
-                )}
-            </Stack>
-        )
-        const WrongVersionReport = wrongVersion && mod.type !== "DLC" && (
-            <Stack spacing={1}>
-                <Typography color="warning" level="body-sm">Wrong Version</Typography>
-                <Typography color="warning" level="body-sm" variant="soft">The mod does not support this version of the game. Possible problems.</Typography>
-            </Stack>
-        )
-        const MissingVersionReport = missingVersion && mod.type !== "DLC" && (
-            <Stack spacing={1}>
-                <Typography color="warning" level="body-sm">Missing Version</Typography>
-                <Typography color="warning" level="body-sm" variant="soft">The mod does not contain information about supported versions of the game.</Typography>
-            </Stack>
-        )
-
-        return (
-            <Tooltip
-                arrow
-                describeChild
-                open={isTooltipOpen}
-                onOpen={() => setTooltipOpen(true)}
-                onClose={e => e.type != "blur" && setTooltipOpen(false)}
-
-                title={
-                    <Stack spacing={2}>
-                        {ErrorReport}
-                        {WrongVersionReport}
-                        {MissingVersionReport}
-                    </Stack>
-                }
-                variant="outlined"
-            >
-                {Element}
-            </Tooltip>
         )
     }), []);
 
+    const errors = React.useMemo(() => {
+        const e = {} as Record<PackageId, ModErrorType>;
+        for (const m of modList.mods) e[m.packageId] = m.getErrorType();
+        return e;
+    }, [modList.mods]);
 
-    const mapping = (isActive: boolean, mod: ModInfo) => <Item
-        key={mod.about.packageId}
+    const mapping = React.useCallback((mod: Mod) => <Item
+        key={mod.packageId}
         mod={mod}
-        isSelected={mod.about.packageId == selectedMod?.about.packageId}
-        isActive={isActive}
-        errorReport={problems?.modListErrors.find(report => mod.about.packageId == report.mod.about.packageId)}
-        wrongVersion={problems?.wrongVersion.includes(mod) ?? false}
-        missingVersion={problems?.missingModVersion.includes(mod) ?? false}
-    />;
-    const filterBySearch = (mod: ModInfo) => new RegExp(searchText, "i").test(mod.about.name);
-
-
-
-
-    // Move By Arrows
-    React.useEffect(() => {
-        function keyDown(this: Window, ev: KeyboardEvent) {
-            if (!sortedMods) return;
-
-            let targetList = !selectedMod || sortedMods.actives.some(m => m.about.packageId == selectedMod.about.packageId) ? sortedMods.actives : sortedMods.unactives;
-
-            let targetId = !selectedMod ? 0 : targetList.findIndex(m => m.about.packageId === selectedMod.about.packageId);
-
-            switch (ev.code) {
-                case "ArrowUp":
-                    targetId--;
-                    break;
-                case "ArrowDown":
-                    targetId++;
-                    break;
-                case "ArrowRight": case "ArrowLeft":
-                    targetList = targetList == sortedMods.actives ? sortedMods.unactives : sortedMods.actives;
-                    break;
-                case "Enter":
-                    if (selectedMod) {
-                        if (targetList == sortedMods.actives) {
-                            invoke.disableMod(selectedMod.about.packageId);
-                        } else {
-                            invoke.activeMod(selectedMod.about.packageId);
-                        }
-                    }
-                    break;
-                default: return;
-            }
-
-            if (targetId < 0) targetId = targetList.length - 1;
-            else if (targetId >= targetList.length) targetId = 0;
-
-            setSelectedMod(targetList.at(targetId));
-
-            ev.preventDefault();
+        isSelected={selectedMod?.samePackageId(mod.packageId) ?? false}
+        errorType={errors[mod.packageId]}
+        show={
+            new RegExp(searchText, "i").test(mod.name) &&
+            (!tagsV.size || mod.tags.some(t => tagsV.has(t.name)))
         }
-        addEventListener("keydown", keyDown);
-        return () => {
-            removeEventListener("keydown", keyDown);
-        }
-    }, [sortedMods, selectedMod]);
+    />, [selectedMod, searchText, errors, tagsV]);
+
+
+    const unalist = React.useMemo(() => modList.unactives.map(mapping), [modList.unactives, mapping]);
+    const alist = React.useMemo(() => modList.actives.map(mapping), [modList.actives, mapping]);
 
     return (
         <Stack gap={1} width="40%">
@@ -221,6 +163,7 @@ export default function ModList() {
                 placeholder={Localize("search")}
                 value={searchText}
                 onChange={e => setSearchText(e.currentTarget.value)}
+                endDecorator={<IconButton onClick={() => setSearchText("")} sx={{ borderRadius: "50%" }}><CloseIcon /></IconButton>}
             />
             <Stack
                 direction="row"
@@ -238,91 +181,222 @@ export default function ModList() {
                 }}
             >
                 <List variant="outlined">
-                    {isPending ? <LoadingElement /> : sortedMods?.unactives.filter(filterBySearch).map(mapping.bind({}, false))}
+                    {!modList.isLoaded ? <LoadingElement /> : unalist}
                 </List>
-                <List
-                    variant="outlined"
-                    color={problems?.modListErrors.length ? "danger" : void 0}
-                >
-                    {isPending ? <LoadingElement /> : sortedMods?.actives.filter(filterBySearch).map(mapping.bind({}, true))}
+                <List variant="outlined" color={modList.errorType == ModErrorType.Error ? "danger" : modList.errorType == ModErrorType.Warn ? "warning" : undefined}>
+                    {!modList.isLoaded ? <LoadingElement /> : alist}
                 </List>
             </Stack>
-            {/* <Problems problems={problems} /> */}
+
+            <ModTooltip
+                data={isOpenModTooltip}
+                onClose={e => e.type != "blur" && setModTooltip(undefined)}
+            />
         </Stack >
     )
 }
 
-// function Problems({ problems }: { problems: MainBodyContext["problems"] }) {
-//     return (
-//         <AccordionGroup sx={{ flex: 0 }}>
-//             <Accordion>
-//                 <AccordionSummary >
-//                     Problems {problems.missingMods.length ? "(!)" : null}
-//                     {/* Errors: {problems.errors.length} | Warns: {problems.warns.length} */}
-//                 </AccordionSummary>
-//                 <AccordionDetails>
-//                     {/* // problems.status == "success"
-//                         //     ? "No problems found! Nice build 😁"
-//                         //     : */}
-//                     <AccordionGroup
-//                         sx={{
-//                             flex: 0,
-//                             [`& .${accordionDetailsClasses.content}`]: {
-//                                 maxHeight: 200, overflowY: "auto"
-//                             }
-//                         }}
-//                     >
-//                         <Accordion disabled={!problems.missingMods.length}>
-//                             <AccordionSummary color="warning">Missing Mods ({problems.missingMods.length})</AccordionSummary>
-//                             <AccordionDetails>
-//                                 <List>
-//                                     {problems.missingMods.map(id =>
-//                                         <ListItemButton key={id} onClick={() => {
-//                                             clipboard.writeText(id);
-//                                             AlertService.create({ text: "Copied to clipboard", lifeTime: null })
-//                                         }}>
-//                                             <Typography component="code" noWrap>{id}</Typography>
-//                                         </ListItemButton>
-//                                     )}
-//                                 </List>
-//                             </AccordionDetails>
-//                         </Accordion>
+function useKeySelectEvents() {
+    const {
+        modList,
+        selectedMod,
+        selectedModId, setSelectedModId,
+    } = React.useContext(LocalModListContext);
 
-//                         <Accordion disabled={!Object.keys(problems.modListErrors).length}>
-//                             <AccordionSummary color="danger">Errors ({Object.keys(problems.modListErrors).length})</AccordionSummary>
-//                             <AccordionDetails>
-//                                 {/* <AccordionGroup>
-//                                     {(function* () {
-//                                         for (const report of problems.modListErrors) {
-//                                             yield (
-//                                                 <Accordion>
-//                                                     <AccordionSummary>{report.mod.about.name} ({report.mod.about.packageId})</AccordionSummary>
-//                                                     <AccordionDetails>
-//                                                         <AccordionGroup>
-//                                                             {Object.keys(report.errors).map(key =>
-//                                                                 <Accordion key={key}>
-//                                                                     <AccordionSummary>{key}</AccordionSummary>
-//                                                                     <AccordionDetails>
-//                                                                         <List>
-//                                                                             {report.errors[key as keyof typeof report.errors]!.map(a => (
-//                                                                                 <ListItem>{a.about.name} ({a.about.packageId})</ListItem>
-//                                                                             ))}
-//                                                                         </List>
-//                                                                     </AccordionDetails>
-//                                                                 </Accordion>
-//                                                             )}
-//                                                         </AccordionGroup>
-//                                                     </AccordionDetails>
-//                                                 </Accordion>
-//                                             )
-//                                         }
-//                                     })()}
-//                                 </AccordionGroup> */}
-//                             </AccordionDetails>
-//                         </Accordion>
-//                     </AccordionGroup>
-//                 </AccordionDetails>
-//             </Accordion>
-//         </AccordionGroup>
-//     )
-// }
+    // Move By Arrows
+    React.useEffect(() => {
+        function keyDown(this: Window, ev: KeyboardEvent) {
+            // if (!this.document.activeElement ||
+            //     this.document.activeElement !== this.document.body && !this.document.activeElement.classList.contains(modListItemClass)
+            // ) return;
+            if (this.document.getElementById("root")?.hasAttribute("aria-hidden") || document.activeElement?.tagName == "INPUT") return;
+
+            let targetList = selectedMod?.isActive() ? modList.actives : modList.unactives;
+
+            let targetId = !selectedMod ? 0 : targetList.findIndex(m => m.samePackageId(selectedMod.packageId));
+
+            switch (ev.code) {
+                case "KeyW":
+                case "ArrowUp":
+                    targetId--;
+                    break;
+                case "KeyS":
+                case "ArrowDown":
+                    targetId++;
+                    break;
+                case "KeyA": case "KeyD":
+                case "ArrowRight": case "ArrowLeft":
+                    targetList = targetList == modList.actives ? modList.unactives : modList.actives;
+                    break;
+                case "Space":
+                case "Enter":
+                    if (selectedMod) {
+                        if (targetList == modList.actives) {
+                            selectedMod.disable();
+                        } else {
+                            selectedMod.enable();
+                        }
+                    }
+                    break;
+                default: return;
+            }
+
+            if (targetId < 0) targetId = targetList.length - 1;
+            else if (targetId >= targetList.length) targetId = 0;
+
+            setSelectedModId(targetList[targetId]?.packageId);
+
+            ev.preventDefault();
+        }
+
+        addEventListener("keydown", keyDown);
+        return () => {
+            removeEventListener("keydown", keyDown);
+        }
+    }, [modList, selectedMod]);
+}
+
+
+
+function ModTooltip({ data, onClose }: {
+    data?: { pacageId: PackageId, anchorEl: HTMLElement }
+    onClose: (e: Event | React.SyntheticEvent<Element, Event>) => void
+}) {
+    const { modList, setSelectedModId } = React.useContext(LocalModListContext);
+    const mod = React.useMemo(() => {
+        if (!data) return;
+        return modList.mods.find(m => m.samePackageId(data.pacageId));
+    }, [modList.mods, data?.pacageId]);
+
+
+    const ErrorReportComponent = React.useCallback(({
+        label, error, errorType, children
+    }: {
+        label: string
+        error: boolean
+        errorType: "danger" | "warning"
+        children: React.ReactNode | React.ReactNode[]
+    }) => {
+        return !error ? null : (
+            <Stack spacing={1}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography color={errorType} level="body-sm">{label}</Typography>
+                </Stack>
+                {children}
+            </Stack>
+        )
+    }, []);
+
+    const ErrorReportModItemComponent = React.useCallback(({ mod, actions }: {
+        mod: Mod,
+        actions?: { label: string, onClick: () => void }[]
+    }) => (
+        <ListItemButton
+            key={mod.packageId}
+            onClick={e => {
+                if (e.target instanceof HTMLElement && e.target.classList.contains("MuiButton-root")) return
+                setSelectedModId(mod.packageId);
+            }}
+        >
+            <Typography level="body-xs">{mod.name} ({mod.packageId})</Typography>
+            {actions?.length && (
+                <Stack direction="row" flexWrap="wrap">
+                    {actions.map((a, i) => <Button key={i} size="sm" onClick={a.onClick}>{a.label}</Button>)}
+                </Stack>
+            )}
+        </ListItemButton>
+    ), []);
+
+
+    const errorType = mod?.getErrorType();
+
+    const ErrorReport = React.useMemo(() => !mod || !errorType ? null : (
+        <Stack spacing={2}>
+            <ErrorReportComponent label={Localize("missingDependencies")} error={mod.hasMissingDependencies()} errorType="danger">
+                <List size="sm">
+                    {[...mod.getMissingDependencies()].map(mod => (
+                        mod instanceof Mod
+                            ? (
+                                <ErrorReportModItemComponent
+                                    key={mod.packageId}
+                                    mod={mod}
+                                    actions={[{ label: Localize("enable"), onClick: () => mod.enable() }]}
+                                />
+                            ) : (
+                                <ListItemButton key={mod.packageId} onClick={() => openUrl(mod.steamWorkshopUrl)}>
+                                    <Typography level="body-xs">{mod.displayName} ({mod.packageId})</Typography>
+                                </ListItemButton>
+                            )
+                    ))}
+                </List>
+            </ErrorReportComponent>
+            <ErrorReportComponent label={Localize("incompatibleWith")} error={mod.hasIncompatible()} errorType="danger">
+                <List size="sm">
+                    {[...mod.getIncompatible()].map(mod => <ErrorReportModItemComponent
+                        key={mod.packageId}
+                        mod={mod}
+                        actions={[{ label: Localize("disable"), onClick: () => mod.disable() }]}
+                    />)}
+                </List>
+            </ErrorReportComponent>
+            <ErrorReportComponent label={Localize("loadAfter")} error={mod.hasLoadAfterErrors()} errorType="danger">
+                <List size="sm">
+                    {[...mod.getLoadAfterErrors()].map(mod => <ErrorReportModItemComponent key={mod.packageId} mod={mod} />)}
+                </List>
+            </ErrorReportComponent>
+            <ErrorReportComponent label={Localize("loadBefore")} error={mod.hasLoadBeforeErrors()} errorType="danger">
+                <List size="sm">
+                    {[...mod.getLoadBeforeErrors()].map(mod => <ErrorReportModItemComponent key={mod.packageId} mod={mod} />)}
+                </List>
+            </ErrorReportComponent>
+            <ErrorReportComponent label={Localize("wrongModVersion")} error={mod.isWrongVersion()} errorType="warning">
+                <Typography color="warning" level="body-sm" variant="soft">{Localize("wrongModVersion_message")}</Typography>
+            </ErrorReportComponent>
+            <ErrorReportComponent label={Localize("missingModVersion")} error={mod.isMissingModVersion()} errorType="warning">
+                <Typography color="warning" level="body-sm" variant="soft">{Localize("wrongModVersion_message")}</Typography>
+            </ErrorReportComponent>
+        </Stack>
+    ), [mod, errorType]);
+
+
+    React.useEffect(() => {
+        if (data?.anchorEl && !document.body.contains(data.anchorEl)) {
+            onClose(new Event("close"));
+        }
+    })
+
+
+    return (
+        <Tooltip
+            open={!!data}
+            slotProps={{
+                root: {
+                    open: !!data,
+                    anchorEl: data?.anchorEl
+                }
+            }}
+            // children={}
+
+            // anchorEl={isOpenModTooltip.anchorEl} // або координати через Popper
+
+
+            arrow
+            describeChild
+            placement="right"
+            // open={isTooltipOpen}
+
+            // onOpen={() => errorType > 0 && setTooltipOpen(true)}
+            onClose={onClose}
+
+            title={mod &&
+                <Stack spacing={2} p={1}>
+                    {ErrorReport}
+                    <ModTagList tags={mod.tags} packageId={mod.packageId} />
+                </Stack>
+            }
+            variant="outlined"
+            children={<span />}
+        />
+    )
+}
+

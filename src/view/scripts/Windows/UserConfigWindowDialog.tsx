@@ -1,14 +1,14 @@
-import Localize from "@common/Localize";
-import Schemes from "@common/Schemes";
-import { ConfigContext } from "src/view/scripts/Context/ConfigContext";
+import Localize from "@Common/Localize";
+import { UserConfigContext } from "@Context/UserConfigContext";
 import { LocalContext } from "src/view/scripts/Context/LocalContext";
 import { Button, ButtonGroup, CircularProgress, DialogContent, DialogTitle, Divider, FormControl, FormHelperText, FormLabel, Input, ModalDialog, Option, Radio, RadioGroup, RadioGroupProps, RadioProps, Select, Table, Typography, useColorScheme } from "@mui/joy";
 import ModalClose from "@mui/joy/ModalClose";
 import React from "react";
 import { z } from "zod";
+import { ReloadContext } from "@Context/ReloadContext";
 
 export default function UserConfigWindowDialog() {
-    const { config } = React.useContext(ConfigContext);
+    const { userConfig: config } = React.useContext(UserConfigContext);
 
     return !config ? <CircularProgress /> : (
         <ModalDialog minWidth="md">
@@ -36,7 +36,7 @@ export default function UserConfigWindowDialog() {
 
 
 function Section_Paths() {
-    const { config } = React.useContext(ConfigContext);
+    const { userConfig: config } = React.useContext(UserConfigContext);
     const [errors, setErrors] = React.useState<z.ZodIssue[] | null>(null);
 
     React.useEffect(() => {
@@ -181,6 +181,7 @@ function ThemeChanger() {
 }
 function Language() {
     const { local, setLocal } = React.useContext(LocalContext);
+    const { reload } = React.useContext(ReloadContext);
     const [locals, setLocals] = React.useState<Awaited<ReturnType<typeof invoke.getAccessLanguages>>>();
 
     React.useEffect(() => {
@@ -197,7 +198,7 @@ function Language() {
                         if (!v || !locals) return;
                         await invoke.setLocal(v);
                         setLocal(locals.find(l => l.name == v)!.data);
-                        location.reload();
+                        reload();
                     }}
                 >
                     {locals?.map(l => <Option key={l.name} value={l.name}>{l.data.name}</Option>)}

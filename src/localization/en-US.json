@@ -10,30 +10,32 @@
         "update": "Update",
         "rename": "Rename",
         "sort": "Sort",
-        "run": "Run",
+        "play": "Play",
         "search": "Search",
         "import": "Import",
         "install": "Install",
         "delete": "Delete",
+        "use": "Use",
+        "add": "Add",
+        "error": "Error",
+        "size": "Size",
+        "name": "Name",
+        "disable": "Disable",
+        "enable": "Enable",
 
-        "windows": "Windows",
-        "modList": "Mod List",
 
-        "gameConfig": "Game config",
-        "userConfig": "User config",
-        "modPacks": "Mod Packs",
-        "clearActiveMods": "Clear active mods",
-        
+        "updateTime": "Update time",
+        "loadChanges": "Load changes",
+
+
         "openDirectory": "Open directory",
-        "modChoiceScreenText": "Select mod",
+        "openInSteam": "Open in Steam",
         "open_paths": "Open...",
 
+        "modChoiceScreenText": "Select mod",
 
         "authors": "Authors",
         "description": "Description",
-        "toDisableMod": "Disable mod",
-        "toSelectMod": "Select mod",
-        "toActiveMod": "Active mod",
 
 
         "modPacks_Table_Name": "Name",
@@ -42,14 +44,12 @@
         "modPacks_Table_GameVersion": "GameVersion",
 
 
-        "multiplayerCompability": "Multiplayer Compability",
+
 
         "config": "Config",
         "pathToSteam": "Path to Steam",
         "pathToGame": "Path to Game",
         "pathToModsConfig": "Path to ModsConfig.xml",
-        "argumentsForRunning": "Arguments for running",
-        "argumentsForRunning_placeholder": "Example: -popupwindow",
         "closeWindowAfterRun": "Close window after run",
         "theme": "Theme",
         "theme_dark": "Dark",
@@ -60,6 +60,8 @@
         "confirmTheAction": "Confirm the action",
         "confirmDeletionModpack": "Are you sure you want to delete this modpack?",
         "confirmUpdationModpack": "Are you sure you want to update this modpack?",
+        "confirmDeletionTag": "Are you sure you want to delete this tag?",
+
 
 
         "config_sectionPaths": "Paths",
@@ -67,6 +69,47 @@
 
 
         "error_modsConfigXmlNotFound": "The program could not find the path to “modsConfix.xml”. Contact Support. The path where we are looking for the file: {0}",
-        "error_gamePathIsUndefined": "The path to the game is not specified. Go to the config and specify the path to the game."
+        "error_gamePathIsUndefined": "The path to the game is not specified. Go to the config and specify the path to the game.",
+
+        "missingDependencies": "Missing Dependencies",
+        "incompatibleWith": "Incompatible With",
+        "loadBefore": "Load Before",
+        "loadAfter": "Load After",
+        
+        "version": "Version",
+        "supportedVersions": "Supported versions",
+        "gameConfig": "Game config",
+        "userConfig": "User config",
+        "modPacks": "Mod Packs",
+        "clearActiveMods": "Clear active mods",
+        "multiplayerCompability": "Multiplayer Compability",
+        "steamDir": "Steam directory",
+        "gameDir": "Game directory",
+        "activeMods": "Active Mods",
+        "tags": "Tags",
+    
+        "tagName": "Tag Name",
+
+        "previousUpdates": "Previous updates",
+
+        "modPackName": "Modpack name",
+        "renameModPack": "Rename Modpack",
+        "thisNameAlreadyUsed": "This name is already used.",
+    
+        "wrongModVersion": "Wrong Mod Version",
+        "wrongModVersion_message": "The mod does not support this version of the game. Possible problems.",
+        "missingModVersion": "Missing Mod Version",
+        "missingModVersion_message": "The mod does not contain information about the target version of the game. Possible problems.",
+
+        
+        "section_Windows": "Windows",
+        "section_ModList": "Mod list",
+        "section_Stats": "Stats",
+        "section_Tags": "Tags",
+
+
+
+        "tab_ModListManager": "Mod list manager",
+        "tab_ModUpdates": "Mod updates"
     }
 }

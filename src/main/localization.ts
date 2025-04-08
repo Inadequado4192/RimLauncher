@@ -1,8 +1,8 @@
 import { app } from "electron";
 import path from "path";
 import fs from "fs";
-import Schemes from "@common/Schemes";
-import EnglishLocal from "@localization/en-US.json";
+import Schemes from "src/main/Schemes";
+import EnglishLocal from "@Localization/en-US.json";
 import UserConfig from "./Config";
 
 
@@ -31,7 +31,7 @@ namespace Local {
                 data: loadLocal(fname)
             }))
 
-    export const getTargetLocal = () => loadLocal(UserConfig.Get("language"));
+    export const getTargetLocal = () => loadLocal(UserConfig.get("language"));
 }
 export default Local;
 

@@ -1,15 +1,18 @@
 import { CssVarsProvider, Stack } from "@mui/joy";
-import { TitleBar, Footer } from "src/view/scripts/Components/Parts";
-import { theme } from "src/view/scripts/Context/Theme";
-import { MainContextProvider } from "src/view/scripts/Context/MainContext";
-import { GameInfoContextProvider } from "src/view/scripts/Context/GameInfoContext";
-import { ConfigContextProvider } from "src/view/scripts/Context/ConfigContext";
-import { LocalContextProvider } from "src/view/scripts/Context/LocalContext";
-import { AlertContainer } from "src/view/scripts/Services/Alert";
-import { PromptContainer } from "src/view/scripts/Services/Prompt";
-import { ConfirmContainer } from "src/view/scripts/Services/Confirm";
-import { MainBody } from "src/view/scripts/Modules/ModListManager";
+import { TitleBar, Footer, } from "src/view/scripts/layouts";
+import { LoadingFrame } from "src/view/scripts/layouts/LoadingFrame";
 import ModuleTabs from "@Modules/ModuleTabs";
+import { theme } from "@Context/Theme";
+import { MainContextProvider } from "@Context/MainContext";
+import { GameInfoContextProvider } from "@Context/GameInfoContext";
+import { UserConfigContextProvider } from "@Context/UserConfigContext";
+import { LocalContextProvider } from "@Context/LocalContext";
+import { AlertContainer } from "@Services/Alert";
+import { PromptContainer } from "@Services/Prompt";
+import { ConfirmContainer } from "@Services/Confirm";
+import { ReloadContextProvider } from "@Context/ReloadContext";
+import { ModListContextProvider } from "@Context/ModListContext";
+import { ModsConfigContextProvider } from "@Context/ModsConfig";
 
 export default function App() {
     return (
@@ -17,19 +20,26 @@ export default function App() {
             <LocalContextProvider>
                 <MainContextProvider>
                     <GameInfoContextProvider>
-                        <ConfigContextProvider>
-                            <Stack>
-                                <TitleBar />
-                                {/* <ModuleTabs /> */}
-                                <MainBody />
-                                <Footer />
+                        <UserConfigContextProvider>
+                            <ModsConfigContextProvider>
+                                <ReloadContextProvider>
+                                    <ModListContextProvider>
+                                        <Stack>
+                                            <TitleBar />
+                                            <LoadingFrame>
 
+                                                <ModuleTabs />
+                                                <Footer />
 
-                                <AlertContainer />
-                                <PromptContainer />
-                                <ConfirmContainer />
-                            </Stack>
-                        </ConfigContextProvider>
+                                                <AlertContainer />
+                                                <PromptContainer />
+                                                <ConfirmContainer />
+                                            </LoadingFrame>
+                                        </Stack>
+                                    </ModListContextProvider>
+                                </ReloadContextProvider>
+                            </ModsConfigContextProvider>
+                        </UserConfigContextProvider>
                     </GameInfoContextProvider>
                 </MainContextProvider>
             </LocalContextProvider>

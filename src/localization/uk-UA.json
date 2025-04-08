@@ -10,57 +10,105 @@
         "update": "Оновити",
         "rename": "Перейменувати",
         "sort": "Сортувати",
-        "run": "Запустити",
-        "search": "Пошук",
+        "play": "Грати",
+        "search": "Шукати",
         "import": "Імпортувати",
         "install": "Встановити",
         "delete": "Видалити",
+        "use": "Використовувати",
+        "add": "Додати",
+        "error": "Помилка",
+        "size": "Розмір",
+        "name": "Назва",
+        "disable": "Вимкнути",
+        "enable": "Увімкнути",
 
-        "windows": "Вікна",
-        "modList": "Список модів",
 
-        "gameConfig": "Конфігурація гри",
-        "userConfig": "Конфігурація користувача",
-        "modPacks": "Набори модів",
-        "clearActiveMods": "Очистити активні моди",
+        "updateTime": "Час оновлення",
+        "loadChanges": "Завантажити зміни",
 
-        "openDirectory": "Відкрити теку",
-        "modChoiceScreenText": "Виберіть мод",
+
+        "openDirectory": "Відкрити директорію",
+        "openInSteam": "Відкрити в Steam",
         "open_paths": "Відкрити...",
+
+        "modChoiceScreenText": "Виберіть мод",
 
         "authors": "Автори",
         "description": "Опис",
-        "toDisableMod": "Вимкнути мод",
-        "toSelectMod": "Вибрати мод",
-        "toActiveMod": "Активний мод",
+
 
         "modPacks_Table_Name": "Назва",
         "modPacks_Table_Count": "Кількість модів",
         "modPacks_Table_DLC": "DLC",
         "modPacks_Table_GameVersion": "Версія гри",
 
-        "multiplayerCompability": "Сумісність з мультиплеєром",
+
+
 
         "config": "Конфігурація",
         "pathToSteam": "Шлях до Steam",
         "pathToGame": "Шлях до гри",
         "pathToModsConfig": "Шлях до ModsConfig.xml",
-        "argumentsForRunning": "Аргументи для запуску",
-        "argumentsForRunning_placeholder": "Приклад: -popupwindow",
         "closeWindowAfterRun": "Закрити вікно після запуску",
         "theme": "Тема",
         "theme_dark": "Темна",
         "theme_light": "Світла",
         "language": "Мова",
 
-        "confirmTheAction": "Підтвердьте дію",
-        "confirmDeletionModpack": "Ви впевнені, що хочете видалити цей набір модів?",
-        "confirmUpdationModpack": "Ви впевнені, що хочете оновити цей набір модів?",
+
+        "confirmTheAction": "Підтвердити дію",
+        "confirmDeletionModpack": "Ви впевнені, що хочете видалити цей модпак?",
+        "confirmUpdationModpack": "Ви впевнені, що хочете оновити цей модпак?",
+        "confirmDeletionTag": "Ви впевнені, що хочете видалити цей тег?",
+
+
 
         "config_sectionPaths": "Шляхи",
-        "config_sectionPaths_hint": "Після зміни шляху необхідно перезапустити програму, щоб зміни набули чинності.",
+        "config_sectionPaths_hint": "Після зміни шляху потрібно перезавантажити програму для того, щоб зміни набрали чинності.",
 
-        "error_modsConfigXmlNotFound": "Програма не змогла знайти шлях до “modsConfig.xml”. Зверніться в підтримку. Шлях, за яким ми шукаємо файл: {0}",
-        "error_gamePathIsUndefined": "Шлях до гри не вказано. Перейдіть у конфігурацію та вкажіть шлях до гри."
+
+        "error_modsConfigXmlNotFound": "Програма не змогла знайти шлях до “modsConfig.xml”. Зв'яжіться з підтримкою. Шлях, де ми шукаємо файл: {0}",
+        "error_gamePathIsUndefined": "Шлях до гри не вказано. Перейдіть до конфігурації та вкажіть шлях до гри.",
+
+        "missingDependencies": "Відсутні залежності",
+        "incompatibleWith": "Несумісно з",
+        "loadBefore": "Завантажити перед",
+        "loadAfter": "Завантажити після",
+        
+        "version": "Версія",
+        "supportedVersions": "Підтримувані версії",
+        "gameConfig": "Конфігурація гри",
+        "userConfig": "Конфігурація користувача",
+        "modPacks": "Модпаки",
+        "clearActiveMods": "Очистити активні моди",
+        "multiplayerCompability": "Сумісність з мультиплеєром",
+        "steamDir": "Директорія Steam",
+        "gameDir": "Директорія гри",
+        "activeMods": "Активні моди",
+        "tags": "Теги",
+    
+        "tagName": "Назва тегу",
+
+        "modPackName": "Назва модпака",
+        "renameModPack": "Перейменувати модпак",
+        "thisNameAlreadyUsed": "Ця назва вже використовується.",
+    
+        "wrongModVersion": "Неправильна версія мода",
+        "wrongModVersion_message": "Мод не підтримує цю версію гри. Можливі проблеми.",
+        "missingModVersion": "Відсутня версія мода",
+        "missingModVersion_message": "Мод не містить інформації про цільову версію гри. Можливі проблеми.",
+
+        
+        "section_Windows": "Вікна",
+        "section_ModList": "Список модів",
+        "section_Stats": "Статистика",
+        "section_Tags": "Теги",
+
+        "previousUpdates": "Попередні оновлення",
+
+
+        "tab_ModListManager": "Менеджер списку модів",
+        "tab_ModUpdates": "Оновлення модів"
     }
 }

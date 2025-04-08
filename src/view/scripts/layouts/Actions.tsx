@@ -7,9 +7,9 @@ import FolderIcon from "@mui/icons-material/Folder";
 import PagesIcon from "@mui/icons-material/Pages";
 import PersonIcon from "@mui/icons-material/Person";
 import React from "react";
-import UserConfigWindowModal from "../../Windows/UserConfigWindowModal";
-import { ConfigContext } from "src/view/scripts/Context/ConfigContext";
-import Localize from "@common/Localize";
+import UserConfigWindowModal from "../Windows/UserConfigWindowModal";
+import { UserConfigContext } from "@Context/UserConfigContext";
+import Localize from "@Common/Localize";
 
 export default function Actions() {
     return (
@@ -20,13 +20,14 @@ export default function Actions() {
                 }
             }}
         >
+            <Button onClick={() => invoke.openDevTools()} color="danger">DevTools</Button>
             <OpenPath />
             <UserConfigButton />
             <Button
                 color="success"
                 startDecorator={<PlayArrowIcon />}
                 onClick={() => invoke.runGame()}
-            >{Localize("run")}</Button>
+            >{Localize("play")}</Button>
         </ButtonGroup>
     )
 }
@@ -47,7 +48,7 @@ function UserConfigButton() {
 }
 
 function OpenPath() {
-    const { config } = React.useContext(ConfigContext);
+    const { userConfig: config } = React.useContext(UserConfigContext);
     const [isOpen, setOpen] = React.useState(false);
 
     const [pathes, setPathes] = React.useState<{
@@ -63,8 +64,8 @@ function OpenPath() {
                 { label: Localize("modPacks"), path: p.ModPacks, icon: <PagesIcon /> },
                 { label: Localize("gameConfig"), path: p.RimWorldUser, icon: <SettingsIcon /> },
                 { label: Localize("userConfig"), path: p.UserConfig, icon: <PersonIcon /> },
-                ...(config.steamPath ? [{ label: Localize("steam"), path: config.steamPath, icon: <SteamIcon /> }] : []),
-                ...(config.gamePath ? [{ label: Localize("game"), path: config.gamePath, icon: <RimWorldIcon /> }] : []),
+                ...(config.steamPath ? [{ label: Localize("steamDir"), path: config.steamPath, icon: <SteamIcon /> }] : []),
+                ...(config.gamePath ? [{ label: Localize("gameDir"), path: config.gamePath, icon: <RimWorldIcon /> }] : []),
             ]);
         });
     }, [config]);

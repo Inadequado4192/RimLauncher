@@ -1,5 +1,5 @@
 "use client";
-import Localize from "@common/Localize";
+import Localize from "@Common/Localize";
 import { Button, Modal, ModalDialog, DialogContent, DialogActions, DialogTitle, Input, FormHelperText, Typography } from "@mui/joy";
 import React from "react";
 

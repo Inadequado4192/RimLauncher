@@ -1,13 +1,16 @@
 import React from "react";
 import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Box, Button, Chip, Sheet, Stack, Table, Typography } from "@mui/joy";
-import MainBody from "./MainBody";
+import ModListManager from ".";
 import { GameInfoContext } from "src/view/scripts/Context/GameInfoContext";
 import ModSupportedVersions from "src/view/scripts/Components/ModSupportedVersions";
 import { openUrl } from "../../utils";
-import Localize from "@common/Localize";
+import Localize from "@Common/Localize";
+import { LocalModListContext } from "./Context/LocalModListContext";
+import { Mod } from "../../Classes/Mod";
+import ModTagList from "@Components/ModTagList";
 
 export default function ModInfo() {
-    const { selectedMod } = React.useContext(MainBody.Context);
+    const { selectedMod } = React.useContext(LocalModListContext);
 
     return !selectedMod
         ? <ModChoiceScreen />
@@ -33,11 +36,7 @@ function ModChoiceScreen() {
 
 
 
-function Info({ mod }: { mod: ModInfo }) {
-    const { activeMods } = React.useContext(MainBody.Context);
-
-    const isActive = activeMods?.includes(mod?.about.packageId);
-
+function Info({ mod }: { mod: Mod }) {
     return (
         <Stack gap={1} flex={1} sx={t => ({
             overflowY: "auto",
@@ -54,12 +53,12 @@ function Info({ mod }: { mod: ModInfo }) {
                     objectFit: "contain"
                 }}
             />}
-            <Typography level="h3">{mod.about.name}</Typography>
+            <Typography level="h3">{mod.name}</Typography>
             <Table>
                 <tbody>
-                    <ModData label="PackageId" value={<Typography title={mod.about.packageId} noWrap>{mod.about.packageId}</Typography>} />
-                    <ModData label={Localize("version")} value={mod.about.modVersion} />
-                    <ModData label={Localize("authors")} value={mod.about.author} />
+                    <ModData label="PackageId" value={<Typography title={mod.packageId} noWrap>{mod.packageId}</Typography>} />
+                    {mod.modVersion && <ModData label={Localize("version")} value={mod.modVersion} />}
+                    <ModData label={Localize("authors")} value={mod.author} />
                     <SupportedVersions mod={mod} />
                 </tbody>
             </Table>
@@ -69,11 +68,19 @@ function Info({ mod }: { mod: ModInfo }) {
                 flexWrap="wrap"
                 sx={{ "& > button": { flexGrow: 1, whiteSpace: "nowrap" } }}
             >
-                <Button color="primary" variant="outlined" onClick={() => (isActive ? invoke.disableMod : invoke.activeMod)(mod.about.packageId)}>{isActive ? Localize("toDisableMod") : Localize("toActiveMod")}</Button>
-                <Button color="primary" variant="outlined" onClick={() => invoke.openPath(mod.dirPath)}>{Localize("openDirectory")}</Button>
-                {mod.steamId && <Button color="primary" variant="outlined" onClick={() => openUrl(`https://steamcommunity.com/sharedfiles/filedetails/?id=${mod.steamId}`)}>{Localize("openInSteam")}</Button>}
+                <Button color="primary" variant="outlined" onClick={() => mod.toggleState()}>{mod.isActive() ? Localize("disable") : Localize("enable")}</Button>
+                <Button color="primary" variant="outlined" onClick={() => mod.openDir()}>{Localize("openDirectory")}</Button>
+                {mod.steamId && <Button color="primary" variant="outlined" onClick={() => mod.openInSteam()}>{Localize("openInSteam")}</Button>}
             </Stack>
             <Description mod={mod} />
+            <AccordionGroup variant="outlined" sx={{ flexGrow: 0 }}>
+                <Accordion>
+                    <AccordionSummary>{Localize("tags")}</AccordionSummary>
+                    <AccordionDetails>
+                        <ModTagList tags={mod.tags} packageId={mod.packageId} />
+                    </AccordionDetails>
+                </Accordion>
+            </AccordionGroup>
         </Stack>
     )
 }
@@ -88,10 +95,10 @@ function ModData({ label, value }: { label: string, value: React.ReactNode }) {
 }
 
 
-function SupportedVersions({ mod }: { mod: ModInfo }) {
+function SupportedVersions({ mod }: { mod: Mod }) {
     const { gameInfo } = React.useContext(GameInfoContext);
 
-    return mod.about.supportedVersions && (
+    return mod.supportedVersions && (
         <ModData
             label={Localize("supportedVersions")}
             value={
@@ -103,8 +110,8 @@ function SupportedVersions({ mod }: { mod: ModInfo }) {
     )
 }
 
-function Description({ mod }: { mod: ModInfo }) {
-    return mod.about.description && (
+function Description({ mod }: { mod: Mod }) {
+    return mod.description && (
         <AccordionGroup variant="outlined" sx={{ flexGrow: 0 }}>
             <Accordion>
                 <AccordionSummary>{Localize("description")}</AccordionSummary>
@@ -112,7 +119,7 @@ function Description({ mod }: { mod: ModInfo }) {
                     sx={{
                         whiteSpace: "break-spaces"
                     }}
-                >{mod.about.description}</AccordionDetails>
+                >{mod.description}</AccordionDetails>
             </Accordion>
         </AccordionGroup>
     );

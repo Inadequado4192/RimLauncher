@@ -1,12 +1,13 @@
 import { GameInfoContext } from "src/view/scripts/Context/GameInfoContext";
 import { Chip } from "@mui/joy";
 import React from "react";
+import { Mod } from "../Classes/Mod";
 
-export default function ModSupportedVersions({ mod }: { mod: ModInfo }) {
+export default function ModSupportedVersions({ mod }: { mod: Mod }) {
     const { gameInfo } = React.useContext(GameInfoContext);
 
-    return mod.about.supportedVersions && (
-        [...mod.about.supportedVersions].reverse().map(v =>
+    return mod.supportedVersions && (
+        [...mod.supportedVersions].reverse().map(v =>
             <Chip
                 size="sm"
                 sx={{ px: 2 }}

@@ -1,21 +1,18 @@
-import Localize from "@common/Localize";
-import MainBody from "src/view/scripts/Modules/ModListManager/MainBody";
-import { CircularProgress, ColorPaletteProp, DialogContent, DialogTitle, Dropdown, ListDivider, ListItem, Menu, MenuButton, MenuItem, ModalDialog, Sheet, Stack, Table, Typography } from "@mui/joy";
-import React from "react";
+import { Typography } from "@mui/joy";
 
-type Compability = [status: string, modName: string, steamId: string, null: "", tag: string, message: string, lastChange: string];
-type CompabilityOpt = {
-    status: string;
-    modName: string;
-    steamId: string;
-    tag: string;
-    message: string | undefined;
-    lastChange: string | undefined;
-};
-type ModWithCompabilityOpt = {
-    mod: ModInfo,
-    compability: CompabilityOpt
-};
+// type Compability = [status: string, modName: string, steamId: string, null: "", tag: string, message: string, lastChange: string];
+// type CompabilityOpt = {
+//     status: string;
+//     modName: string;
+//     steamId: string;
+//     tag: string;
+//     message: string | undefined;
+//     lastChange: string | undefined;
+// };
+// type ModWithCompabilityOpt = {
+//     mod: ModInfo,
+//     compability: CompabilityOpt
+// };
 export default function MyltiplayerCompabilityDialog() {
     return <Typography>Temporarily disabled.</Typography>;
     // const { sortedMods } = React.useContext(MainBody.Context);

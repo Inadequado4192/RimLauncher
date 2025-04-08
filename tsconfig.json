@@ -24,10 +24,13 @@
   
       "baseUrl": ".",
       "paths": {
-        // "@mui/material": ["./node_modules/@mui/joy"],
-        "@common/*": ["./src/common/*"],
-        "@localization": ["./src/localization"],
-        "@localization/*": ["./src/localization/*"],
+        "@Common/*": ["./src/common/*"],
+        "@Localization": ["./src/localization"],
+        "@Localization/*": ["./src/localization/*"],
+        
+        "@Tools/*": ["./src/main/tools/*"],
+        "@Events/*": ["./src/main/events/*"],
+
 
 
         "@Components": ["src/view/scripts/Components"],
@@ -44,6 +47,8 @@
         "@Windows/*": ["src/view/scripts/Windows/*"],
         "@Modules": ["src/view/scripts/Modules"],
         "@Modules/*": ["src/view/scripts/Modules/*"],
+        "@Classes": ["src/view/scripts/Classes"],
+        "@Classes/*": ["src/view/scripts/Classes/*"],
       }
     },
     "include": ["src/**/*", "test.ts"]

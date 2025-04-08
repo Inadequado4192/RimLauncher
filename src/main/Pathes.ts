@@ -3,7 +3,7 @@ import fs from "fs";
 import { app, dialog } from "electron";
 import { execSync } from "child_process";
 import UserConfig from "./Config";
-import Localize from "@common/Localize";
+import Localize from "@Common/Localize";
 
 type AccessPlatforms = Extract<typeof process.platform, "win32" | "linux" | "darwin">;
 export function createPath<D extends Record<AccessPlatforms, () => (string | undefined)>>(data: D): ReturnType<D[AccessPlatforms]> {
@@ -45,7 +45,7 @@ export namespace FindPathes {
         });
     }
     export function RimWorldGamePath() {
-        const steamPath = UserConfig.Get("steamPath");
+        const steamPath = UserConfig.get("steamPath");
         if (!steamPath) return;
         
         const target = path.join(steamPath, "steamapps", "common", "RimWorld");
@@ -139,10 +139,10 @@ export const Pathes = {
         return path.join(this.Config, "ModsConfig.xml");
     },
     get Steam() {
-        return UserConfig.Get("steamPath");
+        return UserConfig.get("steamPath");
     },
     get Game() {
-        return UserConfig.Get("gamePath");
+        return UserConfig.get("gamePath");
     },
     get GameWorkshopFolder() {
         if (this.Steam) {

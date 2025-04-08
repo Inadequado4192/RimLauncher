@@ -9,7 +9,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import InstallDesktopIcon from "@mui/icons-material/InstallDesktop";
 import ArrowCircleUpIcon from "@mui/icons-material/ArrowCircleUp";
 import DeleteIcon from "@mui/icons-material/Delete";
-import Localize from "@common/Localize";
+import Localize from "@Common/Localize";
 
 export default function ModPackListWindowDialog() {
     const [list, setList] = React.useState<ModPackInfo[]>([]);
@@ -18,13 +18,13 @@ export default function ModPackListWindowDialog() {
     React.useEffect(() => {
         invoke.getModPacksList().then(res => setList(res));
 
-        function onFileChange(e: Electron.IpcRendererEvent, list: ModPackInfo[]) {
+        const onDirChange: on_listenerType<typeof on.changeModPacksList> = (e, list) => {
             setList(list);
         }
 
-        on("changeFile:ModPacks", onFileChange);
+        on.changeModPacksList(onDirChange);
         return () => {
-            off("changeFile:ModPacks", onFileChange);
+            off.changeModPacksList(onDirChange);
         }
     }, []);
 
@@ -32,7 +32,7 @@ export default function ModPackListWindowDialog() {
         if (list.some(i => i.name.toLowerCase() == value.toLowerCase())) {
             return {
                 severity: "danger",
-                text: "This name is already used."
+                text: Localize("thisNameAlreadyUsed")
             }
         } else return undefined;
     }
@@ -61,7 +61,7 @@ export default function ModPackListWindowDialog() {
 
     async function onSave() {
         const result = await PromptService.create({
-            text: "Mod pack name",
+            text: Localize("modPackName"),
             onValidate: onValidateNames,
         });
 
@@ -72,14 +72,14 @@ export default function ModPackListWindowDialog() {
         if (!selectedPack) return;
         invoke.saveModPack(selectedPack.name);
     }
-    async function onInstall() {
+    async function onUse() {
         if (!selectedPack) return;
-        invoke.loadModPack(selectedPack.name);
+        invoke.useModPack(selectedPack.name);
     }
     async function onRename() {
         if (!selectedPack) return;
         const result = await PromptService.create({
-            text: "Rename mod pack",
+            text: Localize("renameModPack"),
             onValidate: onValidateNames,
         });
         if (result) invoke.renameModPack(selectedPack.name, result);
@@ -122,7 +122,7 @@ export default function ModPackListWindowDialog() {
                 <Button startDecorator={<DownloadIcon />} onClick={async () => { }} disabled>{Localize("import")}</Button>
             </DialogActions>
             <DialogActions>
-                <Button startDecorator={<InstallDesktopIcon />} onClick={onInstall} disabled={!selectedPack} color="success">{Localize("install")}</Button>
+                <Button startDecorator={<InstallDesktopIcon />} onClick={onUse} disabled={!selectedPack} color="success">{Localize("use")}</Button>
                 <Button startDecorator={<ArrowCircleUpIcon />} onClick={onUpdate} disabled={!selectedPack}>{Localize("update")}</Button>
                 <Button startDecorator={<EditIcon />} onClick={onRename} disabled={!selectedPack}>{Localize("rename")}</Button>
                 <Button startDecorator={<DeleteIcon />} onClick={onDelete} disabled={!selectedPack} color="danger">{Localize("delete")}</Button>

@@ -11,7 +11,7 @@ function useDate() {
         output, setOutput,
     }
 }
-
+/** @deprecated */
 export function MainContextProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
     return (
         <MainContext.Provider value={useDate()}>{children}</MainContext.Provider>

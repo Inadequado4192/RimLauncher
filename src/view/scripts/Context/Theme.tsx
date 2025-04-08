@@ -5,13 +5,21 @@ export const theme = extendTheme({
         JoyButton: {
             defaultProps: {
                 color: "neutral",
-                variant: "soft"
+                variant: "soft",
+                tabIndex: -1
             },
             // styleOverrides: {
             //     root: {
             //         borderRadius: 0
             //     }
             // }
+        },
+        JoyListItemButton: {
+            styleOverrides: {
+                root: {
+                    outline: "none !important"
+                }
+            }
         }
     }
 });

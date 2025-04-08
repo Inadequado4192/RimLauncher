@@ -4,39 +4,12 @@ type PackageId = `$PackageIdType$`;
 // type PackageId = `$PackageIdType_Lower$`;
 type XMLList<T> = { li: T[] }
 
-interface XML_ModsConfig {
-    version: FullVersion,
-    activeMods: XMLList<PackageId>,
-    knownExpansions: XMLList<PackageId>
-}
-
-interface XML_ModMetaData {
-    name: string
-    packageId: PackageId
-    author?: string
-    url?: string
-    supportedVersions?: XMLList<ShortVersion>
-    modDependencies?: XMLList<{
-        displayName: string
-        packageId: string
-        steamWorkshopUrl: string
-    }>
-
-    loadBefore?: XMLList<PackageId>
-    loadAfter?: XMLList<PackageId>
-    forceLoadBefore?: XMLList<PackageId>;
-    forceLoadAfter?: XMLList<PackageId>;
-
-    incompatibleWith?: XMLList<PackageId>
-    modVersion?: FullVersion,
-    description?: string
-}
 
 interface ModInfo {
     type: "Steam" | "DLC" | "Local",
     dirPath: string,
     previewPath?: string,
-    about: ModMetaData2,
+    about: ModMetaData_Schema,
     steamId?: string,
 }
 
@@ -45,9 +18,9 @@ interface ModPackInfo {
     name: string,
     modCount: number,
     DLC: string[],
-    version: FullVersion
+    version: string
 }
-interface GameInfo {
+interface GameInfoData {
     gameVersionShort: ShortVersion,
     gameVersionFull: FullVersion,
     gamePath: string,
@@ -57,16 +30,16 @@ interface GameInfo {
 
 
 
-interface ModListErrorReport {
-    mod: ModInfo
-    errors: {
-        // supportedVersions?: XMLList<ShortVersion>
-        modDependencies?: (ModInfo | (ModMetaData2["modDependencies"] & {})[number])[]
-        loadBefore?: ModInfo[]
-        loadAfter?: ModInfo[]
-        incompatibleWith?: ModInfo[]
-    }
-}
+// interface ModListErrorReport {
+//     mod: C_ModMetaData
+//     errors: {
+//         // supportedVersions?: XMLList<ShortVersion>
+//         modDependencies?: (C_ModMetaData | (ModMetaData_Schema["modDependencies"] & {})[number])[]
+//         loadBefore?: C_ModMetaData[]
+//         loadAfter?: C_ModMetaData[]
+//         incompatibleWith?: C_ModMetaData[]
+//     }
+// }
 
 
 

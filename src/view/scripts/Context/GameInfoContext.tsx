@@ -3,11 +3,11 @@ import React from "react";
 export const GameInfoContext = React.createContext<ReturnType<typeof useDate>>(null as any);
 
 function useDate() {
-    const [gameInfo, setValue] = React.useState<GameInfo>()
+    const [gameInfo, setGameInfo] = React.useState<GameInfoData>()
 
     React.useEffect(() => {
         invoke.getGameInfo().then(res => {
-            if (res.success) setValue(res.data);
+            if (res.success) setGameInfo(res.data);
         });
     }, []);
 

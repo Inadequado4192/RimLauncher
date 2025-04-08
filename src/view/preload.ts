@@ -1,8 +1,8 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 import { contextBridge, ipcRenderer } from "electron";
-import type { IPCEvents } from "../../src/main/IPCEvents";
-import type { Events } from "../../src/main/Events";
+import type { IPCEvents } from "../main/Events/IPCEvents";
+import type { FileEvents } from "../main/Events/WebEvents";
 import path from "path";
 
 
@@ -22,38 +22,41 @@ import path from "path";
 // contextBridge.exposeInMainWorld("electron", Bridge);
 
 
-function internal_invoke<C extends keyof typeof IPCEvents>(
-    channel: C,
-    ...args: Parameters<typeof IPCEvents[C]> extends [any, ...infer P] ? P : []
-) { return ipcRenderer.invoke(channel, ...args) as Promise<Awaited<ReturnType<typeof IPCEvents[C]>>> }
+// function internal_invoke<C extends keyof typeof IPCEvents>(
+//     channel: C,
+//     ...args: Parameters<typeof IPCEvents[C]> extends [any, ...infer P] ? P : []
+// ) { return ipcRenderer.invoke(channel, ...args) as Promise<Awaited<ReturnType<typeof IPCEvents[C]>>> }
 
 
 const internal_invokeProxy = new Proxy({}, {
     get: (target: {}, p: string) => (...args: any[]) => ipcRenderer.invoke(p, ...args)
 }) as { [C in keyof typeof IPCEvents]: (...args: Parameters<typeof IPCEvents[C]> extends [any, ...infer P] ? P : []) => Promise<Awaited<ReturnType<typeof IPCEvents[C]>>> }
 
-function internal_on<C extends keyof Events>(
-    channel: C,
-    listener: (e: Electron.IpcRendererEvent, ...data: Events[C]) => void
-) { return ipcRenderer.on(channel, listener) }
-function internal_off<C extends keyof Events>(
-    channel: C,
-    listener: (e: Electron.IpcRendererEvent, ...data: Events[C]) => void
-) { return ipcRenderer.off(channel, listener) }
+const internal_onProxy = new Proxy({}, {
+    get: (target: {}, channel: string) => (listener: any) => ipcRenderer.on(channel, listener)
+}) as
+    & { [C in keyof FileEvents]: (listener: (e: Electron.IpcRendererEvent, ...p: FileEvents[C]) => void) => void }
+    // & { [C in keyof FileEvents as `${C}_listenerType`]: (e: Electron.IpcRendererEvent, ...p: FileEvents[C]) => void }
+
+const internal_offProxy = new Proxy({}, {
+    get: (target: {}, channel: string) => (listener: any) => ipcRenderer.on(channel, listener)
+}) as { [C in keyof FileEvents]: (listener: (e: Electron.IpcRendererEvent, ...p: FileEvents[C]) => void) => void }
 
 
 declare global {
-    /**@deprecated */
-    const old_invoke: typeof internal_invoke;
-    const on: typeof internal_on;
-    const off: typeof internal_off;
-
+    // /**@deprecated */
+    // const old_invoke: typeof internal_invoke;
+    const on: typeof internal_onProxy;
+    type on_listenerType<T extends typeof internal_onProxy[keyof typeof internal_onProxy]> = Parameters<T>[0] ;
+    const off: typeof internal_offProxy;
     const invoke: typeof internal_invokeProxy
 }
-(window as any).old_invoke = internal_invoke;
+
+
+// (window as any).old_invoke = internal_invoke;
 (window as any).invoke = internal_invokeProxy;
-(window as any).on = internal_on;
-(window as any).off = internal_off;
+(window as any).on = internal_onProxy;
+(window as any).off = internal_offProxy;
 
 
 

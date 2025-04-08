@@ -1,7 +1,7 @@
 {
     "name": "rimlauncher",
     "productName": "RimLauncher",
-    "version": "0.1.0",
+    "version": "0.5.0",
     "description": "Launcher for RimWorld",
     "main": ".webpack/main",
     "scripts": {
@@ -26,8 +26,11 @@
         "@mui/icons-material": "^6.4.3",
         "@mui/joy": "^5.0.0-beta.51",
         "@mui/material": "^6.4.3",
+        "cheerio": "^1.0.0",
+        "chokidar": "^4.0.3",
         "electron-squirrel-startup": "^1.0.1",
         "fast-xml-parser": "^4.5.1",
+        "node-fetch": "^3.3.2",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-hook-form": "^7.54.2",
