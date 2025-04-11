@@ -22,6 +22,8 @@
         "name": "Name",
         "disable": "Disable",
         "enable": "Enable",
+        "warnings": "Warnings",
+        "next": "Next",
 
 
         "updateTime": "Update time",
@@ -110,6 +112,10 @@
 
 
         "tab_ModListManager": "Mod list manager",
-        "tab_ModUpdates": "Mod updates"
+        "tab_ModUpdates": "Mod updates",
+
+
+        "fileNotFound": "{0} is not found",
+        "missingSteamId": "Missing Steam id"
     }
 }

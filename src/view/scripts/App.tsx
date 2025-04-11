@@ -13,16 +13,17 @@ import { ConfirmContainer } from "@Services/Confirm";
 import { ReloadContextProvider } from "@Context/ReloadContext";
 import { ModListContextProvider } from "@Context/ModListContext";
 import { ModsConfigContextProvider } from "@Context/ModsConfig";
+import { AlertBigContainer } from "@Services/AlertBig";
 
 export default function App() {
     return (
         <CssVarsProvider theme={theme} defaultMode="dark">
-            <LocalContextProvider>
-                <MainContextProvider>
-                    <GameInfoContextProvider>
-                        <UserConfigContextProvider>
-                            <ModsConfigContextProvider>
-                                <ReloadContextProvider>
+            <ReloadContextProvider>
+                <LocalContextProvider>
+                    <MainContextProvider>
+                        <GameInfoContextProvider>
+                            <UserConfigContextProvider>
+                                <ModsConfigContextProvider>
                                     <ModListContextProvider>
                                         <Stack>
                                             <TitleBar />
@@ -31,18 +32,19 @@ export default function App() {
                                                 <ModuleTabs />
                                                 <Footer />
 
+                                                <AlertBigContainer />
                                                 <AlertContainer />
                                                 <PromptContainer />
                                                 <ConfirmContainer />
                                             </LoadingFrame>
                                         </Stack>
                                     </ModListContextProvider>
-                                </ReloadContextProvider>
-                            </ModsConfigContextProvider>
-                        </UserConfigContextProvider>
-                    </GameInfoContextProvider>
-                </MainContextProvider>
-            </LocalContextProvider>
+                                </ModsConfigContextProvider>
+                            </UserConfigContextProvider>
+                        </GameInfoContextProvider>
+                    </MainContextProvider>
+                </LocalContextProvider>
+            </ReloadContextProvider>
         </CssVarsProvider>
     )
 }

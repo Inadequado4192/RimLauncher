@@ -1,7 +1,7 @@
 "use client";
-import { Stack, Alert, AlertProps, Button } from "@mui/joy";
+import { Stack, Alert, AlertProps, Button, IconButton } from "@mui/joy";
 import React from "react";
-
+import CloseIcon from '@mui/icons-material/Close';
 
 
 export function AlertContainer() {
@@ -24,10 +24,11 @@ export function AlertContainer() {
         >
             {alerts.map(({ _internalId: id, ...props }, i) => (
                 <Alert
+                    size="md"
                     key={i}
-                    endDecorator={<Button variant="outlined" onClick={() => AlertService.remove(id)}>Close</Button>}
+                    endDecorator={<IconButton variant="plain" onClick={() => AlertService.remove(id)}><CloseIcon /></IconButton>}
                     sx={{
-                        boxShadow: "0 0 10px 10px rgb(0,0,0,.5)"
+                        boxShadow: "0 0 10px 10px rgb(0,0,0,.25)"
                     }}
                     {...props}
                 >{props.text}</Alert>

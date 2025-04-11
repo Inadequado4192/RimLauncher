@@ -17,7 +17,7 @@ export default function ModList() {
     const {
         modList,
         selectedMod,
-        selectedModId, setSelectedModId
+        setSelectedModPath
     } = React.useContext(LocalModListContext);
     const { tagsV } = React.useContext(TagsVisibilityContext);
     const [searchText, setSearchText] = React.useState("");
@@ -98,7 +98,7 @@ export default function ModList() {
                 }}
 
                 onDoubleClick={() => mod.toggleState()}
-                onClick={() => setSelectedModId(mod.packageId)}
+                onClick={() => setSelectedModPath(mod.dirPath)}
                 onDragOver={(e) => e.preventDefault()}
                 onDragStart={(e) => e.dataTransfer.setData("packageId", mod.packageId)}
                 onDrop={(e) => {
@@ -142,13 +142,14 @@ export default function ModList() {
         return e;
     }, [modList.mods]);
 
-    const mapping = React.useCallback((mod: Mod) => <Item
-        key={mod.packageId}
+    const mapping = React.useCallback((mod: Mod, i: number) => <Item
+        key={i}
+        // key={mod.packageId}
         mod={mod}
-        isSelected={selectedMod?.samePackageId(mod.packageId) ?? false}
+        isSelected={(selectedMod?.dirPath == mod.dirPath)}
         errorType={errors[mod.packageId]}
         show={
-            new RegExp(searchText, "i").test(mod.name) &&
+            mod.name.toLowerCase().includes(searchText.toLowerCase()) &&
             (!tagsV.size || mod.tags.some(t => tagsV.has(t.name)))
         }
     />, [selectedMod, searchText, errors, tagsV]);
@@ -196,11 +197,14 @@ export default function ModList() {
     )
 }
 
+
+
+
 function useKeySelectEvents() {
     const {
         modList,
         selectedMod,
-        selectedModId, setSelectedModId,
+        setSelectedModPath,
     } = React.useContext(LocalModListContext);
 
     // Move By Arrows
@@ -244,7 +248,7 @@ function useKeySelectEvents() {
             if (targetId < 0) targetId = targetList.length - 1;
             else if (targetId >= targetList.length) targetId = 0;
 
-            setSelectedModId(targetList[targetId]?.packageId);
+            setSelectedModPath(targetList[targetId]?.dirPath);
 
             ev.preventDefault();
         }
@@ -262,7 +266,7 @@ function ModTooltip({ data, onClose }: {
     data?: { pacageId: PackageId, anchorEl: HTMLElement }
     onClose: (e: Event | React.SyntheticEvent<Element, Event>) => void
 }) {
-    const { modList, setSelectedModId } = React.useContext(LocalModListContext);
+    const { modList, setSelectedModPath: setSelectedModId } = React.useContext(LocalModListContext);
     const mod = React.useMemo(() => {
         if (!data) return;
         return modList.mods.find(m => m.samePackageId(data.pacageId));

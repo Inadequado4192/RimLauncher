@@ -5,14 +5,14 @@ export const LocalModListContext = React.createContext<ReturnType<typeof useDate
 
 function useDate() {
     const modList = React.useContext(ModListContext);
-    const [selectedModId, setSelectedModId] = React.useState<PackageId>();
-    const selectedMod = React.useMemo(() => selectedModId && modList.mods.find(m => m.samePackageId(selectedModId)), [modList.mods, selectedModId]);
+    const [selectedModPath, setSelectedModPath] = React.useState<string>();
+    const selectedMod = React.useMemo(() => modList.mods.find(m => m.dirPath == selectedModPath), [modList.mods, selectedModPath]);
 
 
     return {
         modList,
         selectedMod,
-        selectedModId, setSelectedModId,
+        selectedModPath, setSelectedModPath,
     }
 }
 

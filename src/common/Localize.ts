@@ -1,20 +1,21 @@
-
 export let local: SomeLocal;
 
 export default function Localize(key: keyof SomeLocal["keys"] | (string & {}), args?: any[]) {
+    const string = local.keys[key as keyof SomeLocal["keys"]] ?? key;
 
-    let string: string;
-    if (process.type == "browser") {
-        const Local = require("src/main/localization") as typeof import("src/main/localization").default;
-        string = Local.getTargetLocal().keys[key as keyof SomeLocal["keys"]] ?? key;
-    } else if (process.type == "renderer") {
-        string = local?.keys[key as keyof SomeLocal["keys"]] ?? key;
-    } else throw Error(`Unknown process type: ${process.type}`);
-
-    return string;
+    let newStr = string;
+    if (args) {
+        for (const m of string.match(/\{(\d+)\}/g) ?? []) {
+            newStr = newStr.replace(m, args[+m.slice(1, -1)])
+        }
+    }
+    return newStr;
 }
 
 export async function loadingLocal() {
-    if (process.type != "renderer") return;
-    local = await invoke.getTargetLocalJSON();
+    if (process.type == "renderer")
+        local = await invoke.getTargetLocalJSON();
+    else if (process.type == "browser") {
+        local = (await import("src/main/localization")).default.getTargetLocal();
+    }
 }

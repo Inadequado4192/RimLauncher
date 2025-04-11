@@ -1,8 +1,11 @@
 import React from "react";
-import { Mod, ModErrorType } from "../Classes/Mod";
+import { Mod as Mod, ModErrorType } from "../Classes/Mod";
 import { UserConfigContext } from "./UserConfigContext";
 import { ModsConfigContext } from "./ModsConfig";
 import { GameInfoContext } from "./GameInfoContext";
+import Localize from "@Common/Localize";
+import { AlertBigService } from "@Services/AlertBig";
+import { List, ListItem, ListItemButton, Typography, Stack } from "@mui/joy";
 
 export const ModListContext = React.createContext<ReturnType<typeof useDate>>(null as any);
 
@@ -15,10 +18,43 @@ function useDate() {
     const [isLoaded, setIsLoaded] = React.useState(false);
 
     const [modsString, setModsString] = React.useState("");
+
+    const [warnings, setWarnings] = React.useState<Warning[]>([]);
+    const alertBigRefId = React.useRef<number | null>(null);
+
+
     React.useEffect(() => {
         const str = mods.map(m => `${m.packageId}-${m.dirPath}`).join(",");
         if (modsString != str) setModsString(str);
     }, [mods]);
+
+
+    React.useEffect(() => {
+        if (alertBigRefId.current != undefined) AlertBigService.remove(alertBigRefId.current);
+        if (warnings.length) {
+            const { id } = AlertBigService.create({
+                title: Localize("warnings"),
+                text: (
+                    <List>
+                        {warnings.map((w, i) => (
+                            <ListItem key={i}>
+                                <ListItemButton
+                                    title={w.dirPath}
+                                    onClick={() => invoke.openPath(w.dirPath)}
+                                >
+                                    <Stack>
+                                        <Typography>{w.message}</Typography>
+                                        <Typography noWrap level="body-xs">{w.dirPath}</Typography>
+                                    </Stack>
+                                </ListItemButton>
+                            </ListItem>
+                        ))}
+                    </List>
+                ),
+            });
+            alertBigRefId.current = id;
+        }
+    }, [warnings]);
 
 
     function updateMod(mod: Mod) {
@@ -35,9 +71,16 @@ function useDate() {
         // First Load
         invoke.getModList().then(async (res) => {
             if (res.success) {
-                setMods(res.data.map(d => new Mod(d)));
+                const newMods: Mod[] = [], newWarnings: Warning[] = [];
+                res.data.forEach(d => {
+                    if (d.about) newMods.push(new Mod(d));
+                    newWarnings.push(...d.warnings);
+                });
+                setMods(newMods);
+                setWarnings(newWarnings);
             } else {
                 setMods([]);
+                setWarnings([]);
             }
             setIsLoaded(true);
         });
@@ -46,12 +89,20 @@ function useDate() {
         // Watch
         const onWorkshopContentChanged: on_listenerType<typeof on.WorkshopContentChanged> = (e, ...data) => {
             if (data[0] == "add") {
-                setMods([...mods, new Mod(data[1])]);
+                const d = data[1];
+                if (d.about) setMods(mods => [...mods, new Mod(d)]);
+                else setWarnings(warnings => [...warnings, ...d.warnings])
             } else {
-                const ind = mods.findIndex(m => m.dirPath == data[1]);
-                if (ind >= 0) {
-                    mods.splice(ind, 1);
+                const m_ind = mods.findIndex(m => m.dirPath == data[1]);
+                if (m_ind >= 0) {
+                    mods.splice(m_ind, 1);
                     setMods([...mods]);
+                }
+
+                const w_ind = warnings.findIndex(w => w.dirPath == data[1]);
+                if (w_ind >= 0) {
+                    warnings.splice(w_ind, 1);
+                    setWarnings([...warnings]);
                 }
             }
         }
@@ -59,7 +110,7 @@ function useDate() {
         return () => {
             off.WorkshopContentChanged(onWorkshopContentChanged);
         }
-    }, [mods]);
+    }, [mods, warnings]);
 
 
 

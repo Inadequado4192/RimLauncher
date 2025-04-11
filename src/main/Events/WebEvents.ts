@@ -6,13 +6,16 @@ import ModsConfig from "../tools/ModsConfig";
 import ModPacks from "../tools/ModPacks";
 import EventEmitter from "events";
 import ModList from "@Tools/ModList";
+import fs, { existsSync, readdirSync } from "fs";
+import path from "path";
+import { wait } from "@Common/utils";
 
 export interface FileEvents {
     changeUseConfig: [config: UserConfig],
     changeModsConfigFile: [xml: ModsConfig_Schema],
     changeModPacksList: [list: ModPackInfo[]],
 
-    WorkshopContentChanged: [method: "add", newContent: ModInfo] | [method: "remove", path: string]
+    WorkshopContentChanged: [method: "add", newContent: ModInfoWithWarning] | [method: "remove", path: string]
 }
 
 
@@ -41,15 +44,22 @@ export function InitWebEvents() {
 
         function start(newpath: string) {
             if (watcher) watcher.close();
-            watcher = chokidar.watch(newpath, { ignoreInitial: true, depth: 0 })
+            watcher = chokidar.watch(newpath, {
+                ignoreInitial: true,
+                depth: 0,
+
+            })
                 .on("addDir", (path) => {
-                    let v = ModList.getModFrom("Steam", path);
-                    v && webEvents.WorkshopContentChanged("add", v);
+                    setTimeout(() => {
+                        // Wait Write Finish
+                        const v = ModList.getModFrom("Steam", path);
+                        webEvents.WorkshopContentChanged("add", v);
+                    }, 1000);
                 })
                 .on("unlinkDir", (path) => {
                     webEvents.WorkshopContentChanged("remove", path);
                 });
-                
+
             return start;
         }
 

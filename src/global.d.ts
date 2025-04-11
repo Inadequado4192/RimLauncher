@@ -5,13 +5,28 @@ type PackageId = `$PackageIdType$`;
 type XMLList<T> = { li: T[] }
 
 
+interface Warning {
+    dirPath: string,
+    message: string
+}
+
 interface ModInfo {
     type: "Steam" | "DLC" | "Local",
     dirPath: string,
-    previewPath?: string,
     about: ModMetaData_Schema,
+    previewPath?: string,
     steamId?: string,
+    warnings: Warning[],
 }
+interface ModInfoWarning {
+    warnings: Warning[];
+    type?: undefined;
+    dirPath?: undefined;
+    previewPath?: undefined;
+    about?: undefined;
+    steamId?: undefined;
+}
+type ModInfoWithWarning = ModInfo | ModInfoWarning
 
 interface ModPackInfo {
     path: string,

@@ -39,15 +39,15 @@ const internal_onProxy = new Proxy({}, {
     // & { [C in keyof FileEvents as `${C}_listenerType`]: (e: Electron.IpcRendererEvent, ...p: FileEvents[C]) => void }
 
 const internal_offProxy = new Proxy({}, {
-    get: (target: {}, channel: string) => (listener: any) => ipcRenderer.on(channel, listener)
+    get: (target: {}, channel: string) => (listener: any) => ipcRenderer.off(channel, listener)
 }) as { [C in keyof FileEvents]: (listener: (e: Electron.IpcRendererEvent, ...p: FileEvents[C]) => void) => void }
 
 
 declare global {
     // /**@deprecated */
     // const old_invoke: typeof internal_invoke;
-    const on: typeof internal_onProxy;
     type on_listenerType<T extends typeof internal_onProxy[keyof typeof internal_onProxy]> = Parameters<T>[0] ;
+    const on: typeof internal_onProxy;
     const off: typeof internal_offProxy;
     const invoke: typeof internal_invokeProxy
 }
@@ -69,8 +69,8 @@ addEventListener("keydown", function (e) {
 });
 
 
-console.log("Pathes", {
-    "process.resourcesPath": process.resourcesPath,
-    "__dirname": __dirname,
-    "path.resolve(\"./\")": path.resolve("./")
-});
+// console.log("Pathes", {
+//     "process.resourcesPath": process.resourcesPath,
+//     "__dirname": __dirname,
+//     "path.resolve(\"./\")": path.resolve("./")
+// });

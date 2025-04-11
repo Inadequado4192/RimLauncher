@@ -10,21 +10,24 @@ export function LoadingFrame({
 }: {
     children: React.ReactNode | React.ReactNode[]
 }) {
-    const { userConfig: config } = React.useContext(UserConfigContext);
+    const { userConfig } = React.useContext(UserConfigContext);
     const { gameInfo } = React.useContext(GameInfoContext);
     const [localLoaded, setLocalLoaded] = React.useState(false);
     const { isReloading, setReload } = React.useContext(ReloadContext);
 
 
     React.useEffect(() => {
-        if (!isReloading) return;
+        if (!isReloading) {
+            console.log("%cLOADED", "color: green; font-weight: bold; font-size: 20px;");
+            return;
+        }
         setLocalLoaded(false);
         loadingLocal().then(() => setLocalLoaded(true));
     }, [isReloading]);
 
     React.useEffect(() => {
-        setReload(!gameInfo || !localLoaded || !config);
-    }, [gameInfo, localLoaded, config]);
+        setReload(!gameInfo || !localLoaded || !userConfig);
+    }, [gameInfo, localLoaded, userConfig]);
 
     return (
         <>

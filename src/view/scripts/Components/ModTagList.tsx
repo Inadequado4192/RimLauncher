@@ -54,7 +54,7 @@ export default function ModTagList({ tags, packageId }: { tags: ModTag[], packag
                     if (tags.some(mt => mt.name == t.name)) return null
                     return (
                         <ModTag
-                            sx={{ opacity: .75 }}
+                            sx={{ opacity: .5 }}
                             key={t.name}
                             onClick={onAdd.bind({}, t)}
                             tag={t}

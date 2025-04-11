@@ -34,5 +34,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ElectronApp-${{ matrix.os }}
+          name: RimLauncher-${{ matrix.os }}
           path: out/

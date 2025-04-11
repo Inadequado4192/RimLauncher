@@ -246,7 +246,6 @@ function TagList() {
             spacing={1}
             alignItems="stretch"
             sx={{
-                maxHeight: 160,
                 overflow: "auto",
                 px: 1
             }}

@@ -1,8 +1,5 @@
-import React from "react";
-import { UserConfigContextType } from "@Context/UserConfigContext";
-import { GameInfoContext } from "@Context/GameInfoContext";
-import { ModsConfigContext } from "@Context/ModsConfig";
-import { openModInSteam, openUrl } from "../utils";
+import { openModInSteam } from "../utils";
+
 
 export class Mod implements ModMetaData_Schema {
     public static modsConfig: ModsConfig_Schema | undefined;

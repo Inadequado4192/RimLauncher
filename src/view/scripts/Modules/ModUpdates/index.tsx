@@ -133,7 +133,10 @@ function useFetchWorkshopDetails() {
     React.useEffect(() => {
         if (data || !modList.mods.length) return;
 
-        fetchWorkshopDetails(modList.mods.filter(mod => mod.type === "Steam").map(mod => mod.steamId!))
+        fetchWorkshopDetails(
+            modList.mods.filter(mod => mod.type === "Steam" && mod.steamId)
+                .map(mod => mod.steamId!)
+        )
             .then(res => setData(res.sort((a, b) => -a.time_updated - -b.time_updated)));
     }, [modList.mods]);
 
@@ -155,38 +158,38 @@ const fetchWorkshopDetails = (() => {
     const cache: { key: string, data: PublishedFile[] }[] = [];
     return async function (ids: (number | string)[]): Promise<PublishedFile[]> {
         if (currentPromise) return await currentPromise;
-    
+
         return currentPromise = new Promise(async (t, f) => {
             try {
                 const cacheKey = ids.join(",");
                 const cacheDate = cache.find(b => b.key == cacheKey);
                 if (cacheDate) return t(cacheDate.data);
-    
+
                 const chunks = chunk(ids, 100);
                 const allResults: PublishedFile[] = [];
-    
+
                 for (const group of chunks) {
                     const formData = new URLSearchParams();
                     group.forEach((id, index) => {
                         formData.append(`publishedfileids[${index}]`, id.toString());
                     });
                     formData.append("itemcount", group.length.toString());
-    
+
                     const res = await fetch(API_URL, {
                         method: "POST",
                         headers: { "Content-Type": "application/x-www-form-urlencoded" },
                         body: formData.toString(),
                     });
-    
+
                     const data = await res.json();
                     allResults.push(...data.response.publishedfiledetails);
                 }
-    
+
                 cache.push({
                     key: cacheKey,
                     data: allResults
                 });
-    
+
                 t(allResults);
                 currentPromise = null;
             } catch (e) { f(e); }
