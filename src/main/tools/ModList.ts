@@ -40,9 +40,10 @@ namespace ModList {
         const xml = parser.parse(xmlText);
         const result = Schemes.XML.ModMetaData(dirPath).safeParse(xml.modMetaData ?? xml.ModMetaData);
         if (!result.success) {
+            console.log(result.error);
             warnings.push({
                 dirPath,
-                message: result.error.formErrors.formErrors.join("\n"),
+                message: `Schemes.XML:\n\n${result.error.formErrors.formErrors.join("\n")}`,
             });
             return { warnings };
         }

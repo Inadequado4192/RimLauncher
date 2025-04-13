@@ -5,7 +5,7 @@ import { DebugPathes, FindPathes } from "./Pathes";
 
 
 namespace Schemes {
-    const PackageId = z.string()
+    const PackageId = z.coerce.string()
         .min(1, "Package ID is required.")
         .max(60, "Package ID must be 60 characters or less.")
         .regex(/^[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*$/, "Package ID must contain only alphanumeric characters and dots, with at least one dot, and no repeated, leading, or trailing dots.")
@@ -78,26 +78,26 @@ namespace Schemes {
 
 
         export const ModsConfig = z.object({
-            version: z.string(),
+            version: z.coerce.string(),
             activeMods: XMLList(PackageId),
             knownExpansions: XMLList(PackageId),
         });
 
 
         export const ModDependency = z.object({
-            displayName: z.string(),
+            displayName: z.coerce.string(),
             packageId: PackageId,
-            steamWorkshopUrl: z.string(),
+            steamWorkshopUrl: z.coerce.string(),
         })
 
 
         export const ModMetaData = (dirpath: string) => z.object({
-            name: z.string().default(path.basename(dirpath)),
+            name: z.coerce.string().default(path.basename(dirpath)),
             packageId: PackageId,
-            author: z.string().optional(),
-            url: z.string().optional(),
+            author: z.coerce.string().optional(),
+            url: z.coerce.string().optional(),
             modVersion: z.coerce.string().optional(),
-            description: z.string().optional(),
+            description: z.coerce.string().optional(),
             supportedVersions: XMLList(z.coerce.string()).optional(),
             modDependencies: XMLList(ModDependency).optional(),
             loadBefore: XMLList(PackageId).optional(),

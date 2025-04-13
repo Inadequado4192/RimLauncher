@@ -27,7 +27,7 @@
 
 
         "updateTime": "Час оновлення",
-        "loadChanges": "Завантажити зміни",
+        "review": "Огляд",
 
 
         "openDirectory": "Відкрити директорію",
@@ -106,9 +106,6 @@
         "section_ModList": "Список модів",
         "section_Stats": "Статистика",
         "section_Tags": "Теги",
-
-        "previousUpdates": "Попередні оновлення",
-
 
         "tab_ModListManager": "Менеджер списку модів",
         "tab_ModUpdates": "Оновлення модів",

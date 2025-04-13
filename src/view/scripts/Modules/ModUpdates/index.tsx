@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import React from "react";
-import { Box, Button, CircularProgress, LinearProgress, Stack, Table, Typography } from "@mui/joy";
+import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Box, Button, CircularProgress, LinearProgress, Stack, Table, Typography } from "@mui/joy";
 import Localize from "@Common/Localize";
 import { ModListContext } from "@Context/ModListContext";
 import { UserConfigContext } from "@Context/UserConfigContext";
@@ -28,7 +28,7 @@ export default function ModUpdates() {
             <thead>
                 <tr>
                     <th style={{ width: 150 }}> {Localize("updateTime")}</th >
-                    <th style={{ width: 150 }}>{Localize("name")}</th>
+                    <th style={{ width: 300 }}>{Localize("name")}</th>
                     <th style={{ width: 100 }}>{Localize("size")}</th>
                     <th>{Localize("description")}</th>
                 </tr >
@@ -63,13 +63,13 @@ ModUpdates.useTestName = () => {
 }
 
 function ModRow({ publishedFile, highlight }: { publishedFile: PublishedFile, highlight: boolean }) {
-    const [changes, setChanges] = React.useState<string[]>();
+    const [changes, setChanges] = React.useState<Awaited<ReturnType<typeof fetchChangeNote>> & {}>();
     const [loading, setLoading] = React.useState(false);
 
     async function loadChanges() {
         setLoading(true);
         const changes = await fetchChangeNote(publishedFile.publishedfileid);
-        setChanges(changes);
+        if (changes) setChanges(changes);
         setLoading(false);
     }
 
@@ -91,34 +91,36 @@ function ModRow({ publishedFile, highlight }: { publishedFile: PublishedFile, hi
             </td>
             <td align="right">{(+publishedFile.file_size / 1000000).toFixed(1)} MB</td>
             <td>
-                <Box
-                    sx={{
-                        whiteSpace: "break-spaces",
-                        maxHeight: 200,
-                        overflow: "auto"
-                    }}
-                >
-                    {!loading && !changes
-                        ? <Button onClick={loadChanges} fullWidth>{Localize("loadChanges")}</Button>
-                        : !changes
-                            ? <LinearProgress />
-                            : (
-                                <>
-                                    {changes[0]}
-                                    {changes.slice(1).length && (
-                                        <>
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <Typography color="warning">----{Localize("previousUpdates")}----</Typography>
-                                            {changes.slice(1).join(`\n\n`)}
-                                        </>
-                                    )}
-                                </>
-                            )
-                    }
-                </Box>
+                <AccordionGroup>
+                    <Accordion
+                        variant="soft"
+                        onChange={(ev, e) => {
+                            if (e && !changes && !loading) loadChanges();
+                        }}
+                    >
+                        <AccordionSummary>{Localize("review")}</AccordionSummary>
+                        <AccordionDetails
+                            sx={{
+                                whiteSpace: "break-spaces"
+                            }}
+                        >
+                            {!changes
+                                ? <LinearProgress />
+                                : (
+                                    <>
+                                        {changes.map((b, i) => (
+                                            <React.Fragment key={i}>
+                                                <Typography color="warning">{b.time}</Typography>
+                                                <Typography level="body-sm">{b.text}</Typography>
+                                                {i !== changes.length - 1 ? <br /> : null}
+                                            </React.Fragment>
+                                        ))}
+                                    </>
+                                )
+                            }
+                        </AccordionDetails>
+                    </Accordion>
+                </AccordionGroup>
             </td>
         </Box>
     )
@@ -204,11 +206,13 @@ async function fetchChangeNote(workshopId: string) {
         const res = await fetch(url);
         const html = await res.text();
         const $ = cheerio.load(html);
-        const blocks = $('#profileBlock .workshopAnnouncement p');
-        const allChanges = blocks.map((i, el) => $(el).html()?.replace(/\<br\>/g, "\\n")).get();
-        return allChanges;
+        const blocks = $('#profileBlock .workshopAnnouncement').map((_, el) => ({
+            time: $(el).children(".headline").html()?.trim() ?? "",
+            text: $(el).children("p").html()?.trim().replace(/\<br\>|\\n/g, "\n") ?? "",
+        })).get();
+        return blocks;
     } catch {
-        return [Localize("error")]
+        return null;
     }
 }
 

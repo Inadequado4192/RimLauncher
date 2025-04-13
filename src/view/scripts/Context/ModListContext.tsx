@@ -71,8 +71,10 @@ function useDate() {
         // First Load
         invoke.getModList().then(async (res) => {
             if (res.success) {
+                console.log(res);
                 const newMods: Mod[] = [], newWarnings: Warning[] = [];
                 res.data.forEach(d => {
+                    if (d.warnings.length) console.log({ d });
                     if (d.about) newMods.push(new Mod(d));
                     newWarnings.push(...d.warnings);
                 });
