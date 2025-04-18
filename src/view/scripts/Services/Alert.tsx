@@ -30,6 +30,7 @@ export function AlertContainer() {
                     sx={{
                         boxShadow: "0 0 10px 10px rgb(0,0,0,.25)"
                     }}
+                    invertedColors
                     {...props}
                 >{props.text}</Alert>
             ))}
@@ -38,7 +39,7 @@ export function AlertContainer() {
 }
 
 
-interface AlertData extends AlertProps {
+interface AlertData extends Pick<AlertProps, "color"> {
     text: string
     lifeTime?: number | null,
 }

@@ -1,6 +1,6 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, shell } from "electron";
 import type { IPCEvents } from "../main/Events/IPCEvents";
 import type { FileEvents } from "../main/Events/WebEvents";
 import path from "path";
@@ -36,7 +36,7 @@ const internal_onProxy = new Proxy({}, {
     get: (target: {}, channel: string) => (listener: any) => ipcRenderer.on(channel, listener)
 }) as
     & { [C in keyof FileEvents]: (listener: (e: Electron.IpcRendererEvent, ...p: FileEvents[C]) => void) => void }
-    // & { [C in keyof FileEvents as `${C}_listenerType`]: (e: Electron.IpcRendererEvent, ...p: FileEvents[C]) => void }
+// & { [C in keyof FileEvents as `${C}_listenerType`]: (e: Electron.IpcRendererEvent, ...p: FileEvents[C]) => void }
 
 const internal_offProxy = new Proxy({}, {
     get: (target: {}, channel: string) => (listener: any) => ipcRenderer.off(channel, listener)
@@ -46,7 +46,7 @@ const internal_offProxy = new Proxy({}, {
 declare global {
     // /**@deprecated */
     // const old_invoke: typeof internal_invoke;
-    type on_listenerType<T extends typeof internal_onProxy[keyof typeof internal_onProxy]> = Parameters<T>[0] ;
+    type on_listenerType<T extends typeof internal_onProxy[keyof typeof internal_onProxy]> = Parameters<T>[0];
     const on: typeof internal_onProxy;
     const off: typeof internal_offProxy;
     const invoke: typeof internal_invokeProxy
@@ -67,6 +67,15 @@ declare global {
 addEventListener("keydown", function (e) {
     if (e.code == "Tab") e.preventDefault();
 });
+
+addEventListener("click", (e) => {
+    const target = e.target as HTMLAnchorElement;
+    if (target.tagName === "A" && target.href.startsWith("http")) {
+        e.preventDefault();
+        shell.openExternal(target.href);
+    }
+});
+
 
 
 // console.log("Pathes", {

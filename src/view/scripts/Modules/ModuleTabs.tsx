@@ -18,12 +18,14 @@ export default function ModuleTabs() {
                     p: 1,
                     flex: 1,
                     overflow: "auto",
-                },
-                "& > .MuiTabPanel-root > *": {
                     height: "100%",
                     maxHeight: "100%",
-                    overflow: "auto",
-                }
+                },
+                // "& > .MuiTabPanel-root > *": {
+                //     height: "100%",
+                //     maxHeight: "100%",
+                //     overflow: "auto",
+                // }
             }}
         >
             <TabList>

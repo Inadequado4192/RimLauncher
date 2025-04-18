@@ -37,15 +37,8 @@ export default function ModTagList({ tags, packageId }: { tags: ModTag[], packag
                         <ModTag
                             key={i}
                             tag={t}
-                        >
-                            <IconButton
-                                size="sm"
-                                variant="outlined"
-                                onClick={onRemove.bind({}, t)}
-                            >
-                                <CloseIcon />
-                            </IconButton>
-                        </ModTag>
+                            onClick={onRemove.bind({}, t)}
+                        />
                     )}
                 </Stack>
             )}

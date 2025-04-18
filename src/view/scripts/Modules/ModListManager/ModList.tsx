@@ -1,4 +1,4 @@
-import { Box, Button, Chip, CircularProgress, ColorPaletteProp, IconButton, Input, List, ListItemButton, ListItemDecorator, Stack, Tooltip, Typography } from "@mui/joy";
+import { Box, Button, ButtonGroup, Chip, CircularProgress, ColorPaletteProp, Divider, IconButton, Input, List, ListItem, ListItemButton, ListItemDecorator, Stack, Tooltip, Typography } from "@mui/joy";
 import React, { JSX } from "react";
 import FolderIcon from "@mui/icons-material/Folder";
 import RimWorldIcon from "src/view/scripts/Components/Icons/RimWorld";
@@ -10,6 +10,8 @@ import { Mod, ModErrorType } from "../../Classes/Mod";
 import CloseIcon from '@mui/icons-material/Close';
 import ModTagList from "@Components/ModTagList";
 import { TagsVisibilityContext } from "./Context/TagsVisibilityContext";
+import { useInView } from "react-intersection-observer";
+import Steam from "src/view/scripts/Components/Icons/Steam";
 
 const modListItemClass = "mod-list-item";
 
@@ -17,14 +19,16 @@ export default function ModList() {
     const {
         modList,
         selectedMod,
-        setSelectedModPath
+        setSelectedMod,
+        lastSelectedL_Path, lastSelectedR_Path,
     } = React.useContext(LocalModListContext);
     const { tagsV } = React.useContext(TagsVisibilityContext);
     const [searchText, setSearchText] = React.useState("");
 
     const [isOpenModTooltip, setModTooltip] = React.useState<Parameters<typeof ModTooltip>[0]["data"]>();
 
-    const selectedElementRef = React.useRef<null | HTMLDivElement>(null);
+    // const selectedElementRef = React.useRef<null | HTMLLIElement>(null);
+
     useKeySelectEvents();
 
 
@@ -37,25 +41,21 @@ export default function ModList() {
         )
     }
 
-    const Item = React.useCallback(React.memo(function ({ mod, isSelected, errorType, show }: {
+    const Item = React.useCallback(React.memo(function ({ mod, lastSelected, isSelected, errorType, show }: {
         mod: Mod,
+        lastSelected: boolean,
         isSelected: boolean,
         errorType: ModErrorType,
         show: boolean
     }) {
         // console.log("[ITEM]");
-        const ref = React.useRef<HTMLDivElement>(null);
+        const elemRef = React.useRef<HTMLLIElement>(null);
+
+        const { ref, inView } = useInView({ threshold: 0, });
 
         React.useEffect(() => {
             if (isSelected) {
-                // Has been selected
-                selectedElementRef.current = ref.current;
-                selectedElementRef.current?.focus();
-            } else {
-                // Has been deselected
-                if (selectedElementRef.current == ref.current) {
-                    selectedElementRef.current = null;
-                }
+                elemRef.current?.focus();
             }
         }, [isSelected]);
 
@@ -75,64 +75,81 @@ export default function ModList() {
 
         if (!show) return null;
 
+        const height = 36;
+
         return (
-            <ListItemButton
-                ref={ref}
+            <ListItem
                 className={modListItemClass}
-                draggable
-                selected={isSelected}
-                color={color}
-                variant={color !== "neutral" ? "soft" : undefined}
-
-                onContextMenu={() => setModTooltip({ pacageId: mod.packageId, anchorEl: ref.current! })}
-                onMouseEnter={() => errorType && setModTooltip({ pacageId: mod.packageId, anchorEl: ref.current! })}
-                onMouseLeave={(e) => {
-                    if (
-                        e.relatedTarget instanceof HTMLElement &&
-                        (
-                            e.relatedTarget.classList.contains("MuiTooltip-root") ||
-                            e.relatedTarget.classList.contains("MuiTooltip-arrow")
-                        )
-                    ) return;
-                    setModTooltip(undefined);
-                }}
-
-                onDoubleClick={() => mod.toggleState()}
-                onClick={() => setSelectedModPath(mod.dirPath)}
-                onDragOver={(e) => e.preventDefault()}
-                onDragStart={(e) => e.dataTransfer.setData("packageId", mod.packageId)}
-                onDrop={(e) => {
-                    const targetId = e.dataTransfer.getData("packageId") as PackageId || "";
-                    if (!targetId) return;
-
-                    const elem = e.currentTarget.closest(`.${modListItemClass}`);
-                    if (!elem) return invoke.activeModAfter(targetId, mod.packageId);
-
-                    const rect = elem.getBoundingClientRect();
-
-                    if (e.pageY > rect.top + rect.height / 2)
-                        invoke.activeModAfter(targetId, mod.packageId);
-                    else
-                        invoke.activeModBefore(targetId, mod.packageId);
-                }}
-                sx={{ border: "none" }}
+                data-mod-path={mod.dirPath}
+                ref={e => ref(elemRef.current = e)}
+                sx={t => ({
+                    bgcolor: lastSelected ? t.palette.neutral.plainHoverBg : void 0,
+                    height,
+                    transition: ".2s",
+                    opacity: inView ? 1 : 0
+                })}
+                tabIndex={1}
             >
-                <Box
-                    sx={{
-                        position: "absolute",
-                        top: 0, bottom: 0,
-                        left: 0, right: 0,
-                        background: `linear-gradient(90deg, transparent 50%, ${mod.tags.map(t => t.color).join(", ")})`
-                    }}
-                />
-                <ListItemDecorator>{icon}</ListItemDecorator>
-                <Typography
-                    color={color}
-                    noWrap
-                    title={mod.name}
-                    sx={{ zIndex: 1 }}
-                >{mod.name}</Typography>
-            </ListItemButton>
+                {
+                    inView && (
+                        <ListItemButton
+                            draggable
+                            selected={isSelected}
+                            color={color}
+                            variant={color !== "neutral" ? "soft" : undefined}
+
+                            onContextMenu={() => setModTooltip({ pacageId: mod.packageId, anchorEl: elemRef.current! })}
+                            onMouseEnter={() => errorType && setModTooltip({ pacageId: mod.packageId, anchorEl: elemRef.current! })}
+                            onMouseLeave={(e) => {
+                                if (
+                                    e.relatedTarget instanceof HTMLElement &&
+                                    (
+                                        e.relatedTarget.classList.contains("MuiTooltip-root") ||
+                                        e.relatedTarget.classList.contains("MuiTooltip-arrow")
+                                    )
+                                ) return;
+                                setModTooltip(undefined);
+                            }}
+
+                            onDoubleClick={() => mod.toggleState()}
+                            onClick={() => setSelectedMod(mod)}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDragStart={(e) => e.dataTransfer.setData("packageId", mod.packageId)}
+                            onDrop={(e) => {
+                                const targetId = e.dataTransfer.getData("packageId") as PackageId || "";
+                                if (!targetId) return;
+
+                                const elem = e.currentTarget.closest(`.${modListItemClass}`);
+                                if (!elem) return invoke.activeModAfter(targetId, mod.packageId);
+
+                                const rect = elem.getBoundingClientRect();
+
+                                if (e.pageY > rect.top + rect.height / 2)
+                                    invoke.activeModAfter(targetId, mod.packageId);
+                                else
+                                    invoke.activeModBefore(targetId, mod.packageId);
+                            }}
+                            sx={{ border: "none" }}
+                        >
+                            <Box
+                                sx={{
+                                    position: "absolute",
+                                    top: 0, bottom: 0,
+                                    left: 0, right: 0,
+                                    background: `linear-gradient(90deg, transparent 50%, ${mod.tags.map(t => t.color).join(", ")})`
+                                }}
+                            />
+                            <ListItemDecorator>{icon}</ListItemDecorator>
+                            <Typography
+                                color={color}
+                                noWrap
+                                title={mod.name}
+                                sx={{ zIndex: 1 }}
+                            >{mod.name}</Typography>
+                        </ListItemButton>
+                    )
+                }
+            </ListItem>
         )
     }), []);
 
@@ -143,16 +160,16 @@ export default function ModList() {
     }, [modList.mods]);
 
     const mapping = React.useCallback((mod: Mod, i: number) => <Item
-        key={i}
-        // key={mod.packageId}
+        key={mod.dirPath}
         mod={mod}
+        lastSelected={lastSelectedL_Path == mod.dirPath || lastSelectedR_Path == mod.dirPath}
         isSelected={(selectedMod?.dirPath == mod.dirPath)}
         errorType={errors[mod.packageId]}
         show={
             mod.name.toLowerCase().includes(searchText.toLowerCase()) &&
             (!tagsV.size || mod.tags.some(t => tagsV.has(t.name)))
         }
-    />, [selectedMod, searchText, errors, tagsV]);
+    />, [selectedMod, searchText, errors, tagsV, lastSelectedL_Path, lastSelectedR_Path]);
 
 
     const unalist = React.useMemo(() => modList.unactives.map(mapping), [modList.unactives, mapping]);
@@ -181,10 +198,10 @@ export default function ModList() {
                     }
                 }}
             >
-                <List variant="outlined">
+                <List variant="outlined" id="list-unactive">
                     {!modList.isLoaded ? <LoadingElement /> : unalist}
                 </List>
-                <List variant="outlined" color={modList.errorType == ModErrorType.Error ? "danger" : modList.errorType == ModErrorType.Warn ? "warning" : undefined}>
+                <List variant="outlined" id="list-active" color={modList.errorType == ModErrorType.Error ? "danger" : modList.errorType == ModErrorType.Warn ? "warning" : undefined}>
                     {!modList.isLoaded ? <LoadingElement /> : alist}
                 </List>
             </Stack>
@@ -203,61 +220,91 @@ export default function ModList() {
 function useKeySelectEvents() {
     const {
         modList,
-        selectedMod,
-        setSelectedModPath,
+        selectedMod, setSelectedMod,
+        lastSelectedL_Path, lastSelectedR_Path,
     } = React.useContext(LocalModListContext);
 
     // Move By Arrows
     React.useEffect(() => {
         function keyDown(this: Window, ev: KeyboardEvent) {
-            // if (!this.document.activeElement ||
-            //     this.document.activeElement !== this.document.body && !this.document.activeElement.classList.contains(modListItemClass)
-            // ) return;
             if (this.document.getElementById("root")?.hasAttribute("aria-hidden") || document.activeElement?.tagName == "INPUT") return;
 
-            let targetList = selectedMod?.isActive() ? modList.actives : modList.unactives;
 
-            let targetId = !selectedMod ? 0 : targetList.findIndex(m => m.samePackageId(selectedMod.packageId));
 
+            const elements = {
+                unactives: [...this.document.querySelectorAll("#list-unactive > li")],
+                actives: [...this.document.querySelectorAll("#list-active > li")],
+            };
+            // const element = elements.values().find(elem => elem.getAttribute("data-mod-path") == selectedMod?.dirPath) ?? elements.item(0);
+
+            const isActive = selectedMod?.isActive() ?? false;
+            const currentList = isActive ? elements.actives : elements.unactives;
+
+            const currentIndex = currentList.findIndex(elem => elem.getAttribute("data-mod-path") == selectedMod?.dirPath)
+            
             switch (ev.code) {
                 case "KeyW":
                 case "ArrowUp":
-                    targetId--;
-                    break;
+                    {
+                        ev.preventDefault();
+                        let targetIndex = currentIndex - 1;
+                        if (targetIndex < 0) targetIndex = currentList.length - 1;
+                        else if (targetIndex >= currentList.length) targetIndex = 0;
+
+                        const tPath = currentList[targetIndex]?.getAttribute("data-mod-path");
+                        if (tPath) setSelectedMod(tPath);
+                    }
+                    return;
+
                 case "KeyS":
                 case "ArrowDown":
-                    targetId++;
-                    break;
+                    {
+                        ev.preventDefault();
+                        let targetIndex = currentIndex + 1;
+                        if (targetIndex < 0) targetIndex = currentList.length - 1;
+                        else if (targetIndex >= currentList.length) targetIndex = 0;
+
+                        const tPath = currentList[targetIndex]?.getAttribute("data-mod-path");
+                        if (tPath) setSelectedMod(tPath);
+                    }
+                    return;
+
                 case "KeyA": case "KeyD":
                 case "ArrowRight": case "ArrowLeft":
-                    targetList = targetList == modList.actives ? modList.unactives : modList.actives;
-                    break;
+                    ev.preventDefault();
+                    if (isActive) {
+                        if (lastSelectedL_Path) {
+                            setSelectedMod(lastSelectedL_Path);
+                        } else {
+                            const tPath = elements.unactives[0]?.getAttribute("data-mod-path");
+                            if (tPath) setSelectedMod(tPath);
+                        }
+                    } else {
+                        if (lastSelectedR_Path) {
+                            setSelectedMod(lastSelectedR_Path);
+                        } else {
+                            const tPath = elements.actives[0]?.getAttribute("data-mod-path");
+                            if (tPath) setSelectedMod(tPath);
+                        }
+                    }
+                    return;
+
                 case "Space":
                 case "Enter":
                     if (selectedMod) {
-                        if (targetList == modList.actives) {
-                            selectedMod.disable();
-                        } else {
-                            selectedMod.enable();
-                        }
+                        ev.preventDefault();
+                        if (isActive) selectedMod.disable();
+                        else selectedMod.enable();
                     }
-                    break;
-                default: return;
+                    return;
             }
-
-            if (targetId < 0) targetId = targetList.length - 1;
-            else if (targetId >= targetList.length) targetId = 0;
-
-            setSelectedModPath(targetList[targetId]?.dirPath);
-
-            ev.preventDefault();
         }
 
         addEventListener("keydown", keyDown);
         return () => {
             removeEventListener("keydown", keyDown);
         }
-    }, [modList, selectedMod]);
+    }, [selectedMod, lastSelectedL_Path, lastSelectedR_Path]);
 }
 
 
@@ -266,7 +313,7 @@ function ModTooltip({ data, onClose }: {
     data?: { pacageId: PackageId, anchorEl: HTMLElement }
     onClose: (e: Event | React.SyntheticEvent<Element, Event>) => void
 }) {
-    const { modList, setSelectedModPath: setSelectedModId } = React.useContext(LocalModListContext);
+    const { modList, setSelectedMod } = React.useContext(LocalModListContext);
     const mod = React.useMemo(() => {
         if (!data) return;
         return modList.mods.find(m => m.samePackageId(data.pacageId));
@@ -299,7 +346,7 @@ function ModTooltip({ data, onClose }: {
             key={mod.packageId}
             onClick={e => {
                 if (e.target instanceof HTMLElement && e.target.classList.contains("MuiButton-root")) return
-                setSelectedModId(mod.packageId);
+                setSelectedMod(mod);
             }}
         >
             <Typography level="body-xs">{mod.name} ({mod.packageId})</Typography>
@@ -367,7 +414,7 @@ function ModTooltip({ data, onClose }: {
         if (data?.anchorEl && !document.body.contains(data.anchorEl)) {
             onClose(new Event("close"));
         }
-    })
+    }, [data]);
 
 
     return (
@@ -379,23 +426,22 @@ function ModTooltip({ data, onClose }: {
                     anchorEl: data?.anchorEl
                 }
             }}
-            // children={}
-
-            // anchorEl={isOpenModTooltip.anchorEl} // або координати через Popper
-
 
             arrow
             describeChild
             placement="right"
-            // open={isTooltipOpen}
-
-            // onOpen={() => errorType > 0 && setTooltipOpen(true)}
             onClose={onClose}
 
             title={mod &&
                 <Stack spacing={2} p={1}>
                     {ErrorReport}
                     <ModTagList tags={mod.tags} packageId={mod.packageId} />
+                    <Divider />
+                    <ButtonGroup>
+                        <Button sx={{ pointerEvents: "none" }}>{Localize("open")}</Button>
+                        <IconButton variant="solid" onClick={() => mod.openInSteam()}><Steam /></IconButton>
+                        <IconButton variant="solid" onClick={() => mod.openDir()}><FolderIcon /></IconButton>
+                    </ButtonGroup>
                 </Stack>
             }
             variant="outlined"

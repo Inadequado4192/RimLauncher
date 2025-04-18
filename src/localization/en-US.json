@@ -28,6 +28,7 @@
 
         "updateTime": "Update time",
         "review": "Review",
+        "UnableRetrieveChangeNotes": "Unable to retrieve сhange notes. There may be a missing connection.",
 
 
         "openDirectory": "Open directory",
@@ -114,6 +115,8 @@
 
 
         "fileNotFound": "{0} is not found",
-        "missingSteamId": "Missing Steam id"
+        "missingSteamId": "Missing Steam id",
+
+        "modUpdates_hint": "Updates for Steam mods are checked via the Workshop rather than by modifying your files, which means new updates might not have been downloaded yet."
     }
 }

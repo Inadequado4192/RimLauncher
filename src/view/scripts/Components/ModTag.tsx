@@ -1,10 +1,12 @@
-import { Box, ButtonGroup, IconButton, Stack, Tooltip, Typography } from "@mui/joy";
+import { Box, ButtonGroup, Divider, FormHelperText, IconButton, Input, Stack, Tooltip, Typography } from "@mui/joy";
 import { SxProps } from "@mui/material";
 import { Mod } from "../Classes/Mod";
 import React from "react";
 import * as colorsGroups from "@mui/material/colors";
 import { getContrastColor } from "@Common/utils";
-// import CloseIcon from "@mui/icons-material/Close";
+import Localize from "@Common/Localize";
+import SaveIcon from '@mui/icons-material/Save';
+import { UserConfigContext } from "@Context/UserConfigContext";
 
 
 export default function ModTag({
@@ -41,30 +43,7 @@ export default function ModTag({
                 placement="bottom"
                 open={isTooltipOpen}
                 onClose={e => e.type != "blur" && setTooltipOpen(false)}
-                title={
-                    <Stack spacing={1}>
-                        <Typography>Color</Typography>
-                        <Stack direction="row">
-                            {Object.entries({ _base: { 0: "#000000", 100: "#ffffff" }, ...colorsGroups }).map(([name, colors]) =>
-                                <Stack key={name}>{Object.entries(colors).map(([v, color]) => isNaN(+v) ? null :
-                                    <Box
-                                        key={v}
-                                        sx={{
-                                            background: color,
-                                            width: 20,
-                                            height: 20,
-                                            cursor: "pointer",
-                                            justifyContent: "center",
-                                            display: "flex",
-                                            "&:hover": { boxShadow: "inset 0 0 0px 1px rgba(0, 0, 0, 1)" }
-                                        }}
-                                        onClick={() => invoke.setTag({ ...tag, color })}
-                                    >{color == tag.color ? <Typography sx={{ color: getContrastColor(color) }}>X</Typography> : null}</Box>)}
-                                </Stack>
-                            )}
-                        </Stack>
-                    </Stack>
-                }
+                title={<ModTagTooltip tag={tag} />}
                 variant="outlined"
             >
                 <IconButton
@@ -86,29 +65,65 @@ export default function ModTag({
                     >{tag.name}</Typography>
                 </IconButton>
             </Tooltip>
-
-            {/* {
-                addVisibilitySwitcher && (
-                    <IconButton
-                        size="sm"
-                        variant="outlined"
-                        onClick={() => {
-                            setTagsV(tagsV => {
-                                if (tagsV.has(tag.name)) tagsV.delete(tag.name);
-                                else tagsV.add(tag.name);
-                                return new Set(tagsV);
-                            });
-                        }}
-                    >
-                        {(!tagsV.size || tagsV.has(tag.name)) ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                    </IconButton>
-                )
-            } */}
             {children}
         </ButtonGroup >
     );
 }
 
+
+function ModTagTooltip({ tag }: { tag: ModTag }) {
+    const { userConfig } = React.useContext(UserConfigContext)
+    const [inputValue, setInputValue] = React.useState(tag.name);
+    const isInputError = React.useMemo(() => userConfig?.tags.some(t => t !== tag && t.name === inputValue), [userConfig, inputValue]);
+
+    function onSave() {
+        if (isInputError) return;
+        invoke.renameTag(tag.name, inputValue);
+    }
+
+    return (
+        <Stack spacing={1}>
+            <Input
+                placeholder={Localize("tagName")}
+                value={inputValue}
+                endDecorator={
+                    <IconButton
+                        color={isInputError ? "danger" : "neutral"}
+                        onClick={onSave}
+                        disabled={isInputError}
+                    >
+                        <SaveIcon />
+                    </IconButton>
+                }
+                onChange={e => setInputValue(e.currentTarget.value)}
+                onKeyUp={(e) => { if (e.code == "Enter") onSave(); }}
+                error={isInputError}
+            />
+            {isInputError && <FormHelperText sx={t => ({ color: t.palette.danger.softColor })}>{Localize("thisNameAlreadyUsed")}</FormHelperText>}
+
+            <Divider>Color</Divider>
+            <Stack direction="row">
+                {Object.entries({ _base: { 0: "#000000", 100: "#ffffff" }, ...colorsGroups }).map(([name, colors]) =>
+                    <Stack key={name}>{Object.entries(colors).map(([v, color]) => isNaN(+v) ? null :
+                        <Box
+                            key={v}
+                            sx={{
+                                background: color,
+                                width: 20,
+                                height: 20,
+                                cursor: "pointer",
+                                justifyContent: "center",
+                                display: "flex",
+                                "&:hover": { boxShadow: "inset 0 0 0px 1px rgba(0, 0, 0, 1)" }
+                            }}
+                            onClick={() => invoke.setTag({ ...tag, color })}
+                        >{color == tag.color ? <Typography sx={{ color: getContrastColor(color) }}>X</Typography> : null}</Box>)}
+                    </Stack>
+                )}
+            </Stack>
+        </Stack>
+    )
+}
 
 
 ModTag.ButtonGroupSx = ({ tag, disabled }: { tag: ModTag, disabled?: boolean }): SxProps => ({

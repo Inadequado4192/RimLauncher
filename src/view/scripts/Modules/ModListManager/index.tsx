@@ -10,6 +10,7 @@ export default function ModListManager() {
         <Stack
             direction="row"
             gap={2}
+            height="100%"
         >
             <LocalModListContextProvider>
                 <TagsVisibilityContextProvider>

@@ -1,7 +1,7 @@
 import StarIcon from "@mui/icons-material/Star";
 import { SvgIcon, SvgIconProps } from "@mui/joy";
 
-export default function Steam(props: SvgIconProps) {
+export default function RimWorld(props: SvgIconProps) {
     return (<StarIcon />
         // <SvgIcon {...props}>
         //     <path style={{

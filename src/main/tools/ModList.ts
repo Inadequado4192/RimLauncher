@@ -38,12 +38,11 @@ namespace ModList {
         }
         const xmlText = fs.readFileSync(aboutXmlPath).toString();
         const xml = parser.parse(xmlText);
-        const result = Schemes.XML.ModMetaData(dirPath).safeParse(xml.modMetaData ?? xml.ModMetaData);
+        const result = Schemes.XML.ModMetaData(dirPath).safeParse(Object.values(xml).find(v => typeof v === "object")); // Finding ModMetaData
         if (!result.success) {
-            console.log(result.error);
             warnings.push({
                 dirPath,
-                message: `Schemes.XML:\n\n${result.error.formErrors.formErrors.join("\n")}`,
+                message: `About.xml:\n${JSON.stringify(result.error.errors, null, 4)}`,
             });
             return { warnings };
         }

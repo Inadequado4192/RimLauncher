@@ -20,6 +20,13 @@ export const theme = extendTheme({
                     outline: "none !important"
                 }
             }
-        }
+        },
+        JoyListItem: {
+            styleOverrides: {
+                root: {
+                    outline: "none !important"
+                }
+            }
+        },
     }
 });

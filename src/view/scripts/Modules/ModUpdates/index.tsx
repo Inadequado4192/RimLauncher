@@ -1,49 +1,60 @@
 import * as cheerio from "cheerio";
+import DOMPurify from "dompurify";
 import React from "react";
 import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Box, Button, CircularProgress, LinearProgress, Stack, Table, Typography } from "@mui/joy";
 import Localize from "@Common/Localize";
 import { ModListContext } from "@Context/ModListContext";
 import { UserConfigContext } from "@Context/UserConfigContext";
 import { openModChangesInSteam, openModInSteam } from "../../utils";
+import { InView, useInView } from "react-intersection-observer";
+import { AlertService } from "@Services/Alert";
 
 
 export default function ModUpdates() {
-    const { userConfig: config } = React.useContext(UserConfigContext);
+    const { userConfig } = React.useContext(UserConfigContext);
+
     const data = useFetchWorkshopDetails();
     const [lastViewAt, setLastView] = React.useState<number>(); // without milliseconds
 
     React.useEffect(() => {
-        if (!config || lastViewAt) return;
-        setLastView(new Date(config.lastCheckModUpdates).getTime() / 1000);
+        if (!userConfig || lastViewAt) return;
+        setLastView(new Date(userConfig.lastCheckModUpdates).getTime() / 1000);
         invoke.setUserConfigByKey("lastCheckModUpdates", new Date().toISOString());
-    }, [config]);
+    }, [userConfig]);
 
 
-    return !data ? (
-        <Stack height="100%" justifyContent="center" alignItems="center" >
-            <CircularProgress />
-        </Stack>
-    ) : (
-        <Table>
-            <thead>
-                <tr>
-                    <th style={{ width: 150 }}> {Localize("updateTime")}</th >
-                    <th style={{ width: 300 }}>{Localize("name")}</th>
-                    <th style={{ width: 100 }}>{Localize("size")}</th>
-                    <th>{Localize("description")}</th>
-                </tr >
-            </thead >
-            <tbody>
-                {data.map(publishedFile => {
-                    let highlight = publishedFile.time_updated > (lastViewAt ?? Infinity)
-                    return <ModRow
-                        key={publishedFile.publishedfileid}
-                        publishedFile={publishedFile}
-                        highlight={highlight}
-                    />;
-                })}
-            </tbody>
-        </Table >
+    return (
+        <>
+            <Typography level="body-sm" my={1}>{Localize("modUpdates_hint")}</Typography>
+            {
+                !data ? (
+                    <Stack height="100%" justifyContent="center" alignItems="center" >
+                        <CircularProgress />
+                    </Stack>
+                ) : (
+                    <Table>
+                        <thead>
+                            <tr>
+                                <th style={{ width: 150 }}> {Localize("updateTime")}</th >
+                                <th style={{ width: 300 }}>{Localize("name")}</th>
+                                <th style={{ width: 100 }} align="right">{Localize("size")}</th>
+                                <th>{Localize("description")}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.map(publishedFile => {
+                                let highlight = publishedFile.time_updated > (lastViewAt ?? Infinity)
+                                return <ModRow
+                                    key={publishedFile.publishedfileid}
+                                    publishedFile={publishedFile}
+                                    highlight={highlight}
+                                />;
+                            })}
+                        </tbody>
+                    </Table >
+                )
+            }
+        </>
     )
 }
 
@@ -65,6 +76,9 @@ ModUpdates.useTestName = () => {
 function ModRow({ publishedFile, highlight }: { publishedFile: PublishedFile, highlight: boolean }) {
     const [changes, setChanges] = React.useState<Awaited<ReturnType<typeof fetchChangeNote>> & {}>();
     const [loading, setLoading] = React.useState(false);
+    const { ref, inView } = useInView({
+        threshold: 0,
+    });
 
     async function loadChanges() {
         setLoading(true);
@@ -75,53 +89,71 @@ function ModRow({ publishedFile, highlight }: { publishedFile: PublishedFile, hi
 
     return (
         <Box
+            ref={ref}
             sx={t => ({
                 background: highlight ? t.palette.success.softBg : void 0,
                 color: highlight ? t.palette.success.softColor : void 0,
-                verticalAlign: "baseline"
+                verticalAlign: "baseline",
+                height: 50,
+                transition: ".2s",
+                opacity: inView ? 1 : 0
             })}
             component="tr"
         >
-            <td>{new Date(publishedFile.time_updated * 1000).toLocaleString()}</td>
-            <td title={publishedFile.title}>
-                <Button
-                    fullWidth
-                    onClick={() => openModChangesInSteam(publishedFile.publishedfileid)}
-                ><Typography noWrap>{publishedFile.title}</Typography></Button>
-            </td>
-            <td align="right">{(+publishedFile.file_size / 1000000).toFixed(1)} MB</td>
-            <td>
-                <AccordionGroup>
-                    <Accordion
-                        variant="soft"
-                        onChange={(ev, e) => {
-                            if (e && !changes && !loading) loadChanges();
-                        }}
-                    >
-                        <AccordionSummary>{Localize("review")}</AccordionSummary>
-                        <AccordionDetails
-                            sx={{
-                                whiteSpace: "break-spaces"
-                            }}
-                        >
-                            {!changes
-                                ? <LinearProgress />
-                                : (
-                                    <>
-                                        {changes.map((b, i) => (
-                                            <React.Fragment key={i}>
-                                                <Typography color="warning">{b.time}</Typography>
-                                                <Typography level="body-sm">{b.text}</Typography>
-                                                {i !== changes.length - 1 ? <br /> : null}
-                                            </React.Fragment>
-                                        ))}
-                                    </>
-                                )
-                            }
-                        </AccordionDetails>
-                    </Accordion>
-                </AccordionGroup>
-            </td>
+            {
+                inView && (
+                    <>
+                        <td>{new Date(publishedFile.time_updated * 1000).toLocaleString()}</td>
+                        <td title={publishedFile.title}>
+                            <Button
+                                fullWidth
+                                onClick={() => openModChangesInSteam(publishedFile.publishedfileid)}
+                            ><Typography noWrap>{publishedFile.title}</Typography></Button>
+                        </td>
+                        <td align="right">{(+publishedFile.file_size / 1000000).toFixed(1)} MB</td>
+                        <td>
+                            <AccordionGroup>
+                                <Accordion
+                                    variant="soft"
+                                    onChange={(ev, e) => {
+                                        if (e && !changes && !loading) loadChanges();
+                                    }}
+                                >
+                                    <AccordionSummary>{Localize("review")}</AccordionSummary>
+                                    <AccordionDetails
+                                        sx={{
+                                            whiteSpace: "break-spaces"
+                                        }}
+                                    >
+                                        {!changes
+                                            ? loading ? <LinearProgress /> : "..."
+                                            : (
+                                                <>
+                                                    {changes.map((b, i) => (
+                                                        <React.Fragment key={i}>
+                                                            <Typography color="warning">{b.time}</Typography>
+                                                            {/* <Typography level="body-sm">{}</Typography> */}
+                                                            <div
+                                                                dangerouslySetInnerHTML={{
+                                                                    __html: DOMPurify.sanitize(b.text, {
+                                                                        ALLOWED_TAGS: ["br", "a"],
+                                                                        ALLOWED_ATTR: ["href"],
+                                                                    })
+                                                                }}
+                                                            />
+                                                            {i !== changes.length - 1 ? <br /> : null}
+                                                        </React.Fragment>
+                                                    ))}
+                                                </>
+                                            )
+                                        }
+                                    </AccordionDetails>
+                                </Accordion>
+                            </AccordionGroup>
+                        </td>
+                    </>
+                )
+            }
         </Box>
     )
 }
@@ -139,7 +171,11 @@ function useFetchWorkshopDetails() {
             modList.mods.filter(mod => mod.type === "Steam" && mod.steamId)
                 .map(mod => mod.steamId!)
         )
-            .then(res => setData(res.sort((a, b) => -a.time_updated - -b.time_updated)));
+            .then(res => setData(res.sort((a, b) => -a.time_updated - -b.time_updated)))
+            .catch((e) => AlertService.create({
+                text: Localize("UnableRetrieveChangeNotes") + `\n${e}`,
+                color: "danger"
+            }))
     }, [modList.mods]);
 
     return data;
@@ -193,8 +229,13 @@ const fetchWorkshopDetails = (() => {
                 });
 
                 t(allResults);
+            }
+            catch (e) {
+                f(e);
+            }
+            finally {
                 currentPromise = null;
-            } catch (e) { f(e); }
+            }
         });
     }
 })();
@@ -208,10 +249,14 @@ async function fetchChangeNote(workshopId: string) {
         const $ = cheerio.load(html);
         const blocks = $('#profileBlock .workshopAnnouncement').map((_, el) => ({
             time: $(el).children(".headline").html()?.trim() ?? "",
-            text: $(el).children("p").html()?.trim().replace(/\<br\>|\\n/g, "\n") ?? "",
+            text: $(el).children("p").html()?.trim().replace(/\\n/g, "\n") ?? "",
         })).get();
         return blocks;
     } catch {
+        AlertService.create({
+            text: Localize("UnableRetrieveChangeNotes"),
+            color: "danger"
+        });
         return null;
     }
 }

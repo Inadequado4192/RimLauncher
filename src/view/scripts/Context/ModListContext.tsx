@@ -43,7 +43,7 @@ function useDate() {
                                     onClick={() => invoke.openPath(w.dirPath)}
                                 >
                                     <Stack>
-                                        <Typography>{w.message}</Typography>
+                                        <Typography sx={{ whiteSpace: "break-spaces" }}>{w.message}</Typography>
                                         <Typography noWrap level="body-xs">{w.dirPath}</Typography>
                                     </Stack>
                                 </ListItemButton>
@@ -71,7 +71,6 @@ function useDate() {
         // First Load
         invoke.getModList().then(async (res) => {
             if (res.success) {
-                console.log(res);
                 const newMods: Mod[] = [], newWarnings: Warning[] = [];
                 res.data.forEach(d => {
                     if (d.warnings.length) console.log({ d });
@@ -175,7 +174,7 @@ function useDate() {
     }, [modsString, userConfig?.tags]);
 
 
-    return { mods, actives, unactives, errorType, isLoaded };
+    return { mods, actives, unactives, errorType, isLoaded, modsString };
 }
 
 export function ModListContextProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
