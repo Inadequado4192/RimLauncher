@@ -1,4 +1,4 @@
-name: Main
+name: Build App
 
 on:
   push:
@@ -28,9 +28,6 @@ jobs:
 
       - name: Build Electron app and create distributables
         run: npm run make
-
-      - name: List output files
-        run: ls -R out || dir out
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
