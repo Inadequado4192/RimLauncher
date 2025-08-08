@@ -1,33 +1,18 @@
-import TsconfigPathsPlugin from "tsconfig-paths-webpack-plugin";
 import path from "path";
 import type { Configuration } from "webpack";
-import { rules } from "./webpack.rules";
-import { plugins } from "./webpack.plugins";
+import { commmon, rules } from "./webpack.common";
+import { AfterPackContext } from "electron-builder";
 
-export const mainConfig: Configuration = {
-    /**
-     * This is the main entry point for your application, it"s the first file
-     * that runs in the main process.
-     */
+module.exports = {
     entry: "./src/main/index.ts",
-    // Put your normal webpack config below here
-    module: {
-        rules,
+    target: "electron-main",
+    output: {
+        path: path.resolve(__dirname, ".webpack"),
+        filename: "main.js"
     },
-    plugins,
-    resolve: {
-        extensions: [".js", ".ts", ".jsx", ".tsx", ".css", ".json"],
-        plugins: [
-            new TsconfigPathsPlugin({
-                extensions: [".ts", ".tsx", ".js"]
-            })
-        ]
+    module: { rules },
+    externals: {
+        "@aws-sdk/client-s3": "commonjs @aws-sdk/client-s3"
     },
-    devtool: "inline-source-map",
-    optimization: {
-        minimize: true, // Мінімізувати код
-    },
-    cache: {
-        type: 'filesystem',
-    },
-};
+    ...commmon,
+} satisfies Configuration;

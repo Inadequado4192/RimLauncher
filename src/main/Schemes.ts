@@ -1,10 +1,13 @@
 import path from "path";
 import { z } from "zod";
 import { app } from "electron";
-import { DebugPathes, FindPathes } from "./Pathes";
+import { DebugPathesSpace, FindPathes } from "./Pathes";
 
 
 namespace Schemes {
+    const AnyToEmptyOnject = <T extends z.ZodTypeAny>(schema: T) => z.preprocess(any => typeof any === "object" && any !== null && !Array.isArray(any) ? any : {}, schema)
+
+
     const PackageId = z.coerce.string()
         .min(1, "Package ID is required.")
         .max(60, "Package ID must be 60 characters or less.")
@@ -13,56 +16,50 @@ namespace Schemes {
         .transform(id => id.toLowerCase() as PackageId);
 
 
-
-    export const StoreGet = z.object({
-        steamPath: z.string().nullable().default(() => FindPathes.Steam() ?? null),
-        gamePath: z.string().nullable().default(() => FindPathes.RimWorldGamePath() ?? null),
-        closeWindowAfterRun: z.boolean().catch(false),
-        language: z.string().catch(() => app.getSystemLocale()),
-        tags: z.array(z.object({
-            name: z.string(),
-            color: z.string(),
-            packageIds: z.array(PackageId)
-        })).catch([]),
-        lastCheckModUpdates: z.string().datetime().catch(new Date().toISOString())
-    }).default({});
-    type StoreGet = z.infer<typeof StoreGet>;
-
-    export const StoreSet = z.object({
-        steamPath: z.string().nullable(),
-        // .superRefine((a, ctx) => {
-        //     if (a === null) return;
-        //     const res = DebugPathes.isSteam(a);
-        //     if (!res.success) ctx.addIssue({ ...res, code: "custom" })
-        // }),
-        gamePath: z.string().nullable(),
-        // .superRefine((a, ctx) => {
-        //     if (a === null) return;
-        //     const res = DebugPathes.isRimWorldGamePath(a);
-        //     if (!res.success) ctx.addIssue({ ...res, code: "custom" })
-        // }),
-        closeWindowAfterRun: z.boolean(),
-        language: z.string(),
-        tags: z.array(z.object({
-            name: z.string(),
-            color: z.string(),
-            packageIds: z.array(PackageId)
-        })),
-        lastCheckModUpdates: z.string().datetime()
+    export const ModTag = z.object({
+        name: z.string(),
+        color: z.string(),
+        packageIds: z.array(PackageId)
     });
 
 
+    // type UserStoreGet = z.infer<typeof UserStoreGet>;
 
-    export const StoreDebug = z.object({
-        steamPath: z.string().superRefine((_path, ctx) => {
-            const result = DebugPathes.isSteam(_path);
-            if (!result.success) ctx.addIssue({ code: "custom", ...result });
-        }),
-        gamePath: z.string().superRefine((_path, ctx) => {
-            const result = DebugPathes.isRimWorldGamePath(_path);
-            if (!result.success) ctx.addIssue({ code: "custom", ...result });
-        }),
-    });
+
+    export namespace UserStore {
+        export type Type = z.output<typeof Read>;
+
+        export const Read = AnyToEmptyOnject(z.object({
+            steamPath: z.string().nullable().catch(() => FindPathes.Steam() ?? null),
+            gamePath: z.string().nullable().catch(() => FindPathes.RimWorldGamePath() ?? null),
+            closeWindowAfterRun: z.boolean().catch(false),
+            language: z.string().catch(() => app.getSystemLocale()),
+            tags: z.array(ModTag).catch([]),
+            lastCheckModUpdates: z.iso.datetime().catch(new Date().toISOString())
+        }));
+
+        export const Write = z.object({
+            steamPath: z.string().nullable(),
+            gamePath: z.string().nullable(),
+            closeWindowAfterRun: z.boolean(),
+            language: z.string(),
+            tags: z.array(ModTag),
+            lastCheckModUpdates: z.iso.datetime()
+        });
+        
+        export const DebugPathes = z.object({
+            steamPath: z.string().superRefine((_path, ctx) => {
+                const result = DebugPathesSpace.isSteam(_path);
+                if (!result.success) ctx.addIssue({ code: "custom", ...result });
+            }),
+            gamePath: z.string().superRefine((_path, ctx) => {
+                const result = DebugPathesSpace.isRimWorldGamePath(_path);
+                if (!result.success) ctx.addIssue({ code: "custom", ...result });
+            }),
+        });
+    }
+
+
 
 
 
@@ -76,8 +73,30 @@ namespace Schemes {
             ]).catch([]);
         }
 
+        export namespace ModsConfig {
+            export type Type = z.output<typeof Read>;
+            // type xml = z.input<typeof Read extends z.ZodEffects<infer S, any, any> ? S : never>;
 
-        export const ModsConfig = z.object({
+            export const Read = AnyToEmptyOnject(z.object({
+                version: z.string().catch("0.0.0000 unknown"),
+                activeMods: XMLList(PackageId).catch([]),
+                knownExpansions: XMLList(PackageId).catch([]),
+            }));
+
+            export const Write = z.object({
+                version: z.coerce.string(),
+                activeMods: z.array(PackageId),
+                knownExpansions: z.array(PackageId),
+            }).transform(o => ({
+                ModsConfigData: {
+                    version: o.version,
+                    activeMods: { li: o.activeMods },
+                    knownExpansions: { li: o.knownExpansions },
+                }
+            }))
+        }
+
+        export const ModsPack = z.object({
             version: z.coerce.string(),
             activeMods: XMLList(PackageId),
             knownExpansions: XMLList(PackageId),
@@ -119,23 +138,29 @@ namespace Schemes {
     export const Localization = z.object({
         name: z.string(),
         // localName: z.string(),
-        keys: z.record(z.string()),
+        keys: z.record(z.string(), z.string()),
+    });
+
+
+
+
+    export const GitInfo = z.object({
+        url: z.string().url(),
+        lastUpdate: z.number(),
     });
 }
 
 
-type a = z.output<typeof Schemes.StoreGet._def.innerType>["tags"][number];
 declare global {
-    interface ModMetaData_Schema extends z.infer<ReturnType<typeof Schemes.XML.ModMetaData>> { }
-    interface ModsConfig_Schema extends z.output<typeof Schemes.XML.ModsConfig> { }
+    interface ModsConfig extends Schemes.XML.ModsConfig.Type { }
+    interface UserConfig extends Schemes.UserStore.Type { }
+    interface ModMetaData extends z.infer<ReturnType<typeof Schemes.XML.ModMetaData>> { }
     interface ModDependency extends z.output<typeof Schemes.XML.ModDependency> { }
-    interface ModTag extends a { }
+    interface ModTag extends z.output<typeof Schemes.ModTag> { }
+    interface ModTag_Visualdata extends Pick<ModTag, "name" | "color"> { }
+
+    interface GitInfo extends z.output<typeof Schemes.GitInfo> { }
+
 }
 
 export default Schemes;
-
-
-
-declare global {
-    type UserConfig = z.output<typeof Schemes.StoreGet>;
-}

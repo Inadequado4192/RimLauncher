@@ -1,5 +1,6 @@
 import React from "react";
 
+/**@deprecated */
 export const ReloadContext = React.createContext<ReturnType<typeof useDate>>(null as any);
 
 function useDate() {
@@ -15,6 +16,7 @@ function useDate() {
     return { isReloading, setReload, reload };
 }
 
+/**@deprecated */
 export function ReloadContextProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
     return (
         <ReloadContext.Provider value={useDate()}>{children}</ReloadContext.Provider>

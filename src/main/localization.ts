@@ -1,29 +1,26 @@
 import { app } from "electron";
 import path from "path";
 import fs from "fs";
-import Schemes from "src/main/Schemes";
-import EnglishLocal from "@Localization/en-US.json";
-import UserConfig from "./Config";
+import Schemes from "main/Schemes";
+import type EnglishLocal from "@Localization/en-US.json";
+import UserConfigStore from "./store/UserConfigStore";
 
-
-
-const localizationPath = app.isPackaged
-    ? path.join(process.resourcesPath, "localization")
-    : path.resolve("./src/localization");
-
-if (!app.isPackaged) for (let fname of fs.readdirSync(localizationPath)) loadLocal(fname);
-
-function loadLocal(fname: string): SomeLocal {
-    try {
-        let fileName = `${path.basename(fname, ".json")}.json`;
-        return Schemes.Localization.parse(JSON.parse(fs.readFileSync(path.join(localizationPath, fileName)).toString())) as SomeLocal;
-    } catch (error) {
-        return EnglishLocal;
-    }
-}
 
 namespace Local {
-    export const getAccessLanguages = () =>
+    const localizationPath = app.isPackaged
+        ? path.join(process.resourcesPath, "localization")
+        : path.resolve("./src/resources/localization");
+
+
+    // DEBUG
+    if (!app.isPackaged) for (let fname of fs.readdirSync(localizationPath)) loadLocal(fname);
+
+
+    function loadLocal(fname: string): SomeLocal {
+        let fileName = `${path.basename(fname, ".json")}.json`;
+        return Schemes.Localization.parse(JSON.parse(fs.readFileSync(path.join(localizationPath, fileName)).toString())) as SomeLocal;
+    }
+    export const getAllLanguages = () =>
         fs.readdirSync(localizationPath)
             .filter(fname => fs.lstatSync(path.join(localizationPath, fname)).isFile() && fname.endsWith(".json"))
             .map(fname => ({
@@ -31,7 +28,7 @@ namespace Local {
                 data: loadLocal(fname)
             }))
 
-    export const getTargetLocal = () => loadLocal(UserConfig.get("language"));
+    export const getTargetLocal = () => loadLocal(UserConfigStore.get("language"));
 }
 export default Local;
 

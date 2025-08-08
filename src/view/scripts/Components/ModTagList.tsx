@@ -1,23 +1,26 @@
-import { UserConfigContext } from "@Context/UserConfigContext";
-import { Stack, Tooltip, Chip, IconButton } from "@mui/joy";
-import CloseIcon from "@mui/icons-material/Close";
-import React from "react";
+import { Stack } from "@mui/joy";
 import ModTag from "./ModTag";
+import { UserConfigStore } from "@Stores";
+import { StoreCompareType } from "@Stores/store";
 
+/**@deprecated */
 export default function ModTagList({ tags, packageId }: { tags: ModTag[], packageId: PackageId }) {
-    const { userConfig: config } = React.useContext(UserConfigContext);
+    const userTags = UserConfigStore.use(uc => uc.tags, StoreCompareType.JSON);
 
     function onAdd(tag: ModTag) {
-        invoke.setTag({ ...tag, packageIds: [...tag.packageIds, packageId] });
+        $invoke.setTag({ ...tag, packageIds: [...tag.packageIds, packageId] });
     }
 
     function onRemove(tag: ModTag) {
-        const ind = tag.packageIds.indexOf(packageId);
-        if (ind >= 0) tag.packageIds.splice(ind, 1);
-        invoke.setTag({ ...tag });
+        const cloneTag = { ...tag };
+        cloneTag.packageIds = [...cloneTag.packageIds];
+
+        const ind = cloneTag.packageIds.indexOf(packageId);
+        if (ind >= 0) cloneTag.packageIds.splice(ind, 1);
+        $invoke.setTag({ ...cloneTag });
     }
 
-    return !!config?.tags.length && (
+    return !!userTags.length && (
         <Stack
             direction="column"
             flexWrap="wrap"
@@ -43,7 +46,7 @@ export default function ModTagList({ tags, packageId }: { tags: ModTag[], packag
                 </Stack>
             )}
             <Stack>
-                {config.tags.map(t => {
+                {userTags.map(t => {
                     if (tags.some(mt => mt.name == t.name)) return null
                     return (
                         <ModTag

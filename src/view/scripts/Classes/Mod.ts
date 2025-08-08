@@ -1,96 +1,77 @@
-import { openModInSteam } from "../utils";
+import React from "react";
+import { openModInSteam, openUrl } from "../utils";
+import { ModType } from "enums";
+import { GameInfoStore, ModsConfigStore } from "@Stores";
+import { ModListStore } from "@Context/ModListContext";
+import { Store, StoreVersion } from "@Stores/store";
+import { GitSpace } from "@Common/libs/git";
 
 
-export class Mod implements ModMetaData_Schema {
-    public static modsConfig: ModsConfig_Schema | undefined;
-    public static gameInfo: GameInfoData | undefined;
+type ModOtherData = {
+    tags: ModTag[]
+}
+export abstract class Mod implements ModReadingInfo_BASE {
+    public static create(data: ModReadingInfo_ALL, other: ModOtherData): Mod_ALL {
+        if (data.type === ModType.DLC) return new Mod_DLC(data, other);
+        else if (data.type === ModType.Steam) return new Mod_Steam(data, other);
+        else if (data.type === ModType.Local) return new Mod_Local(data, other);
+        else if (data.type === ModType.Git) return new Mod_Git(data, other);
+        else throw Error("Unknown Type");
+    }
 
-    // public parentModList: ModList | null = null;
+    public static getTags(tags: ModTag[], modPackageId: PackageId) {
+        return tags.filter(tag => tag.packageIds.find(pid => Mod.samePackageId(modPackageId, pid))) ?? [];
+    }
 
-    // public static useCreator() {
-    //     const { gameInfo } = React.useContext(GameInfoContext);
-    //     const modsConfig = React.useContext(ModsConfigContext);
+    public type: ModReadingInfo_BASE["type"];
+    public about: ModReadingInfo_BASE["about"];
+    public dirPath: ModReadingInfo_BASE["dirPath"];
+    public previewPath: ModReadingInfo_BASE["previewPath"];
+    public warnings: ModReadingInfo_BASE["warnings"];
 
-    //     return React.useMemo(() => {
-    //         if (!gameInfo || !modsConfig) return null;
+    public tags: ModTag[];
 
-    //         return (data: ModInfo | Mod) => new Mod(data, { gameInfo, modsConfig })
-    //     }, [gameInfo, modsConfig]);
-    // }
+    // public elementRef: HTMLLIElement | null = null;
 
-    public modListRef?: {
-        actives: Mod[],
-        unactives: Mod[],
-    };
-
-    public name: ModMetaData_Schema["name"];
-    public packageId: ModMetaData_Schema["packageId"];
-    public author: ModMetaData_Schema["author"];
-    public url: ModMetaData_Schema["url"];
-    public modVersion: ModMetaData_Schema["modVersion"];
-    public description: ModMetaData_Schema["description"];
-    public supportedVersions: ModMetaData_Schema["supportedVersions"];
-    public modDependencies: NonNullable<ModMetaData_Schema["modDependencies"]>;
-    public loadBefore: NonNullable<ModMetaData_Schema["loadBefore"]>;
-    public loadAfter: NonNullable<ModMetaData_Schema["loadAfter"]>;
-    public forceLoadBefore: NonNullable<ModMetaData_Schema["forceLoadBefore"]>;
-    public forceLoadAfter: NonNullable<ModMetaData_Schema["forceLoadAfter"]>;
-    public incompatibleWith: NonNullable<ModMetaData_Schema["incompatibleWith"]>;
-
-    public type: ModInfo["type"];
-    public dirPath: ModInfo["dirPath"];
-    public previewPath: ModInfo["previewPath"];
-    public steamId: ModInfo["steamId"];
-
-    public tags: ModTag[] = [];
-
-    // private prevLastModified = -1;
-    // private lastModified = -1;
-
-    private _data: ModInfo;
-    public constructor(data: ModInfo | Mod) {
-        if (data instanceof Mod) {
-            this.tags = data.tags;
-            data = data._data;
-        }
-        this._data = data;
-
-        this.name = data.about.name;
-        this.packageId = data.about.packageId;
-        this.author = data.about.author;
-        this.url = data.about.url;
-        this.modVersion = data.about.modVersion;
-        this.description = data.about.description;
-        this.supportedVersions = data.about.supportedVersions;
-        this.modDependencies = data.about.modDependencies ?? [];
-        this.loadBefore = data.about.loadBefore ?? [];
-        this.loadAfter = data.about.loadAfter ?? [];
-        this.forceLoadBefore = data.about.forceLoadBefore ?? [];
-        this.forceLoadAfter = data.about.forceLoadAfter ?? [];
-        this.incompatibleWith = data.about.incompatibleWith ?? [];
-
+    public constructor(data: ModReadingInfo_BASE, other: ModOtherData) {
+        this.about = data.about;
         this.type = data.type;
         this.dirPath = data.dirPath;
         this.previewPath = data.previewPath;
-        this.steamId = data.steamId;
+        this.warnings = data.warnings;
+
+        this.tags = other.tags;
+
+
+        this.store = new StoreVersion({});
+    }
+    public store: StoreVersion;
+    public useEnablingSub() {
+        ModsConfigStore.use(mc => mc.activeMods.some(pid => this.samePackageId(pid)))
+    }
+
+
+
+    public static samePackageId(packageId2: PackageId, packageId1: PackageId) {
+        return packageId1.toLowerCase() == packageId2.toLowerCase();
     }
 
     public samePackageId(packageId: PackageId, ignorePostfix = false) {
-        // if (this.packageId == null) {
-        //     return false;
-        // }
-        if (ignorePostfix) {
-            return this.packageId == packageId.toLowerCase();
-        }
-        return this.packageId == packageId.toLowerCase();
+        return Mod.samePackageId(this.about.packageId, packageId);
     }
+
 
     public isActive(): boolean {
-        return Mod.modsConfig?.activeMods.includes(this.packageId) ?? false;
+        return ModsConfigStore.get().activeMods.includes(this.about.packageId);
     }
 
+    /**Position at `modsConfig`
+     * @returns `number` - from `0` 
+     * @returns `null` - mod disabled
+     */
     public getPos() {
-        return Mod.modsConfig?.activeMods.indexOf(this.packageId) ?? -1;
+        const pos = ModsConfigStore.get().activeMods.indexOf(this.about.packageId);
+        return pos >= 0 ? pos : null;
     }
 
 
@@ -98,34 +79,34 @@ export class Mod implements ModMetaData_Schema {
         this.isActive() ? this.disable() : this.enable();
     }
     public enable() {
-        invoke.enableMod(this.packageId);
+        $invoke.enableMod(this.about.packageId);
     }
     public disable() {
-        invoke.disableMod(this.packageId);
+        $invoke.disableMod(this.about.packageId);
     }
 
-    // public hasBeenModified() {
-    //     this.prevLastModified = this.lastModified;
-    //     this.lastModified = Date.now();
-    // }
-    // public isHasBeenModified() {
-    //     if (this.prevLastModified != this.lastModified) {
-    //         this.prevLastModified = this.lastModified;
-    //         return true;
-    //     } else {
-    //         return false;
-    //     }
-    // }
 
-
-
-    public openInSteam() {
-        if (this.steamId) openModInSteam(this.steamId);
-    }
 
     public openDir() {
-        invoke.openPath(this.dirPath)
+        $invoke.openPath(this.dirPath);
     }
+
+
+    //#region Type definition
+    public isDLC(): this is Mod_DLC {
+        return this.type == ModType.DLC;
+    }
+    public isSteam(): this is Mod_Steam {
+        return this.type == ModType.Steam;
+    }
+    public isLocal(): this is Mod_Local {
+        return this.type == ModType.Local;
+    }
+    public isGit(): this is Mod_Git {
+        return this.type == ModType.Git;
+    }
+    //#endregion
+
 
     //#region Errors
     public getErrorType() {
@@ -140,22 +121,25 @@ export class Mod implements ModMetaData_Schema {
         return ModErrorType.None;
     }
     public isWrongVersion() {
-        if (this.supportedVersions && Mod.gameInfo) {
-            return !this.supportedVersions.includes(Mod.gameInfo.gameVersionShort);
+        const gameInfo = GameInfoStore.get();
+        if (this.about.supportedVersions && gameInfo.gameVersionShort) {
+            return !this.about.supportedVersions.includes(gameInfo.gameVersionShort);
         } return false;
     }
     public isMissingModVersion() {
-        if (this.type == "DLC") return false;
-        return !this.supportedVersions;
+        if (this.type == ModType.DLC) return false;
+        return !this.about.supportedVersions;
     }
 
 
-    public *getMissingDependencies(): Iterable<Mod | ModDependency> {
-        if (!this.modListRef || !this.isActive()) return [];
-        const { actives, unactives } = this.modListRef;
+    public * getMissingDependencies(): Iterable<DeepReadonly<Mod_ALL> | ModDependency> {
+        if (!this.isActive()) return [];
+        const actives = ModListStore.actives.get();
+        const unactives = ModListStore.unactives.get();
+
 
         deps:
-        for (const dep of this.modDependencies) {
+        for (const dep of this.about.modDependencies ?? []) {
             for (const mod of actives)
                 if (mod.samePackageId(dep.packageId))
                     continue deps;
@@ -173,11 +157,11 @@ export class Mod implements ModMetaData_Schema {
     }
 
 
-    public *getIncompatible(): Iterable<Mod> {
-        if (!this.modListRef) return;
-        const { actives } = this.modListRef;
+    public * getIncompatible(): Iterable<DeepReadonly<Mod_ALL>> {
+        if (!this.isActive()) return;
+        const actives = ModListStore.actives.get();
 
-        for (const pid of this.incompatibleWith) {
+        for (const pid of this.about.incompatibleWith ?? []) {
             for (const mod of actives) {
                 if (mod.samePackageId(pid)) {
                     yield mod;
@@ -190,21 +174,14 @@ export class Mod implements ModMetaData_Schema {
     }
 
 
-    public *getLoadAfterErrors(): Iterable<Mod> {
+    public * getLoadAfterErrors(): Iterable<DeepReadonly<Mod_ALL>> {
         const pos = this.getPos();
-        if (!this.modListRef || pos < 0) return;
-        const { actives } = this.modListRef;
+        if (!pos) return;
+        const actives = ModListStore.actives.get();
 
-
-        const array = [...actives];
-
-        if (this.name === "Multiplayer") {
-            console.log(this.name, pos, actives.map(a => a.name));
-        }
-
-        for (const pid of this.loadAfter) {
-            for (let i = pos + 1; i < array.length; i++) {
-                const mod = array[i];
+        for (const pid of this.about.loadAfter ?? []) {
+            for (let i = pos + 1; i < actives.length; i++) {
+                const mod = actives[i];
                 if (mod?.samePackageId(pid)) yield mod;
             }
         }
@@ -213,16 +190,14 @@ export class Mod implements ModMetaData_Schema {
         return !this.getLoadAfterErrors()[Symbol.iterator]().next().done;
     }
 
-    public *getLoadBeforeErrors(): Iterable<Mod> {
+    public * getLoadBeforeErrors(): Iterable<DeepReadonly<Mod_ALL>> {
         const pos = this.getPos();
-        if (!this.modListRef || pos < 0) return;
-        const { actives } = this.modListRef;
+        if (!pos) return;
+        const actives = ModListStore.actives.get();
 
-        const array = [...actives];
-
-        for (const pid of this.loadBefore) {
+        for (const pid of this.about.loadBefore ?? []) {
             for (let i = 0; i < pos; i++) {
-                const mod = array[i];
+                const mod = actives[i];
                 if (mod?.samePackageId(pid)) yield mod;
             }
         }
@@ -231,6 +206,53 @@ export class Mod implements ModMetaData_Schema {
         return !this.getLoadBeforeErrors()[Symbol.iterator]().next().done;
     }
     //#endregion
+
+}
+
+export type Mod_ALL = Mod_DLC | Mod_Steam | Mod_Local | Mod_Git;
+
+export class Mod_DLC extends Mod implements ModReadingInfo_DLC {
+    declare type: ModType.DLC;
+
+
+}
+
+export class Mod_Steam extends Mod implements ModReadingInfo_Steam {
+    declare type: ModType.Steam;
+    public steamId: ModReadingInfo_Steam["steamId"];
+
+    public constructor(data: ModReadingInfo_Steam, other: ModOtherData) {
+        super(data, other);
+        this.steamId = data.steamId;
+    }
+
+
+    public openInSteam() {
+        if (this.steamId) openModInSteam(this.steamId);
+    }
+}
+
+export class Mod_Local extends Mod implements ModReadingInfo_Local {
+    declare type: ModType.Local;
+}
+
+export class Mod_Git extends Mod implements ModReadingInfo_Git {
+    declare type: ModType.Git;
+    public gitinfo: ModReadingInfo_Git["gitinfo"];
+    public gitrepo: ModReadingInfo_Git["gitrepo"];
+
+    public constructor(data: ModReadingInfo_Git, other: ModOtherData) {
+        super(data, other);
+        this.gitinfo = data.gitinfo;
+
+        if (this.gitinfo) this.gitrepo = GitSpace.getByUrl(this.gitinfo.url)?.getRepo(this.gitinfo.url) ?? null;
+        else this.gitrepo = null;
+    }
+
+
+    public openInGit() {
+        if (this.gitinfo) openUrl(this.gitinfo.url);
+    }
 }
 
 export enum ModErrorType { None = 0, Warn = 1, Error = 2 }

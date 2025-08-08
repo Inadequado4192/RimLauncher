@@ -1,71 +1,68 @@
+import path from "path";
 import chokidar, { FSWatcher } from "chokidar";
 import { win } from "..";
-import UserConfig from "../Config";
-import { Pathes } from "src/main/Pathes";
-import ModsConfig from "../tools/ModsConfig";
-import ModPacks from "../tools/ModPacks";
+import UserConfigStore from "../store/UserConfigStore";
+import { Pathes } from "main/Pathes";
+import ModsConfig from "../store/ModsConfigStore";
+import ModPacks from "../services/ModPacks";
 import EventEmitter from "events";
-import ModList from "@Tools/ModList";
-import fs, { existsSync, readdirSync } from "fs";
-import path from "path";
-import { wait } from "@Common/utils";
+import ModListActions from "main/services/modListActions";
 
 export interface FileEvents {
-    changeUseConfig: [config: UserConfig],
-    changeModsConfigFile: [xml: ModsConfig_Schema],
-    changeModPacksList: [list: ModPackInfo[]],
-
-    WorkshopContentChanged: [method: "add", newContent: ModInfoWithWarning] | [method: "remove", path: string]
+    UserConfig_Changed: [config: UserConfig],
+    ModsConfig_Changed: [xml: ModsConfig],
+    ModPacks_Changed: [list: ModPackInfo[]],
+    ModList_Changed: [method: "add", newContent: ModReadingResult] | [method: "remove", path: string]
 }
 
 
 
-export interface MainProcessEvents {
-    GameWorkshopFolderPathChanged: [newpath: string]
-}
+// export interface MainProcessEvents {
+//     GameWorkshopFolderPathChanged: [newpath: string]
+// }
 
 
-const MainProcessEmitter = new EventEmitter<MainProcessEvents>();
+// const MainProcessEmitter = new EventEmitter<MainProcessEvents>();
 
 
 export function InitWebEvents() {
-    chokidar.watch(Pathes.UserConfig, { ignoreInitial: true }).on("all", (event, path) => {
-        webEvents.changeUseConfig(UserConfig.get());
+    chokidar.watch(Pathes.File_UserConfig, { ignoreInitial: true }).on("all", (event, path) => {
+        // add, change, unlink
+        webEvents.UserConfig_Changed(UserConfigStore.get());
     });
-    chokidar.watch(Pathes.ModsConfigXML, { ignoreInitial: true }).on("all", (event, path) => {
-        webEvents.changeModsConfigFile(ModsConfig.get());
+    chokidar.watch(Pathes.File_ModsConfigXML, { ignoreInitial: true }).on("all", (event, path) => {
+        webEvents.ModsConfig_Changed(ModsConfig.get());
     });
-    chokidar.watch(Pathes.ModPacks, { ignoreInitial: true }).on("all", (event, path) => {
-        webEvents.changeModPacksList(ModPacks.load());
+    chokidar.watch(Pathes.Dir_ModPacks, { ignoreInitial: true }).on("all", (event, path) => {
+        webEvents.ModPacks_Changed(ModPacks.load());
     });
 
     {
-        let watcher: FSWatcher | null = null;
+        // let watcher: FSWatcher | null = null;
 
-        function start(newpath: string) {
-            if (watcher) watcher.close();
-            watcher = chokidar.watch(newpath, {
-                ignoreInitial: true,
-                depth: 0,
-
-            })
-                .on("addDir", (path) => {
-                    setTimeout(() => {
-                        // Wait Write Finish
-                        const v = ModList.getModFrom("Steam", path);
-                        webEvents.WorkshopContentChanged("add", v);
+        function startWatchUpdates(targetPath: string) {
+            // if (watcher) watcher.close();
+            // watcher = 
+            chokidar.watch(targetPath, { ignoreInitial: true, depth: 0 })
+                .on("addDir", (newDirPath) => {
+                    if (path.basename(newDirPath).startsWith("~")) return;
+                    setTimeout(async () => {
+                        const v = await ModListActions.getModFrom(newDirPath);
+                        webEvents.ModList_Changed("add", v);
                     }, 1000);
                 })
-                .on("unlinkDir", (path) => {
-                    webEvents.WorkshopContentChanged("remove", path);
+                .on("unlinkDir", (newDirPath) => {
+                    if (path.basename(newDirPath).startsWith("~")) return;
+                    webEvents.ModList_Changed("remove", newDirPath);
                 });
 
-            return start;
+            // return startWatchUpdates;
         }
 
-        if (Pathes.GameWorkshopFolder) start(Pathes.GameWorkshopFolder);
+        if (Pathes.Dir_GameWorkshop) startWatchUpdates(Pathes.Dir_GameWorkshop);
+        startWatchUpdates(Pathes.Dir_LocalMods);
 
-        MainProcessEmitter.on("GameWorkshopFolderPathChanged", start);
+        // MainProcessEmitter.on("GameWorkshopFolderPathChanged", startWatchUpdates);
     }
 }
 

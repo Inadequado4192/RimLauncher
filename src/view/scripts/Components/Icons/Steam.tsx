@@ -1,5 +1,6 @@
 import { SvgIcon, SvgIconProps } from "@mui/joy";
 
+/**@deprecated */
 export default function Steam(props: SvgIconProps) {
     return (
         <SvgIcon {...props}>

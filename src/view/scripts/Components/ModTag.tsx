@@ -1,56 +1,49 @@
-import { Box, ButtonGroup, Divider, FormHelperText, IconButton, Input, Stack, Tooltip, Typography } from "@mui/joy";
+import { ButtonGroup, IconButton, Typography } from "@mui/joy";
 import { SxProps } from "@mui/material";
-import { Mod } from "../Classes/Mod";
-import React from "react";
-import * as colorsGroups from "@mui/material/colors";
+import { Mod } from "@Classes/Mod";
 import { getContrastColor } from "@Common/utils";
-import Localize from "@Common/Localize";
-import SaveIcon from '@mui/icons-material/Save';
-import { UserConfigContext } from "@Context/UserConfigContext";
 
 
+/**@deprecated */
 export default function ModTag({
-    tag, onClick, disabled, sx, children
+    tag, onClick, disabled, sx
 }: {
     sx?: SxProps,
-    // slotProps?: {
-    //     buttonGroup?: ButtonGroupProps,
-    //     // label?: TypographyProps
-    // }
-    tag: Mod["tags"][number],
+    tag: DeepReadonly<ModTag>,
 
-    // onCross?: () => void,
     onClick?: () => void,
-
     disabled?: boolean,
-
-    // addVisibilitySwitcher?: boolean,
-
-    children?: React.ReactNode | React.ReactNode[]
 }) {
-    const [isTooltipOpen, setTooltipOpen] = React.useState(false);
     // const { tagsV, setTagsV } = React.useContext(TagsVisibilityContext);
 
     return (
         <ButtonGroup
-            sx={{
-                ...ModTag.ButtonGroupSx({ tag, disabled }),
+            sx={t => ({
+                opacity: disabled ? .25 : void 0,
+                pointerEvents: disabled ? "none" : void 0,
+
+                "& > button.MuiIconButton-root": {
+                    px: .5,
+                    py: .25,
+                    minHeight: 0,
+                    background: tag.color,
+                    "&:hover": {
+                        background: t.palette.neutral[800],
+                        "& *": { color: t.palette.common.white }
+                    }
+                },
+                "& > button.MuiIconButton-root > .MuiSvgIcon-root": {
+                    fontSize: 15,
+                    color: getContrastColor(tag.color),
+                    opacity: .8
+                },
                 ...sx as any,
-            }}
+            })}
         >
-            <Tooltip
-                arrow
-                placement="bottom"
-                open={isTooltipOpen}
-                onClose={e => e.type != "blur" && setTooltipOpen(false)}
-                title={<ModTagTooltip tag={tag} />}
-                variant="outlined"
-            >
                 <IconButton
                     size="sm"
                     variant="outlined"
                     onClick={onClick}
-                    onContextMenu={() => setTooltipOpen(true)}
                     sx={{ flex: 1 }}
                 >
                     <Typography
@@ -64,87 +57,27 @@ export default function ModTag({
                         noWrap
                     >{tag.name}</Typography>
                 </IconButton>
-            </Tooltip>
-            {children}
-        </ButtonGroup >
+        </ButtonGroup>
     );
 }
 
+// ModTag.ButtonGroupSx = ({ t, tag, disabled }: { t: Theme, tag: ModTag, disabled?: boolean }): SxProps => ({
+//     opacity: disabled ? .25 : void 0,
+//     pointerEvents: disabled ? "none" : void 0,
 
-function ModTagTooltip({ tag }: { tag: ModTag }) {
-    const { userConfig } = React.useContext(UserConfigContext)
-    const [inputValue, setInputValue] = React.useState(tag.name);
-    const isInputError = React.useMemo(() => userConfig?.tags.some(t => t !== tag && t.name === inputValue), [userConfig, inputValue]);
-
-    function onSave() {
-        if (isInputError) return;
-        invoke.renameTag(tag.name, inputValue);
-    }
-
-    return (
-        <Stack spacing={1}>
-            <Input
-                placeholder={Localize("tagName")}
-                value={inputValue}
-                endDecorator={
-                    <IconButton
-                        color={isInputError ? "danger" : "neutral"}
-                        onClick={onSave}
-                        disabled={isInputError}
-                    >
-                        <SaveIcon />
-                    </IconButton>
-                }
-                onChange={e => setInputValue(e.currentTarget.value)}
-                onKeyUp={(e) => { if (e.code == "Enter") onSave(); }}
-                error={isInputError}
-            />
-            {isInputError && <FormHelperText sx={t => ({ color: t.palette.danger.softColor })}>{Localize("thisNameAlreadyUsed")}</FormHelperText>}
-
-            <Divider>Color</Divider>
-            <Stack direction="row">
-                {Object.entries({ _base: { 0: "#000000", 100: "#ffffff" }, ...colorsGroups }).map(([name, colors]) =>
-                    <Stack key={name}>{Object.entries(colors).map(([v, color]) => isNaN(+v) ? null :
-                        <Box
-                            key={v}
-                            sx={{
-                                background: color,
-                                width: 20,
-                                height: 20,
-                                cursor: "pointer",
-                                justifyContent: "center",
-                                display: "flex",
-                                "&:hover": { boxShadow: "inset 0 0 0px 1px rgba(0, 0, 0, 1)" }
-                            }}
-                            onClick={() => invoke.setTag({ ...tag, color })}
-                        >{color == tag.color ? <Typography sx={{ color: getContrastColor(color) }}>X</Typography> : null}</Box>)}
-                    </Stack>
-                )}
-            </Stack>
-        </Stack>
-    )
-}
-
-
-ModTag.ButtonGroupSx = ({ tag, disabled }: { tag: ModTag, disabled?: boolean }): SxProps => ({
-    opacity: disabled ? .25 : void 0,
-    pointerEvents: disabled ? "none" : void 0,
-
-    "& > button.MuiIconButton-root:not(:hover)": {
-        background: tag.color,
-    },
-    "& > button.MuiIconButton-root": {
-        px: .5,
-        py: .25,
-        minHeight: 0,
-        "&:hover *": { color: "white" }
-    },
-    "& > button.MuiIconButton-root > .MuiSvgIcon-root": {
-        fontSize: 15,
-        color: getContrastColor(tag.color),
-        opacity: .8
-    }
-});
+//     "& > button.MuiIconButton-root": {
+//         px: .5,
+//         py: .25,
+//         minHeight: 0,
+//         "&:not(:hover)": { background: tag.color },
+//         "&:hover *": { color: "white" }
+//     },
+//     "& > button.MuiIconButton-root > .MuiSvgIcon-root": {
+//         fontSize: 15,
+//         color: getContrastColor(tag.color),
+//         opacity: .8
+//     }
+// });
 
 
 // ModTag.ModTagButtonGroup = function ({ tag, disabled, children, ...props }: {

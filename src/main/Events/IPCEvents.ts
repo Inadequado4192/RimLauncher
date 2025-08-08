@@ -1,26 +1,33 @@
 import fs from "fs";
 import path from "path";
-import { dialog, ipcMain, shell } from "electron";
-import UserConfig from "../Config";
+import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
+import UserConfigStore from "../store/UserConfigStore";
 import Local from "../localization";
 import { win } from "..";
-import { mkdirIfDontExists, parser } from "../utilts";
-import { Pathes } from "src/main/Pathes";
+import { mkdirIfDontExists } from "../utilts";
+import { Pathes } from "main/Pathes";
 import Localize from "@Common/Localize";
-import ModsConfig from "@Tools/ModsConfig";
-import ModPacks from "@Tools/ModPacks";
-import ModList from "@Tools/ModList";
+import ModsConfig from "main/store/ModsConfigStore";
+import ModPacks from "main/services/ModPacks";
+import ModListActions from "main/services/modListActions";
+import GitActions from "main/services/gitActions";
 
 
-export const IPCEvents = {
-    "winClose": () => win.close(),
-    "winMinimize": () => win.minimize(),
-    "winToggleMaximize": () => win.isMaximized() ? win.restore() : win.maximize(),
+//#region IPC - handle
+export const IPCEvents_handle = {
+    async reload() {
+        app.relaunch()
+        app.exit()
+    },
 
-    getPathes: () => ({ ...Pathes }),
+    "winClose": async () => win.close(),
+    "winMinimize": async () => win.minimize(),
+    "winToggleMaximize": async () => win.isMaximized() ? win.restore() : win.maximize(),
+
+    getPathes: async () => ({ ...Pathes }),
 
 
-    "selectFile": (e, setting: { type: "folder" | "file" }) => {
+    "selectFile": (setting: { type: "folder" | "file" }) => {
         return dialog.showOpenDialog({
             properties: [
                 setting.type == "folder" ? "openDirectory" : "openFile",
@@ -28,16 +35,16 @@ export const IPCEvents = {
             ]
         });
     },
-    "openPath": async (e, path: string) => void await shell.openPath(path),
+    "openPath": async (path: string) => void await shell.openPath(path),
 
 
 
-    enableMod: async (e, packageId: PackageId) => {
+    enableMod: async (packageId: PackageId) => {
         const modsConfig = ModsConfig.get();
         modsConfig.activeMods.push(packageId);
         ModsConfig.save(modsConfig);
     },
-    activeModBefore: async (e, targetId: PackageId, beforeId: PackageId) => {
+    activeModBefore: async (targetId: PackageId, beforeId: PackageId) => {
         const modsConfig = ModsConfig.get();
 
         if (targetId == beforeId) return;
@@ -58,7 +65,7 @@ export const IPCEvents = {
         }
         ModsConfig.save(modsConfig);
     },
-    activeModAfter: async (e, targetId: PackageId, afterId: PackageId) => {
+    activeModAfter: async (targetId: PackageId, afterId: PackageId) => {
         const modsConfig = ModsConfig.get();
         if (targetId == afterId) return;
         const targetIndex = modsConfig.activeMods.indexOf(targetId);
@@ -78,13 +85,13 @@ export const IPCEvents = {
         }
         ModsConfig.save(modsConfig);
     },
-    disableMod: async (e, packageId: PackageId) => {
+    disableMod: async (packageId: PackageId) => {
         const modsConfig = ModsConfig.get();
         modsConfig.activeMods = modsConfig.activeMods.filter(a => a !== packageId);
         ModsConfig.save(modsConfig);
     },
 
-    setActiveMods: async (e, list: PackageId[]) => {
+    setActiveMods: async (list: PackageId[]) => {
         const modsConfig = ModsConfig.get();
         modsConfig.activeMods = list;
         ModsConfig.save(modsConfig);
@@ -99,19 +106,20 @@ export const IPCEvents = {
 
 
 
-    getUserConfig: () => UserConfig.get(),
-    getUserConfigByKey: <K extends keyof UserConfig>(e: any, key: K) => UserConfig.get(key),
-    setUserConfig: (e, data: UserConfig) => UserConfig.set(data),
-    setUserConfigByKey: <K extends keyof UserConfig>(e: any, key: K, data: UserConfig[K]) => UserConfig.set(key, data),
+    getUserConfig: async () => UserConfigStore.get(),
+    // getUserConfigByKey: async <K extends keyof UserConfig>(key: K) => UserConfig.get(key),
+    // setUserConfig: async (data: UserConfig) => UserConfig.set(data),
+    setUserConfigByKey: async <K extends keyof UserConfig>(key: K, data: UserConfig[K]) => UserConfigStore.set(key, data),
 
-    UserConfigDebug: async () => await UserConfig.Debug(),
-    getModList: ModList.getModList.bind(ModList),
+    UserConfigDebugPathes: async () => await UserConfigStore.DebugPathes(),
+    /** Loading mods from `Data`, `Core` and `Steam/workshop` */
+    getModList: async (...args: Parameters<typeof ModListActions.getModList>) => ModListActions.getModList(...args),
 
 
 
     async runGame() {
         // if (!Pathes.Game) return dialog.showErrorBox("Error", Localize("error_gamePathIsUndefined"));
-        const data = await UserConfig.get();
+        const data = await UserConfigStore.get();
 
         // const child = spawn(path.join(Pathes.Game, "RimWorldWin64.exe"), [], {
         //     detached: true, // Від’єднує процес від Electron
@@ -125,7 +133,7 @@ export const IPCEvents = {
 
 
     async getGameInfo() {
-        if (!Pathes.Game) return {
+        if (!Pathes.Dir_Game) return {
             success: false as const,
             message: Localize("error_gamePathIsUndefined"),
         }
@@ -133,19 +141,19 @@ export const IPCEvents = {
         // if (!res.success) return res;
         // const uc = res.data;
 
-        if (!fs.existsSync(path.join(Pathes.Game, "Version.txt"))) {
+        if (!fs.existsSync(path.join(Pathes.Dir_Game, "Version.txt"))) {
             return {
                 success: false as const,
             }
         }
 
-        const gameVersionFull = fs.readFileSync(path.join(Pathes.Game, "Version.txt")).toString().trim() as FullVersion;
+        const gameVersionFull = fs.readFileSync(path.join(Pathes.Dir_Game, "Version.txt")).toString().trim() as FullVersion;
         const gameVersionShort = gameVersionFull.match(/^(\d+\.\d+)./)![1]! as ShortVersion;
 
         return {
             success: true as const,
             data: {
-                gamePath: Pathes.Game,
+                gamePath: Pathes.Dir_Game,
                 gameVersionFull, gameVersionShort,
             } satisfies GameInfoData
         };
@@ -153,29 +161,29 @@ export const IPCEvents = {
 
 
     //#region Localization
-    setLocal: (e, newLang: string) => UserConfig.set("language", newLang),
-    getTargetLocalJSON: () => Local.getTargetLocal(),
-    getAccessLanguages: () => Local.getAccessLanguages(),
+    setLocal: async (newLang: string) => UserConfigStore.set("language", newLang),
+    getTargetLocalJSON: async () => Local.getTargetLocal(),
+    getAccessLanguages: async () => Local.getAllLanguages(),
     //#endregion
 
 
 
 
     //#region ModPacks
-    async saveModPack(e, packName: string) {
-        mkdirIfDontExists(Pathes.ModPacks);
+    async saveModPack(packName: string) {
+        mkdirIfDontExists(Pathes.Dir_ModPacks);
         ModPacks.save(packName);
     },
-    async useModPack(e, packName: string) {
-        mkdirIfDontExists(Pathes.ModPacks);
+    async useModPack(packName: string) {
+        mkdirIfDontExists(Pathes.Dir_ModPacks);
         ModPacks.use(packName);
     },
-    async deleteModPack(e, packName: string) {
-        mkdirIfDontExists(Pathes.ModPacks);
+    async deleteModPack(packName: string) {
+        mkdirIfDontExists(Pathes.Dir_ModPacks);
         ModPacks.remove(packName);
     },
-    async renameModPack(e, oldname: string, newname: string) {
-        mkdirIfDontExists(Pathes.ModPacks);
+    async renameModPack(oldname: string, newname: string) {
+        mkdirIfDontExists(Pathes.Dir_ModPacks);
         ModPacks.rename(oldname, newname);
     },
     async getModPacksList() {
@@ -187,12 +195,12 @@ export const IPCEvents = {
 
 
     //#region Tags
-    hasTag(e, name: string) {
-        const tags = UserConfig.get("tags");
+    async hasTag(name: string) {
+        const tags = UserConfigStore.get("tags");
         return tags.some(a => a.name == name);
     },
-    setTag(e, tag: ModTag) {
-        const tags = UserConfig.get("tags");
+    async setTag(tag: ModTag) {
+        const tags = UserConfigStore.get("tags");
 
         const targetTagInd = tags.findIndex(a => a.name == tag.name);
         if (targetTagInd >= 0) {
@@ -201,24 +209,27 @@ export const IPCEvents = {
             tags.push(tag);
         }
 
-        UserConfig.set("tags", tags);
+        UserConfigStore.set("tags", tags);
     },
-    renameTag(e, oldname: string, newname: string) {
-        const tags = UserConfig.get("tags");
+    async updateTag<K extends keyof ModTag>(tagname: string, key: K, newvalue: ModTag[K]): Promise<CreateResponse> {
+        const tags = UserConfigStore.get("tags");
 
-        const targetTag = tags.find(a => a.name == oldname);
+        const targetTag = tags.find(a => a.name == tagname);
         if (targetTag) {
-            targetTag.name = newname;
-            UserConfig.set("tags", tags);
+            targetTag[key] = newvalue;
+            UserConfigStore.set("tags", tags);
+            return { success: true }
+        } else {
+            return { success: false, error: "Tag not found" }
         }
     },
-    removeTag(e, name: string) {
-        const tags = UserConfig.get("tags");
+    async removeTag(name: string) {
+        const tags = UserConfigStore.get("tags");
 
         const targetTagInd = tags.findIndex(a => a.name == name);
         if (targetTagInd >= 0) {
             tags.splice(targetTagInd, 1);
-            UserConfig.set("tags", tags);
+            UserConfigStore.set("tags", tags);
         }
     },
     //#endregion
@@ -227,35 +238,117 @@ export const IPCEvents = {
 
 
     // DEV
-    openDevTools(e) {
+    async openDevTools() {
         win.webContents.openDevTools();
     }
-} satisfies Record<string, (event: Electron.IpcMainInvokeEvent, ...args: any[]) => any>
+} satisfies Record<string, (...args: any[]) => Promise<any>> & ThisType<Electron.IpcMainInvokeEvent>
+//#endregion
 
 
 
 
 
-
-
-
-
-// type FindFunction<O> = { [K in keyof O]: O[K] extends (...args: any[]) => any ? K : never }[keyof O]; 
-// const __DEBUG__: { [K in keyof typeof test]: typeof test[K] extends (...args: any[]) => any ? 0 : 1 } extends infer O ?  O[keyof O] extends 1? 1 : 0 : never
-//     = 1;
-
-declare global {
-    namespace Electron {
-        interface IpcRenderer {
-            // on<K extends keyof Events>(channel: K, data: (e: Electron.IpcRendererEvent, ...data: Events[K]) => void): void
-            invoke(channel: string, data: unknown): void
-        }
+//#region IPC - on
+type IDType = ReturnType<typeof crypto.randomUUID>
+type IPC_onCallbackIn<Args extends any[] = [...any]> = (...args: Args) => void;
+type IPC_onCallbacks = { [K: string]: IPC_onCallbackIn }
+function IPC_on_sendler<Result extends IPC_onCallbacks>(taskid: IDType, channelname: string) {
+    function send<cbn extends keyof Result & string>(sender: Electron.WebContents, callbackName: cbn, ...args: Parameters<Result[cbn]>) {
+        sender.send(`${channelname}:${callbackName}:${taskid}`, ...args);
     }
+
+    type R = { [K in keyof Result]: (cb: Result[K]) => R }
+    send.__Type__ = {} as R;
+
+    return send;
 }
+
+export const IPCEvents_on = {
+    async longTask(taskId) {
+        const sendler = IPC_on_sendler<{
+            onProgress: IPC_onCallbackIn<[percent: number, message: string]>
+            onDone: IPC_onCallbackIn<[void]>
+            onError: IPC_onCallbackIn<[message: string]>
+        }>(taskId, "longTask");
+
+        for (let i = 0; i <= 100; i += 1) {
+            await new Promise((r) => setTimeout(r, 100));
+            sendler(this.sender, "onProgress", i / 100, i < 25 ? "Завантаження..." : i < 50 ? "Майже половина..." : i < 75 ? "Продовжуємо..." : i < 100 ? "Майже готово..." : "OK");
+        }
+
+        sendler(this.sender, "onDone");
+
+        return sendler.__Type__;
+    },
+
+    async downloadGitMod(taskId, url: string) {
+        const sendler = IPC_on_sendler<{
+            onProgress: IPC_onCallbackIn<[percent: number, message: string]>
+            onDone: IPC_onCallbackIn<[void]>
+            onError: IPC_onCallbackIn<[message: string]>
+        }>(taskId, "downloadGitMod");
+
+
+        try {
+            await GitActions.downloadGitMod({
+                url,
+                onProgress: (percent, message) => {
+                    sendler(this.sender, "onProgress", percent, message)
+                },
+            });
+        } catch (e) {
+            sendler(this.sender, "onError", e instanceof Error ? e.message : String(e));
+        }
+
+        sendler(this.sender, "onDone");
+
+        return sendler.__Type__;
+    },
+    async updateGitMod(taskId, pathToGitMod: string) {
+        const sendler = IPC_on_sendler<{
+            onProgress: IPC_onCallbackIn<[percent: number, message: string]>
+            onDone: IPC_onCallbackIn<[void]>
+            onError: IPC_onCallbackIn<[message: string]>
+        }>(taskId, "updateGitMod");
+
+        try {
+            await GitActions.updateGitMod(pathToGitMod, {
+                onProgress: (percent, message) => {
+                    sendler(this.sender, "onProgress", percent, message)
+                },
+            });
+        } catch (e) {
+            sendler(this.sender, "onError", e instanceof Error ? e.message : String(e));
+        }
+
+        sendler(this.sender, "onDone");
+
+        return sendler.__Type__;
+    },
+} satisfies {
+    [K: string]: (taskId: IDType, ...args: any[]) => Promise<{
+        onDone: any, // Необхідний для вимкнення подій після завершення
+    }>
+} & ThisType<Electron.IpcMainInvokeEvent>
+//#endregion
+
+
+
 
 
 export function InitIPCEvents() {
-    for (let name in IPCEvents) {
-        ipcMain.handle(name, IPCEvents[name as keyof typeof IPCEvents]);
+    for (let name in IPCEvents_handle) {
+        ipcMain.handle(name, (event, ...args) => {
+            const fn: Function = IPCEvents_handle[name as keyof typeof IPCEvents_handle];
+            if (!fn) throw Error(`IPC Method "${name}" not found`);
+            return fn.call(event, ...args);
+        });
+    }
+    for (let name in IPCEvents_on) {
+        ipcMain.on(name, (event, ...args) => {
+            const fn: Function = IPCEvents_on[name as keyof typeof IPCEvents_on];
+            if (!fn) throw Error(`IPC Method "${name}" not found`);
+            return fn.call(event, ...args);
+        });
     }
 }

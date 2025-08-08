@@ -1,184 +1,164 @@
 import React from "react";
-import { Mod as Mod, ModErrorType } from "../Classes/Mod";
-import { UserConfigContext } from "./UserConfigContext";
-import { ModsConfigContext } from "./ModsConfig";
-import { GameInfoContext } from "./GameInfoContext";
-import Localize from "@Common/Localize";
-import { AlertBigService } from "@Services/AlertBig";
-import { List, ListItem, ListItemButton, Typography, Stack } from "@mui/joy";
+import { Mod, Mod_ALL, ModErrorType } from "@Classes/Mod";
+import { ModsConfigStore, UserConfigStore } from "@Stores";
+import { createStore, StoreCompares, StoreCompareType } from "@Stores/store";
 
-export const ModListContext = React.createContext<ReturnType<typeof useDate>>(null as any);
+const ModListContext = React.createContext<ReturnType<typeof useDate>>(null as any);
+
+/**
+ * @key Path to mod's dir
+ * @value Mod object
+ */
+type ModsCollection = Record<string, Mod_ALL>;
+
+
 
 function useDate() {
-    const { userConfig } = React.useContext(UserConfigContext);
-    const { gameInfo } = React.useContext(GameInfoContext);
-    const modsConfig = React.useContext(ModsConfigContext);
+    const userTagsConnections = UserConfigStore.use(uc => uc.tags, (p, n) => StoreCompares._isEqualBy(p, n, x => x.packageIds));
 
-    const [mods, setMods] = React.useState<Mod[]>([]);
-    const [isLoaded, setIsLoaded] = React.useState(false);
+    const activeMods = ModsConfigStore.use(mc => mc.activeMods, StoreCompareType.PrimitiveArray);
+    const mods = ModListStore.mods.use();
+    const actives = ModListStore.actives.use();
 
-    const [modsString, setModsString] = React.useState("");
-
-    const [warnings, setWarnings] = React.useState<Warning[]>([]);
-    const alertBigRefId = React.useRef<number | null>(null);
+    React.useEffect(() => () => ModListStore._clear(), []);
 
 
+    // Load Mods
     React.useEffect(() => {
-        const str = mods.map(m => `${m.packageId}-${m.dirPath}`).join(",");
-        if (modsString != str) setModsString(str);
-    }, [mods]);
-
-
-    React.useEffect(() => {
-        if (alertBigRefId.current != undefined) AlertBigService.remove(alertBigRefId.current);
-        if (warnings.length) {
-            const { id } = AlertBigService.create({
-                title: Localize("warnings"),
-                text: (
-                    <List>
-                        {warnings.map((w, i) => (
-                            <ListItem key={i}>
-                                <ListItemButton
-                                    title={w.dirPath}
-                                    onClick={() => invoke.openPath(w.dirPath)}
-                                >
-                                    <Stack>
-                                        <Typography sx={{ whiteSpace: "break-spaces" }}>{w.message}</Typography>
-                                        <Typography noWrap level="body-xs">{w.dirPath}</Typography>
-                                    </Stack>
-                                </ListItemButton>
-                            </ListItem>
-                        ))}
-                    </List>
-                ),
-            });
-            alertBigRefId.current = id;
-        }
-    }, [warnings]);
-
-
-    function updateMod(mod: Mod) {
-        const ind = mods.indexOf(mod);
-        if (ind == -1) throw Error("Unknown Mod");
-        mods.splice(ind, 1, new Mod(mod));
-    }
-    function rerender() {
-        setMods(mods => [...mods]);
-    }
-
-
-    React.useEffect(() => {
-        // First Load
-        invoke.getModList().then(async (res) => {
+        $invoke.getModList().then(async (res) => {
             if (res.success) {
-                const newMods: Mod[] = [], newWarnings: Warning[] = [];
-                res.data.forEach(d => {
-                    if (d.warnings.length) console.log({ d });
-                    if (d.about) newMods.push(new Mod(d));
-                    newWarnings.push(...d.warnings);
+                const newMods: ModsCollection = {};
+
+                const userConfig = UserConfigStore.get();
+
+                res.data.list.forEach(d => {
+                    newMods[d.dirPath] = Mod.create(d, {
+                        tags: Mod.getTags(userConfig.tags, d.about.packageId),
+                    });
                 });
-                setMods(newMods);
-                setWarnings(newWarnings);
+
+                ModListStore.mods.set(newMods);
+                ModListStore.loadingErrors.set(res.data.errors);
             } else {
-                setMods([]);
-                setWarnings([]);
+                ModListStore.mods.set({});
+                ModListStore.loadingErrors.set([{ dirPath: "", message: "Something Wrong" }]);
             }
-            setIsLoaded(true);
+            ModListStore.isLoaded.set(true);
         });
-    }, []);
+    }, [UserConfigStore.use(uc => [uc.gamePath, uc.steamPath], StoreCompareType.PrimitiveArray)]);
+
+    // Watch
     React.useEffect(() => {
-        // Watch
-        const onWorkshopContentChanged: on_listenerType<typeof on.WorkshopContentChanged> = (e, ...data) => {
+        const onWorkshopContentChanged: on_listenerType<typeof $on.ModList_Changed> = (e, ...data) => {
             if (data[0] == "add") {
                 const d = data[1];
-                if (d.about) setMods(mods => [...mods, new Mod(d)]);
-                else setWarnings(warnings => [...warnings, ...d.warnings])
-            } else {
-                const m_ind = mods.findIndex(m => m.dirPath == data[1]);
-                if (m_ind >= 0) {
-                    mods.splice(m_ind, 1);
-                    setMods([...mods]);
-                }
-
-                const w_ind = warnings.findIndex(w => w.dirPath == data[1]);
-                if (w_ind >= 0) {
-                    warnings.splice(w_ind, 1);
-                    setWarnings([...warnings]);
-                }
-            }
-        }
-        on.WorkshopContentChanged(onWorkshopContentChanged);
-        return () => {
-            off.WorkshopContentChanged(onWorkshopContentChanged);
-        }
-    }, [mods, warnings]);
-
-
-
-
-    React.useEffect(() => {
-        Mod.modsConfig = modsConfig;
-        rerender();
-    }, [modsConfig]);
-
-    React.useEffect(() => {
-        Mod.gameInfo = gameInfo;
-        rerender();
-    }, [gameInfo]);
-
-
-
-
-
-    const { unactives, actives } = React.useMemo(() => {
-        let unactives: Mod[] = [], actives: Mod[] = [];
-
-        if (modsConfig) {
-            unactives = mods.filter(m => !m.isActive());
-            actives = mods.filter(m => m.isActive())
-                .sort((a, b) => {
-                    return modsConfig.activeMods.findIndex(p => a.samePackageId(p)) - modsConfig.activeMods.findIndex(p => b.samePackageId(p));
+                if (d.success) {
+                    const userConfig = UserConfigStore.get();
+                    ModListStore.mods.set(mods => ({
+                        ...mods, [d.data.dirPath]: Mod.create(d.data, {
+                            tags: Mod.getTags(userConfig.tags, d.data.about.packageId),
+                        })
+                    }));
+                } else ModListStore.loadingErrors.set(errors => [...errors, d.error]);
+            } else if (data[0] == "remove") {
+                ModListStore.mods.set(mods => {
+                    delete mods[data[1]];
+                    return { ...mods };
                 });
-        }
 
-        return { unactives, actives };
-
-    }, [mods, modsConfig?.activeMods]);
-
-
-
-    const errorType = React.useMemo(() => {
-        let prevE: ModErrorType = ModErrorType.None;
-        for (const m of actives) {
-            m.modListRef = { actives, unactives };
-            const e = m.getErrorType();
-            if (e == ModErrorType.Error) return e;
-            else prevE = e;
-        }
-        return prevE;
-    }, [actives, modsConfig]);
-
-
-    React.useEffect(() => {
-        if (!userConfig) return;
-        let needUpdate = false;
-        mods.forEach(m => {
-            const tags = userConfig.tags.filter(tag => tag.packageIds.find(id => m.samePackageId(id)));
-            if (JSON.stringify(m.tags) !== JSON.stringify(tags)) {
-                m.tags = tags;
-                updateMod(m);
-                needUpdate = true;
+                ModListStore.loadingErrors.set(errors => {
+                    const w_ind = errors.findIndex(w => w.dirPath == data[1]);
+                    if (w_ind >= 0) {
+                        errors.splice(w_ind, 1);
+                        return [...errors];
+                    }
+                    return errors;
+                });
             }
+        }
+        $on.ModList_Changed(onWorkshopContentChanged);
+        return () => {
+            $off.ModList_Changed(onWorkshopContentChanged);
+        }
+    }, []);
+
+    // Update Tags
+    React.useEffect(() => {
+        for (const path in mods) {
+            const mod = mods[path]!;
+            const tags = userTagsConnections.filter(ar => ar.packageIds.includes(mod.about.packageId)).map(a => a);
+            if (JSON.stringify(mod.tags.map(t => t.name)) !== JSON.stringify(tags.map(t => t.name))) {
+                mod.tags = tags;
+                mod.store.emit();
+            }
+        }
+    }, [mods, userTagsConnections]);
+
+    // Creating Lists
+    React.useEffect(() => {
+        let unactives: Mod_ALL[] = [],
+            actives: Mod_ALL[] = [];
+
+        for (const path in mods) {
+            const mod = mods[path]!;
+            if (mod.isActive()) actives.push(mod);
+            else unactives.push(mod);
+        }
+        // unactives = mods.filter(m => !m.isActive());
+        // actives = mods.filter(m => m.isActive())
+        actives.sort((a, b) => {
+            return activeMods.findIndex(p => a.samePackageId(p)) - activeMods.findIndex(p => b.samePackageId(p));
         });
-        if (needUpdate) rerender();
-    }, [modsString, userConfig?.tags]);
 
+        ModListStore.actives.set(actives);
+        ModListStore.unactives.set(unactives);
+    }, [mods, activeMods]);
 
-    return { mods, actives, unactives, errorType, isLoaded, modsString };
+    // Finding Errors
+    React.useEffect(() => {
+        const e = {} as Record<PackageId, ModErrorType>;
+        for (const path in mods) {
+            const m = mods[path]!;
+            e[m.about.packageId] = m.getErrorType();
+        }
+        ModListStore.modErrorsType.set(e);
+    }, [mods, actives]);
 }
 
 export function ModListContextProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
+    const data = useDate();
     return (
-        <ModListContext.Provider value={useDate()}>{children}</ModListContext.Provider>
+        <ModListContext.Provider value={data}>{children}</ModListContext.Provider>
     )
+}
+
+export namespace ModListStore {
+    export function _clear() {
+        isLoaded.setWithoutEmit(false);
+        mods.setWithoutEmit({});
+        actives.setWithoutEmit([]);
+        unactives.setWithoutEmit([]);
+        modErrorsType.setWithoutEmit({});
+        loadingErrors.setWithoutEmit([]);
+    }
+
+
+    export const isLoaded = createStore<boolean>({
+        firstLoad: () => false,
+    });
+    export const mods = createStore<ModsCollection>({
+        firstLoad: () => ({}),
+    });
+    export const actives = createStore<Mod_ALL[]>({
+        firstLoad: () => [],
+    });
+    export const unactives = createStore<Mod_ALL[]>({
+        firstLoad: () => [],
+    });
+    export const modErrorsType = createStore<Record<PackageId, ModErrorType>>({
+        firstLoad: () => ({}),
+    });
+    export const loadingErrors = createStore<ModReadingProblem[]>({
+        firstLoad: () => [],
+    });
 }

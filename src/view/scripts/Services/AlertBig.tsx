@@ -30,7 +30,7 @@ export function AlertBigContainer() {
                     <DialogTitle>{props.title}</DialogTitle>
                     <DialogContent>{props.text}</DialogContent>
                     <DialogActions>
-                        <Button color="success" onClick={onNext}>{Localize("next")}</Button>
+                        <Button color="success" onClick={onNext}>{Localize("close")}</Button>
                     </DialogActions>
                 </ModalDialog>
             </Modal>

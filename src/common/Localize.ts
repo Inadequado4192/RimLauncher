@@ -14,8 +14,8 @@ export default function Localize(key: keyof SomeLocal["keys"] | (string & {}), a
 
 export async function loadingLocal() {
     if (process.type == "renderer")
-        local = await invoke.getTargetLocalJSON();
+        local = await $invoke.getTargetLocalJSON();
     else if (process.type == "browser") {
-        local = (await import("src/main/localization")).default.getTargetLocal();
+        local = (await import("main/localization")).default.getTargetLocal();
     }
 }

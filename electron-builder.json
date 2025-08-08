@@ -1,0 +1,34 @@
+{
+    "appId": "com.inadequado4192.rimlauncher",
+    "files": [
+        "./.webpack/*",
+        "!node_modules"
+    ],
+    "extraResources": [
+        {
+            "from": "src/resources",
+            "to": "."
+        }
+    ],
+    "directories": {
+        "buildResources": "."
+    },
+    "icon": "build/icons/icon",
+    "mac": {
+        "target": ["dmg", "zip", "pkg"]
+    },
+    "win": {
+        "target": ["nsis", "portable", "zip"]
+    },
+    "linux": {
+        "target": ["AppImage", "deb", "rpm", "zip"]
+    },
+    "nsis": {
+        "oneClick": false,
+        "perMachine": false,
+        "allowElevation": true,
+        "allowToChangeInstallationDirectory": true,
+        "createDesktopShortcut": true,
+        "createStartMenuShortcut": true
+    }
+}

@@ -6,7 +6,7 @@ function useDate() {
     const [local, setLocal] = React.useState<SomeLocal>();
     
     React.useEffect(() => {
-        invoke.getTargetLocalJSON().then(setLocal);
+        $invoke.getTargetLocalJSON().then(setLocal);
     }, []);
 
     return { local, setLocal };

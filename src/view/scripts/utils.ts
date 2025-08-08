@@ -1,5 +1,8 @@
+import { shell } from "electron";
+
 export function openUrl(url: string) {
-    window.open(url, "_blank")
+    // window.open(url, "_blank");
+    shell.openExternal(url);
 }
 
 

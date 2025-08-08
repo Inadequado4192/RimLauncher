@@ -22,3 +22,44 @@ export function getContrastColor(hex: string) {
 
 
 export const wait = (ms: number) => new Promise<void>(t => setTimeout(() => t(), ms));
+
+
+
+
+// export function pick<T extends object, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> {
+//     const result = {} as Pick<T, K>;
+//     for (const key of keys) {
+//         if (key in obj) {
+//             result[key] = obj[key];
+//         }
+//     }
+//     return result;
+// }
+
+export function shallowEqual(prev: Record<string, any>, next: Record<string, any>): boolean {
+    if (prev === next) {
+        return true;
+    }
+
+    if (
+        typeof prev !== "object" || prev === null ||
+        typeof next !== "object" || next === null
+    ) {
+        return false;
+    }
+
+    const keysA = Object.keys(prev);
+    const keysB = Object.keys(next);
+
+    if (keysA.length !== keysB.length) {
+        return false;
+    }
+
+    for (let key of keysA) {
+        if (prev[key] !== next[key]) {
+            return false;
+        }
+    }
+
+    return true;
+}

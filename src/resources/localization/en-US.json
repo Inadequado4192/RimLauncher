@@ -1,0 +1,123 @@
+{
+    "name": "English",
+    "keys": {
+        "yes": "Yes",
+        "no": "No",
+        "change": "Change",
+        "open": "Open",
+        "save": "Save",
+        "load": "Load",
+        "update": "Update",
+        "rename": "Rename",
+        "sort": "Sort",
+        "play": "Play",
+        "search": "Search",
+        "import": "Import",
+        "install": "Install",
+        "delete": "Delete",
+        "use": "Use",
+        "add": "Add",
+        "error": "Error",
+        "size": "Size",
+        "name": "Name",
+        "disable": "Disable",
+        "enable": "Enable",
+        "warnings": "Warnings",
+        "next": "Next",
+
+
+        "updateTime": "Update time",
+        "review": "Review",
+        "UnableRetrieveChangeNotes": "Unable to retrieve сhange notes. There may be a missing connection. Message: {0}",
+
+
+        "openDirectory": "Open directory",
+        "openInSteam": "Open in Steam",
+        "openInGit": "Open in Git",
+        "openSource": "Open source",
+        "open_paths": "Open...",
+
+        "modChoiceScreenText": "Select mod",
+
+        "authors": "Authors",
+        "description": "Description",
+
+
+        "countOfMods": "Count of mods",
+        "DLC": "DLC",
+        "gameVersion": "Game version",
+        "lastUpdate": "Last update",
+
+
+
+
+        "config": "Config",
+        "pathToSteam": "Path to Steam",
+        "pathToGame": "Path to Game",
+        "pathToModsConfig": "Path to ModsConfig.xml",
+        "closeWindowAfterRun": "Close window after run",
+        "theme": "Theme",
+        "theme_dark": "Dark",
+        "theme_light": "Light",
+        "language": "Language",
+
+
+        "confirmTheAction": "Confirm the action",
+        "confirmDeletionModpack": "Are you sure you want to delete this modpack?",
+        "confirmUpdationModpack": "Are you sure you want to update this modpack?",
+        "confirmDeletionTag": "Are you sure you want to delete this tag?",
+
+
+
+        "config_sectionPaths": "Paths",
+
+
+        "error_modsConfigXmlNotFound": "The program could not find the path to “modsConfix.xml”. Contact Support. The path where we are looking for the file: {0}",
+        "error_gamePathIsUndefined": "The path to the game is not specified. Go to the config and specify the path to the game.",
+
+        "missingDependencies": "Missing Dependencies",
+        "incompatibleWith": "Incompatible With",
+        "loadBefore": "Load Before",
+        "loadAfter": "Load After",
+        
+        "version": "Version",
+        "supportedVersions": "Supported versions",
+        "gameConfig": "Game config",
+        "userConfig": "User config",
+        "modPacks": "Mod Packs",
+        "clearActiveMods": "Clear active mods",
+        "multiplayerCompability": "Multiplayer Compability",
+        "steamDir": "Steam directory",
+        "gameDir": "Game directory",
+        "activeMods": "Active Mods: {0} / {1}",
+        "tags": "Tags",
+    
+        "tagName": "Tag Name",
+
+        "modPackName": "Modpack name",
+        "renameModPack": "Rename Modpack",
+        "thisNameAlreadyUsed": "This name is already used.",
+    
+        "wrongModVersion": "Wrong Mod Version",
+        "wrongModVersion_message": "The mod does not support this version of the game. Possible problems.",
+        "missingModVersion": "Missing Mod Version",
+        "missingModVersion_message": "The mod does not contain information about the target version of the game. Possible problems.",
+
+        
+        "section_Windows": "Windows",
+        "section_ModList": "Mod list",
+        "section_Stats": "Stats",
+        "section_Tags": "Tags",
+
+
+
+        "tab_ModListManager": "Mod list manager",
+        "tab_ModUpdates": "Mod updates",
+
+
+        "notFound": "{0} not found",
+        "missingSteamId": "Missing Steam id",
+
+        "modUpdates_hint": "Updates for Steam mods are checked via the Workshop rather than by modifying your files, which means new updates might not have been downloaded yet."
+    }
+}

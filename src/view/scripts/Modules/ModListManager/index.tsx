@@ -1,7 +1,8 @@
+import "./index.css";
 import { Stack } from "@mui/joy";
 import ModList from "./ModList";
 import ModInfo from "./ModInfo";
-import ModListActions from "./ModListActions";
+import Actions from "./Actions";
 import { TagsVisibilityContextProvider } from "./Context/TagsVisibilityContext";
 import { LocalModListContextProvider } from "./Context/LocalModListContext";
 
@@ -15,7 +16,7 @@ export default function ModListManager() {
             <LocalModListContextProvider>
                 <TagsVisibilityContextProvider>
                     <ModList />
-                    <ModListActions />
+                    <Actions />
                     <ModInfo />
                 </TagsVisibilityContextProvider>
             </LocalModListContextProvider>

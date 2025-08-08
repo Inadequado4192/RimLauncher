@@ -1,34 +1,37 @@
-import TsconfigPathsPlugin from "tsconfig-paths-webpack-plugin";
 import type { Configuration } from "webpack";
-import { rules } from "./webpack.rules";
-import { plugins } from "./webpack.plugins";
+import path from "path";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import { commmon, rules } from "./webpack.common";
 
-rules.push({
-    test: /\.css$/,
-    use: [{ loader: "style-loader" }, { loader: "css-loader" }],
-});
-
-export const rendererConfig: Configuration = {
-    module: {
-        rules,
+module.exports = {
+    entry: "./src/view/renderer.ts",
+    target: "electron-renderer",
+    output: {
+        path: path.resolve(__dirname, ".webpack"),
+        filename: "renderer.js"
     },
-    plugins,
-    resolve: {
-        extensions: [".js", ".ts", ".jsx", ".tsx", ".css"],
-        plugins: [
-            new TsconfigPathsPlugin({
-                 extensions: [".ts", ".tsx", ".js"]
-            })
+    module: {
+        rules: [
+            ...rules,
+            {
+                test: /\.css$/,
+                use: [{ loader: "style-loader" }, { loader: "css-loader" }],
+            }
         ]
     },
-    devtool: "inline-source-map",
-    optimization: {
-        minimize: true, // Мінімізувати ваш код для зменшення розміру
-        splitChunks: {
-            chunks: "all", // Розділяти код на окремі частини
-        },
+    devServer: {
+        // static: path.join(__dirname, ".webpack"),
+        hot: true,
+        port: 3000
     },
-    cache: {
-        type: "filesystem",
+    infrastructureLogging: {
+        level: "warn", // або "error", або "none"
     },
-};
+    ...commmon,
+    plugins: [
+        ...commmon.plugins,
+        new HtmlWebpackPlugin({
+            template: "./src/view/index.html"
+        })
+    ],
+} satisfies Configuration & { devServer?: any };

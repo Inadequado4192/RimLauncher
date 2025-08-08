@@ -1,37 +1,169 @@
-import { Box, Button, ButtonGroup, Chip, CircularProgress, ColorPaletteProp, Divider, IconButton, Input, List, ListItem, ListItemButton, ListItemDecorator, Stack, Tooltip, Typography } from "@mui/joy";
+import { Box, Button, ButtonGroup, Chip, CircularProgress, ColorPaletteProp, Divider, IconButton, Input, List, ListItemButton, ListItemDecorator, Stack, Tooltip, Typography } from "@mui/joy";
 import React, { JSX } from "react";
-import FolderIcon from "@mui/icons-material/Folder";
-import RimWorldIcon from "src/view/scripts/Components/Icons/RimWorld";
-import SteamIcon from "src/view/scripts/Components/Icons/Steam";
-import { openUrl } from "../../utils";
-import Localize from "@Common/Localize";
-import { LocalModListContext } from "./Context/LocalModListContext";
-import { Mod, ModErrorType } from "../../Classes/Mod";
-import CloseIcon from '@mui/icons-material/Close';
+import { FixedSizeList, ListChildComponentProps } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
+//#region Icons
+import RimWorldIcon from "@Components/Icons/RimWorld";
+import { FaSteam, FaGithub, FaFolder, FaXmark } from "react-icons/fa6";
+//#endregion
 import ModTagList from "@Components/ModTagList";
+import Localize from "@Common/Localize";
+import { LocalModListStores } from "./Context/LocalModListContext";
 import { TagsVisibilityContext } from "./Context/TagsVisibilityContext";
+import { Mod, Mod_ALL, ModErrorType } from "@Classes/Mod";
+import { ModType } from "enums";
+import { openUrl } from "view/scripts/utils";
+import { shallowEqual } from "@Common/utils";
+import { ModListStore } from "@Context/ModListContext";
+import { ModsConfigStore } from "@Stores";
+import { StoreCompareType } from "@Stores/store";
+import { Portal } from "@mui/material";
 import { useInView } from "react-intersection-observer";
-import Steam from "src/view/scripts/Components/Icons/Steam";
+import LoadingErrors from "./LoadingErrors";
 
 const modListItemClass = "mod-list-item";
 
 export default function ModList() {
-    const {
-        modList,
-        selectedMod,
-        setSelectedMod,
-        lastSelectedL_Path, lastSelectedR_Path,
-    } = React.useContext(LocalModListContext);
-    const { tagsV } = React.useContext(TagsVisibilityContext);
     const [searchText, setSearchText] = React.useState("");
+
+    return (
+        <Stack gap={1} width="40%">
+            <Input
+                placeholder={Localize("search")}
+                value={searchText}
+                onChange={e => setSearchText(e.currentTarget.value)}
+                endDecorator={<IconButton onClick={() => setSearchText("")} sx={{ borderRadius: "50%" }}><FaXmark /></IconButton>}
+            />
+            <Lists searchText={searchText} />
+            <LoadingErrors />
+        </Stack >
+    )
+}
+
+
+
+function Lists({ searchText }: { searchText: string }) {
+    const actives = ModListStore.actives.use();
+    const unactives = ModListStore.unactives.use();
+
+
+    const errors = ModListStore.modErrorsType.use();
+    const activeMods = ModsConfigStore.use(mc => mc.activeMods, StoreCompareType.PrimitiveArray);
+    const isLoaded = ModListStore.isLoaded.use();
+    const { tagsV } = React.useContext(TagsVisibilityContext);
+    const unaListRef = React.useRef<FixedSizeList<ItemData_R>>(null);
+    const aListRef = React.useRef<FixedSizeList<ItemData_R>>(null);
+
+
+    useKeyControls({ unaListRef, aListRef });
 
     const [isOpenModTooltip, setModTooltip] = React.useState<Parameters<typeof ModTooltip>[0]["data"]>();
 
-    // const selectedElementRef = React.useRef<null | HTMLLIElement>(null);
-
-    useKeySelectEvents();
 
 
+    const activeModsErrorType = React.useMemo(() => {
+        let prevE: ModErrorType = ModErrorType.None;
+
+        for (const pid of activeMods) {
+            const e = errors[pid];
+            if (e == ModErrorType.Error) return e;
+            else if (e !== undefined && prevE < e) prevE = e;
+        }
+        return prevE;
+    }, [errors, activeMods]);
+
+
+    const Item = React.useCallback(React.memo(function ({ mod, errorType }: ItemData) {
+        console.log("ITEM");
+        mod.store.use();
+        const isSelected = LocalModListStores.selectedMod.use(sm => sm?.dirPath == mod.dirPath);
+
+        const ref = React.useRef<HTMLLIElement>(null);
+        // React.useEffect(() => void (mod.elementRef = ref.current), [ref]);
+
+        const icon: JSX.Element = React.useMemo(() => {
+            switch (mod.type) {
+                case ModType.Steam: return <FaSteam />;
+                case ModType.Local: return <FaFolder />;
+                case ModType.DLC: return <RimWorldIcon />;
+                case ModType.Git: return <FaGithub />;
+            }
+        }, [mod.type]);
+        const status = React.useMemo(() => {
+            if (errorType == ModErrorType.Error) return "error";
+            else if (errorType == ModErrorType.Warn) return "warn";
+            else if (errorType == ModErrorType.None) return "none";
+        }, [errorType]);
+
+
+        //#region Events
+        const onClick = () => LocalModListStores.selectedMod.set(mod);
+        const onMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+            if (
+                !(e.relatedTarget instanceof HTMLElement) ||
+                (
+                    e.relatedTarget.getAttribute("role") !== "tooltip" &&
+                    e.relatedTarget.closest("[role=tooltip]") == null
+                )
+            ) setModTooltip(undefined)
+        }
+        const onContextMenu = () => setModTooltip({ mod, anchorEl: ref.current!, errorType });
+        const onDoubleClick = () => mod.toggleState();
+        const onDragOver = (e: React.DragEvent<HTMLElement>) => e.preventDefault();
+        const onDragStart = (e: React.DragEvent<HTMLElement>) => e.dataTransfer.setData("packageId", mod.about.packageId);
+        const onDrop = React.useCallback((e: React.DragEvent<HTMLElement>) => {
+            const targetId = e.dataTransfer.getData("packageId") as PackageId || "";
+            if (!targetId) return;
+
+            const elem = e.currentTarget.closest(`.${modListItemClass}`);
+            if (!elem) return $invoke.activeModAfter(targetId, mod.about.packageId);
+
+            const rect = elem.getBoundingClientRect();
+
+            if (e.pageY > rect.top + rect.height / 2)
+                $invoke.activeModAfter(targetId, mod.about.packageId);
+            else
+                $invoke.activeModBefore(targetId, mod.about.packageId);
+        }, [mod.about.packageId]);
+        //#endregion
+
+        const backgroundStyle = React.useMemo(() => {
+            return mod.tags.length <= 0
+                ? "none" as const
+                : `linear-gradient(90deg, transparent 50%, ${mod.tags.map(t => t.color).join(", ")})` as const
+        }, [mod.tags]);
+
+        return (
+            <li
+                ref={ref}
+                className={`list-item ${isSelected ? "selected" : ""} ${modListItemClass}`}
+                data-mod-path={mod.dirPath}
+                style={{ height: itemHeight }}
+                data-status={status}
+                draggable
+                onClick={onClick}
+                onMouseLeave={onMouseLeave}
+                onDoubleClick={onDoubleClick}
+                onContextMenu={onContextMenu}
+                onDragStart={onDragStart}
+                onDragOver={onDragOver}
+                onDrop={onDrop}
+            >
+                {backgroundStyle !== "none" && <div className="background" style={{ background: backgroundStyle }} />}
+                <div className="icon">{icon}</div>
+                <div className="label">{mod.about.name}</div>
+            </li>
+        )
+    }, (prev, next) => prev.mod.dirPath === next.mod.dirPath && prev.errorType === next.errorType), []);
+    const Item_R = React.useCallback(React.memo(function ({ data, index, style }: ListChildComponentProps<ItemData_R>) {
+        const mod = data.list[index]!;
+        const errorType = data.errors[mod.about.packageId]!;
+        return (
+            <Box style={style}>
+                <Item mod={mod} errorType={errorType} />
+            </Box>
+        );
+    }), []);
 
     function LoadingElement() {
         return (
@@ -41,284 +173,140 @@ export default function ModList() {
         )
     }
 
-    const Item = React.useCallback(React.memo(function ({ mod, lastSelected, isSelected, errorType, show }: {
-        mod: Mod,
-        lastSelected: boolean,
-        isSelected: boolean,
-        errorType: ModErrorType,
-        show: boolean
-    }) {
-        // console.log("[ITEM]");
-        const elemRef = React.useRef<HTMLLIElement>(null);
-
-        const { ref, inView } = useInView({ threshold: 0, });
-
-        React.useEffect(() => {
-            if (isSelected) {
-                elemRef.current?.focus();
-            }
-        }, [isSelected]);
 
 
-        const icon: JSX.Element = React.useMemo(() => {
-            switch (mod.type) {
-                case "Steam": return <SteamIcon />;
-                case "Local": return <FolderIcon />;
-                case "DLC": return <RimWorldIcon />;
-            }
-        }, [mod.type]);
-        const color: ColorPaletteProp = React.useMemo(() => {
-            if (errorType == 2) return "danger";
-            else if (errorType == 1) return "warning";
-            else return "neutral";
-        }, [errorType]);
 
-        if (!show) return null;
-
-        const height = 36;
-
-        return (
-            <ListItem
-                className={modListItemClass}
-                data-mod-path={mod.dirPath}
-                ref={e => ref(elemRef.current = e)}
-                sx={t => ({
-                    bgcolor: lastSelected ? t.palette.neutral.plainHoverBg : void 0,
-                    height,
-                    transition: ".2s",
-                    opacity: inView ? 1 : 0
-                })}
-                tabIndex={1}
-            >
-                {
-                    inView && (
-                        <ListItemButton
-                            draggable
-                            selected={isSelected}
-                            color={color}
-                            variant={color !== "neutral" ? "soft" : undefined}
-
-                            onContextMenu={() => setModTooltip({ pacageId: mod.packageId, anchorEl: elemRef.current! })}
-                            onMouseEnter={() => errorType && setModTooltip({ pacageId: mod.packageId, anchorEl: elemRef.current! })}
-                            onMouseLeave={(e) => {
-                                if (
-                                    e.relatedTarget instanceof HTMLElement &&
-                                    (
-                                        e.relatedTarget.classList.contains("MuiTooltip-root") ||
-                                        e.relatedTarget.classList.contains("MuiTooltip-arrow")
-                                    )
-                                ) return;
-                                setModTooltip(undefined);
-                            }}
-
-                            onDoubleClick={() => mod.toggleState()}
-                            onClick={() => setSelectedMod(mod)}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDragStart={(e) => e.dataTransfer.setData("packageId", mod.packageId)}
-                            onDrop={(e) => {
-                                const targetId = e.dataTransfer.getData("packageId") as PackageId || "";
-                                if (!targetId) return;
-
-                                const elem = e.currentTarget.closest(`.${modListItemClass}`);
-                                if (!elem) return invoke.activeModAfter(targetId, mod.packageId);
-
-                                const rect = elem.getBoundingClientRect();
-
-                                if (e.pageY > rect.top + rect.height / 2)
-                                    invoke.activeModAfter(targetId, mod.packageId);
-                                else
-                                    invoke.activeModBefore(targetId, mod.packageId);
-                            }}
-                            sx={{ border: "none" }}
-                        >
-                            <Box
-                                sx={{
-                                    position: "absolute",
-                                    top: 0, bottom: 0,
-                                    left: 0, right: 0,
-                                    background: `linear-gradient(90deg, transparent 50%, ${mod.tags.map(t => t.color).join(", ")})`
-                                }}
-                            />
-                            <ListItemDecorator>{icon}</ListItemDecorator>
-                            <Typography
-                                color={color}
-                                noWrap
-                                title={mod.name}
-                                sx={{ zIndex: 1 }}
-                            >{mod.name}</Typography>
-                        </ListItemButton>
-                    )
-                }
-            </ListItem>
-        )
-    }), []);
-
-    const errors = React.useMemo(() => {
-        const e = {} as Record<PackageId, ModErrorType>;
-        for (const m of modList.mods) e[m.packageId] = m.getErrorType();
-        return e;
-    }, [modList.mods]);
-
-    const mapping = React.useCallback((mod: Mod, i: number) => <Item
-        key={mod.dirPath}
-        mod={mod}
-        lastSelected={lastSelectedL_Path == mod.dirPath || lastSelectedR_Path == mod.dirPath}
-        isSelected={(selectedMod?.dirPath == mod.dirPath)}
-        errorType={errors[mod.packageId]}
-        show={
-            mod.name.toLowerCase().includes(searchText.toLowerCase()) &&
+    const filter = React.useCallback((mods: Mod_ALL[]) =>
+        mods.filter(mod =>
+            mod.about.name.toLowerCase().includes(searchText.toLowerCase()) &&
             (!tagsV.size || mod.tags.some(t => tagsV.has(t.name)))
-        }
-    />, [selectedMod, searchText, errors, tagsV, lastSelectedL_Path, lastSelectedR_Path]);
+        ),
+        [searchText, tagsV]
+    );
 
+    const filteredUnactivesMods = React.useMemo(() => filter(unactives), [unactives, filter]);
+    const filteredActivesMods = React.useMemo(() => filter(actives), [actives, filter]);
 
-    const unalist = React.useMemo(() => modList.unactives.map(mapping), [modList.unactives, mapping]);
-    const alist = React.useMemo(() => modList.actives.map(mapping), [modList.actives, mapping]);
 
     return (
-        <Stack gap={1} width="40%">
-            <Input
-                placeholder={Localize("search")}
-                value={searchText}
-                onChange={e => setSearchText(e.currentTarget.value)}
-                endDecorator={<IconButton onClick={() => setSearchText("")} sx={{ borderRadius: "50%" }}><CloseIcon /></IconButton>}
-            />
-            <Stack
-                direction="row"
-                gap={1}
-                flex={1}
-                overflow="hidden"
-                sx={{
-                    // height:
-                    "& .MuiList-root": {
-                        overflowY: "auto",
-                        overflowX: "hidden",
-                        height: "100%",
-                        width: "50%",
-                    }
-                }}
-            >
-                <List variant="outlined" id="list-unactive">
-                    {!modList.isLoaded ? <LoadingElement /> : unalist}
-                </List>
-                <List variant="outlined" id="list-active" color={modList.errorType == ModErrorType.Error ? "danger" : modList.errorType == ModErrorType.Warn ? "warning" : undefined}>
-                    {!modList.isLoaded ? <LoadingElement /> : alist}
-                </List>
-            </Stack>
-
+        <Stack
+            id="lists"
+            direction="row"
+            gap={1}
+            flex={1}
+            overflow="hidden"
+            sx={{
+                "& .MuiList-root": {
+                    overflowY: "auto",
+                    overflowX: "hidden",
+                    height: "100%",
+                    width: "50%",
+                }
+            }}
+        >
+            <List variant="outlined" id="list-unactive">
+                {!isLoaded ? <LoadingElement /> :
+                    <AutoSizer>
+                        {({ height, width }) => (
+                            <FixedSizeList<ItemData_R>
+                                height={height}
+                                width={width}
+                                itemCount={filteredUnactivesMods.length}
+                                itemSize={itemHeight}
+                                itemData={{
+                                    list: filteredUnactivesMods,
+                                    errors: errors,
+                                }}
+                                itemKey={(index, data) => data.list[index]!.dirPath}
+                                ref={unaListRef}
+                            >{Item_R}</FixedSizeList>
+                        )}
+                    </AutoSizer>
+                }
+            </List>
+            <List variant="outlined" id="list-active" color={activeModsErrorType == ModErrorType.Error ? "danger" : activeModsErrorType == ModErrorType.Warn ? "warning" : undefined}>
+                {!isLoaded ? <LoadingElement /> :
+                    <AutoSizer>
+                        {({ height, width }) => (
+                            <FixedSizeList<ItemData_R>
+                                height={height}
+                                width={width}
+                                itemCount={filteredActivesMods.length}
+                                itemSize={itemHeight}
+                                itemData={{
+                                    list: filteredActivesMods,
+                                    errors: errors,
+                                }}
+                                itemKey={(index, data) => data.list[index]!.dirPath}
+                                ref={aListRef}
+                            >{Item_R}</FixedSizeList>
+                        )}
+                    </AutoSizer>
+                }
+            </List>
             <ModTooltip
                 data={isOpenModTooltip}
-                onClose={e => e.type != "blur" && setModTooltip(undefined)}
+                onClose={e => setModTooltip(undefined)}
             />
-        </Stack >
+        </Stack>
     )
 }
+const itemHeight = 36;
+type ItemData_R = {
+    list: Mod_ALL[],
+    errors: Record<PackageId, ModErrorType>,
+};
+type ItemData = {
+    mod: Mod_ALL,
+    errorType: ModErrorType,
+};
 
 
 
 
-function useKeySelectEvents() {
-    const {
-        modList,
-        selectedMod, setSelectedMod,
-        lastSelectedL_Path, lastSelectedR_Path,
-    } = React.useContext(LocalModListContext);
-
-    // Move By Arrows
-    React.useEffect(() => {
-        function keyDown(this: Window, ev: KeyboardEvent) {
-            if (this.document.getElementById("root")?.hasAttribute("aria-hidden") || document.activeElement?.tagName == "INPUT") return;
 
 
 
-            const elements = {
-                unactives: [...this.document.querySelectorAll("#list-unactive > li")],
-                actives: [...this.document.querySelectorAll("#list-active > li")],
-            };
-            // const element = elements.values().find(elem => elem.getAttribute("data-mod-path") == selectedMod?.dirPath) ?? elements.item(0);
-
-            const isActive = selectedMod?.isActive() ?? false;
-            const currentList = isActive ? elements.actives : elements.unactives;
-
-            const currentIndex = currentList.findIndex(elem => elem.getAttribute("data-mod-path") == selectedMod?.dirPath)
-            
-            switch (ev.code) {
-                case "KeyW":
-                case "ArrowUp":
-                    {
-                        ev.preventDefault();
-                        let targetIndex = currentIndex - 1;
-                        if (targetIndex < 0) targetIndex = currentList.length - 1;
-                        else if (targetIndex >= currentList.length) targetIndex = 0;
-
-                        const tPath = currentList[targetIndex]?.getAttribute("data-mod-path");
-                        if (tPath) setSelectedMod(tPath);
-                    }
-                    return;
-
-                case "KeyS":
-                case "ArrowDown":
-                    {
-                        ev.preventDefault();
-                        let targetIndex = currentIndex + 1;
-                        if (targetIndex < 0) targetIndex = currentList.length - 1;
-                        else if (targetIndex >= currentList.length) targetIndex = 0;
-
-                        const tPath = currentList[targetIndex]?.getAttribute("data-mod-path");
-                        if (tPath) setSelectedMod(tPath);
-                    }
-                    return;
-
-                case "KeyA": case "KeyD":
-                case "ArrowRight": case "ArrowLeft":
-                    ev.preventDefault();
-                    if (isActive) {
-                        if (lastSelectedL_Path) {
-                            setSelectedMod(lastSelectedL_Path);
-                        } else {
-                            const tPath = elements.unactives[0]?.getAttribute("data-mod-path");
-                            if (tPath) setSelectedMod(tPath);
-                        }
-                    } else {
-                        if (lastSelectedR_Path) {
-                            setSelectedMod(lastSelectedR_Path);
-                        } else {
-                            const tPath = elements.actives[0]?.getAttribute("data-mod-path");
-                            if (tPath) setSelectedMod(tPath);
-                        }
-                    }
-                    return;
-
-                case "Space":
-                case "Enter":
-                    if (selectedMod) {
-                        ev.preventDefault();
-                        if (isActive) selectedMod.disable();
-                        else selectedMod.enable();
-                    }
-                    return;
-            }
-        }
-
-        addEventListener("keydown", keyDown);
-        return () => {
-            removeEventListener("keydown", keyDown);
-        }
-    }, [selectedMod, lastSelectedL_Path, lastSelectedR_Path]);
-}
 
 
 
 function ModTooltip({ data, onClose }: {
-    data?: { pacageId: PackageId, anchorEl: HTMLElement }
+    data?: {
+        mod: Mod_ALL,
+        anchorEl: HTMLElement
+        errorType: ModErrorType
+    },
     onClose: (e: Event | React.SyntheticEvent<Element, Event>) => void
 }) {
-    const { modList, setSelectedMod } = React.useContext(LocalModListContext);
-    const mod = React.useMemo(() => {
-        if (!data) return;
-        return modList.mods.find(m => m.samePackageId(data.pacageId));
-    }, [modList.mods, data?.pacageId]);
+    return (
+        <Tooltip
+            open={!!data}
+            onClose={onClose}
+            arrow
+            placement="right"
+            sx={{
+                left: "-2px !important"
+            }}
 
+            slotProps={{
+                root: {
+                    open: !!data,
+                    anchorEl: data?.anchorEl,
+                }
+            }}
+
+            title={data && <ModTooltip.Content {...data} />}
+            variant="outlined"
+            children={<span style={{ display: "none" }} />}
+        />
+    )
+}
+
+ModTooltip.Content = ({ mod, errorType }: {
+    mod: Mod_ALL,
+    errorType: ModErrorType
+}) => {
+    mod.store.use();
 
     const ErrorReportComponent = React.useCallback(({
         label, error, errorType, children
@@ -339,17 +327,17 @@ function ModTooltip({ data, onClose }: {
     }, []);
 
     const ErrorReportModItemComponent = React.useCallback(({ mod, actions }: {
-        mod: Mod,
+        mod: Mod_ALL,
         actions?: { label: string, onClick: () => void }[]
     }) => (
         <ListItemButton
-            key={mod.packageId}
+            key={mod.about.packageId}
             onClick={e => {
                 if (e.target instanceof HTMLElement && e.target.classList.contains("MuiButton-root")) return
-                setSelectedMod(mod);
+                LocalModListStores.selectedMod.set(mod);
             }}
         >
-            <Typography level="body-xs">{mod.name} ({mod.packageId})</Typography>
+            <Typography level="body-xs">{mod.about.name} ({mod.about.packageId})</Typography>
             {actions?.length && (
                 <Stack direction="row" flexWrap="wrap">
                     {actions.map((a, i) => <Button key={i} size="sm" onClick={a.onClick}>{a.label}</Button>)}
@@ -358,95 +346,155 @@ function ModTooltip({ data, onClose }: {
         </ListItemButton>
     ), []);
 
+    const ErrorReport = React.useMemo(() => {
+        if (errorType == ModErrorType.None) return null;
 
-    const errorType = mod?.getErrorType();
-
-    const ErrorReport = React.useMemo(() => !mod || !errorType ? null : (
-        <Stack spacing={2}>
-            <ErrorReportComponent label={Localize("missingDependencies")} error={mod.hasMissingDependencies()} errorType="danger">
-                <List size="sm">
-                    {[...mod.getMissingDependencies()].map(mod => (
-                        mod instanceof Mod
-                            ? (
-                                <ErrorReportModItemComponent
-                                    key={mod.packageId}
-                                    mod={mod}
-                                    actions={[{ label: Localize("enable"), onClick: () => mod.enable() }]}
-                                />
-                            ) : (
-                                <ListItemButton key={mod.packageId} onClick={() => openUrl(mod.steamWorkshopUrl)}>
-                                    <Typography level="body-xs">{mod.displayName} ({mod.packageId})</Typography>
-                                </ListItemButton>
-                            )
-                    ))}
-                </List>
-            </ErrorReportComponent>
-            <ErrorReportComponent label={Localize("incompatibleWith")} error={mod.hasIncompatible()} errorType="danger">
-                <List size="sm">
-                    {[...mod.getIncompatible()].map(mod => <ErrorReportModItemComponent
-                        key={mod.packageId}
-                        mod={mod}
-                        actions={[{ label: Localize("disable"), onClick: () => mod.disable() }]}
-                    />)}
-                </List>
-            </ErrorReportComponent>
-            <ErrorReportComponent label={Localize("loadAfter")} error={mod.hasLoadAfterErrors()} errorType="danger">
-                <List size="sm">
-                    {[...mod.getLoadAfterErrors()].map(mod => <ErrorReportModItemComponent key={mod.packageId} mod={mod} />)}
-                </List>
-            </ErrorReportComponent>
-            <ErrorReportComponent label={Localize("loadBefore")} error={mod.hasLoadBeforeErrors()} errorType="danger">
-                <List size="sm">
-                    {[...mod.getLoadBeforeErrors()].map(mod => <ErrorReportModItemComponent key={mod.packageId} mod={mod} />)}
-                </List>
-            </ErrorReportComponent>
-            <ErrorReportComponent label={Localize("wrongModVersion")} error={mod.isWrongVersion()} errorType="warning">
-                <Typography color="warning" level="body-sm" variant="soft">{Localize("wrongModVersion_message")}</Typography>
-            </ErrorReportComponent>
-            <ErrorReportComponent label={Localize("missingModVersion")} error={mod.isMissingModVersion()} errorType="warning">
-                <Typography color="warning" level="body-sm" variant="soft">{Localize("wrongModVersion_message")}</Typography>
-            </ErrorReportComponent>
-        </Stack>
-    ), [mod, errorType]);
-
-
-    React.useEffect(() => {
-        if (data?.anchorEl && !document.body.contains(data.anchorEl)) {
-            onClose(new Event("close"));
-        }
-    }, [data]);
+        return mod && (
+            <Stack spacing={2}>
+                <ErrorReportComponent label={Localize("missingDependencies")} error={mod.hasMissingDependencies()} errorType="danger">
+                    <List size="sm">
+                        {[...mod.getMissingDependencies()].map(mod => (
+                            mod instanceof Mod
+                                ? (
+                                    <ErrorReportModItemComponent
+                                        key={mod.about.packageId}
+                                        mod={mod}
+                                        actions={[{ label: Localize("enable"), onClick: () => mod.enable() }]}
+                                    />
+                                ) : (
+                                    <ListItemButton key={mod.packageId} onClick={() => openUrl(mod.steamWorkshopUrl)}>
+                                        <Typography level="body-xs">{mod.displayName} ({mod.packageId})</Typography>
+                                    </ListItemButton>
+                                )
+                        ))}
+                    </List>
+                </ErrorReportComponent>
+                <ErrorReportComponent label={Localize("incompatibleWith")} error={mod.hasIncompatible()} errorType="danger">
+                    <List size="sm">
+                        {[...mod.getIncompatible()].map(mod => <ErrorReportModItemComponent
+                            key={mod.about.packageId}
+                            mod={mod}
+                            actions={[{ label: Localize("disable"), onClick: () => mod.disable() }]}
+                        />)}
+                    </List>
+                </ErrorReportComponent>
+                <ErrorReportComponent label={Localize("loadAfter")} error={mod.hasLoadAfterErrors()} errorType="danger">
+                    <List size="sm">
+                        {[...mod.getLoadAfterErrors()].map(mod => <ErrorReportModItemComponent key={mod.about.packageId} mod={mod} />)}
+                    </List>
+                </ErrorReportComponent>
+                <ErrorReportComponent label={Localize("loadBefore")} error={mod.hasLoadBeforeErrors()} errorType="danger">
+                    <List size="sm">
+                        {[...mod.getLoadBeforeErrors()].map(mod => <ErrorReportModItemComponent key={mod.about.packageId} mod={mod} />)}
+                    </List>
+                </ErrorReportComponent>
+                <ErrorReportComponent label={Localize("wrongModVersion")} error={mod.isWrongVersion()} errorType="warning">
+                    <Typography color="warning" level="body-sm" variant="soft">{Localize("wrongModVersion_message")}</Typography>
+                </ErrorReportComponent>
+                <ErrorReportComponent label={Localize("missingModVersion")} error={mod.isMissingModVersion()} errorType="warning">
+                    <Typography color="warning" level="body-sm" variant="soft">{Localize("wrongModVersion_message")}</Typography>
+                </ErrorReportComponent>
+            </Stack>
+        )
+    }, [errorType, mod]);
 
 
     return (
-        <Tooltip
-            open={!!data}
-            slotProps={{
-                root: {
-                    open: !!data,
-                    anchorEl: data?.anchorEl
-                }
-            }}
-
-            arrow
-            describeChild
-            placement="right"
-            onClose={onClose}
-
-            title={mod &&
-                <Stack spacing={2} p={1}>
-                    {ErrorReport}
-                    <ModTagList tags={mod.tags} packageId={mod.packageId} />
-                    <Divider />
-                    <ButtonGroup>
-                        <Button sx={{ pointerEvents: "none" }}>{Localize("open")}</Button>
-                        <IconButton variant="solid" onClick={() => mod.openInSteam()}><Steam /></IconButton>
-                        <IconButton variant="solid" onClick={() => mod.openDir()}><FolderIcon /></IconButton>
-                    </ButtonGroup>
-                </Stack>
-            }
-            variant="outlined"
-            children={<span />}
-        />
+        <Stack spacing={2} p={1}>
+            {ErrorReport}
+            <ModTagList tags={mod.tags} packageId={mod.about.packageId} />
+            <Divider />
+            <ButtonGroup>
+                <Button sx={{ pointerEvents: "none" }}>{Localize("open")}</Button>
+                {mod.isSteam() && <IconButton variant="solid" onClick={() => mod.openInSteam()}><FaSteam /></IconButton>}
+                <IconButton variant="solid" onClick={() => mod.openDir()}><FaFolder /></IconButton>
+            </ButtonGroup>
+        </Stack>
     )
 }
 
+
+
+function useKeyControls({ unaListRef, aListRef }: {
+    aListRef: React.RefObject<FixedSizeList<ItemData_R> | null>,
+    unaListRef: React.RefObject<FixedSizeList<ItemData_R> | null>,
+}) {
+    const lastUnaI = React.useRef(0);
+    const lastAI = React.useRef(0);
+
+    const selectedMod = LocalModListStores.selectedMod.use();
+
+    function detData(dataOfValue: boolean) {
+        return dataOfValue
+            ? { index: lastAI, list: ModListStore.actives.get(), ref: aListRef }
+            : { index: lastUnaI, list: ModListStore.unactives.get(), ref: unaListRef };
+    }
+
+    React.useEffect(() => {
+        let canRun = true;
+        function onKeyDown(ev: KeyboardEvent) {
+            const target = ev.target as HTMLElement;
+
+            // Ігноруємо, якщо фокус у input, textarea або contenteditable
+            if (
+                target.tagName === "INPUT" ||
+                target.tagName === "TEXTAREA" ||
+                target.isContentEditable
+            ) return;
+
+            if (!canRun) return;
+            canRun = false;
+
+            const currentDataValue = (LocalModListStores.selectedMod.get()?.isActive() ?? false)
+
+            let targetData = detData(currentDataValue);
+
+            const move_up = ["KeyW", "ArrowUp"] as const;
+            const move_down = ["KeyS", "ArrowDown"] as const;
+            const move_vertical = [...move_up, ...move_down];
+
+            const move_left = ["KeyA", "ArrowLeft"] as const;
+            const move_right = ["KeyD", "ArrowRight"] as const;
+            const move_horizontal = [...move_left, ...move_right];
+
+            if (typedInclude(["Enter"], ev.code)) {
+                LocalModListStores.selectedMod.get()?.toggleState();
+            } else if (typedInclude([...move_vertical, ...move_horizontal], ev.code)) {
+                if (typedInclude(move_vertical, ev.code)) {
+                    if (typedInclude(move_up, ev.code)) targetData.index.current--;
+                    else if (typedInclude(move_down, ev.code)) targetData.index.current++;
+                    else throw Error("Never");
+                }
+
+                if (typedInclude(move_horizontal, ev.code)) {
+                    targetData = detData(!currentDataValue);
+                }
+
+                if (targetData.index.current >= targetData.list.length) targetData.index.current = 0;
+                else if (targetData.index.current < 0) targetData.index.current = targetData.list.length - 1;
+
+
+                const t = targetData.list[targetData.index.current];
+                targetData.ref.current?.scrollToItem(targetData.index.current);
+                LocalModListStores.selectedMod.set(t);
+            }
+
+            setTimeout(() => canRun = true, 50);
+        }
+
+        addEventListener("keydown", onKeyDown);
+        return () => removeEventListener("keydown", onKeyDown);
+    }, []);
+
+    React.useEffect(() => {
+        if (!selectedMod) return;
+        let targetData = detData(selectedMod.isActive());
+
+        targetData.index.current = targetData.list.indexOf(selectedMod);
+    }, [selectedMod]);
+}
+
+
+function typedInclude<const T extends V, V>(array: readonly T[], value: V): value is T {
+    return array.includes(value as any);
+}

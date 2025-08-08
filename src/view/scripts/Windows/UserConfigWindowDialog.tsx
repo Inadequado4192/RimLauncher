@@ -1,16 +1,16 @@
 import Localize from "@Common/Localize";
-import { UserConfigContext } from "@Context/UserConfigContext";
-import { LocalContext } from "src/view/scripts/Context/LocalContext";
+import { UserConfigStore } from "@Stores";
+import { LocalContext } from "@Context/LocalContext";
 import { Button, ButtonGroup, CircularProgress, DialogContent, DialogTitle, Divider, FormControl, FormHelperText, FormLabel, Input, ModalDialog, Option, Radio, RadioGroup, RadioGroupProps, RadioProps, Select, Table, Typography, useColorScheme } from "@mui/joy";
 import ModalClose from "@mui/joy/ModalClose";
 import React from "react";
 import { z } from "zod";
-import { ReloadContext } from "@Context/ReloadContext";
+import { StoreCompareType } from "@Stores/store";
 
 export default function UserConfigWindowDialog() {
-    const { userConfig: config } = React.useContext(UserConfigContext);
+    const userCloseWindowAfterRun = UserConfigStore.use(uc => uc.closeWindowAfterRun, StoreCompareType.Primitive);
 
-    return !config ? <CircularProgress /> : (
+    return (
         <ModalDialog minWidth="md">
             <DialogTitle>
                 <ModalClose />
@@ -24,7 +24,7 @@ export default function UserConfigWindowDialog() {
             <DialogContent>
                 <Table borderAxis="none" variant="plain" sx={{ width: "auto", alignSelf: "baseline" }}>
                     <tbody>
-                        <CloseWindowAfterRun checked={!!config?.closeWindowAfterRun} />
+                        <CloseWindowAfterRun checked={!!userCloseWindowAfterRun} />
                         <ThemeChanger />
                         <Language />
                     </tbody>
@@ -36,12 +36,15 @@ export default function UserConfigWindowDialog() {
 
 
 function Section_Paths() {
-    const { userConfig: config } = React.useContext(UserConfigContext);
+    const userPathes: { [K in keyof UserConfig as K extends `${string}Path` ? K : never]: string | null } = {
+        gamePath: UserConfigStore.use((uc) => uc.gamePath, StoreCompareType.Primitive),
+        steamPath: UserConfigStore.use((uc) => uc.steamPath, StoreCompareType.Primitive),
+    }
     const [errors, setErrors] = React.useState<z.ZodIssue[] | null>(null);
 
     React.useEffect(() => {
-        invoke.UserConfigDebug().then(setErrors);
-    }, [config]);
+        $invoke.UserConfigDebugPathes().then(setErrors);
+    }, Object.values(userPathes));
 
 
     function PathInput({ pkey, label }: { label: string, pkey: Extract<keyof UserConfig, "steamPath" | "gamePath"> }) {
@@ -56,19 +59,19 @@ function Section_Paths() {
             <FormControl error={!!errorMessage}>
                 <FormLabel>{label}</FormLabel>
                 <Input
-                    value={config?.[pkey] ?? ""}
+                    value={userPathes[pkey] ?? ""}
                     startDecorator={
                         <ButtonGroup>
                             <Button
                                 onClick={() =>
-                                    invoke.selectFile({ type: "folder" }).then(async p => {
+                                    $invoke.selectFile({ type: "folder" }).then(async p => {
                                         if (p.filePaths[0])
-                                            invoke.setUserConfigByKey(pkey, p.filePaths[0]);
+                                            $invoke.setUserConfigByKey(pkey, p.filePaths[0]);
                                     })
                                 }
                             >{Localize("change")}</Button>
                             <Button
-                                onClick={() => config?.[pkey] && invoke.openPath(config[pkey])}
+                                onClick={() => userPathes[pkey] && $invoke.openPath(userPathes[pkey])}
                             >{Localize("open")}</Button>
                         </ButtonGroup>
                     }
@@ -80,18 +83,6 @@ function Section_Paths() {
 
     return (
         <DialogContent sx={{ overflow: "hidden" }}>
-            <Typography
-                variant="soft"
-                level="body-xs"
-                sx={t => ({
-                    p: 1,
-                    pl: 2,
-                    borderRadius: t.radius,
-                    borderLeftWidth: 8,
-                    borderLeftStyle: "solid",
-                    borderLeftColor: "inherit"
-                })}
-            >{Localize("config_sectionPaths_hint")}</Typography>
             <PathInput pkey="steamPath" label={Localize("pathToSteam")} />
             <PathInput pkey="gamePath" label={Localize("pathToGame")} />
         </DialogContent>
@@ -148,7 +139,7 @@ function CloseWindowAfterRun({ checked }: { checked: boolean }) {
                 <RadioGroup
                     {..._RadioGroupProps}
                     value={checked}
-                    onChange={e => invoke.setUserConfigByKey("closeWindowAfterRun", e.currentTarget.value == "true")}
+                    onChange={e => $invoke.setUserConfigByKey("closeWindowAfterRun", e.currentTarget.value == "true")}
                 >
                     <Radio {..._RadioProps} value={true} label={Localize("yes")} />
                     <Radio {..._RadioProps} value={false} label={Localize("no")} />
@@ -181,11 +172,10 @@ function ThemeChanger() {
 }
 function Language() {
     const { local, setLocal } = React.useContext(LocalContext);
-    const { reload } = React.useContext(ReloadContext);
-    const [locals, setLocals] = React.useState<Awaited<ReturnType<typeof invoke.getAccessLanguages>>>();
+    const [locals, setLocals] = React.useState<Awaited<ReturnType<typeof $invoke.getAccessLanguages>>>();
 
     React.useEffect(() => {
-        invoke.getAccessLanguages().then(setLocals);
+        $invoke.getAccessLanguages().then(setLocals);
     }, []);
 
     return (
@@ -196,9 +186,9 @@ function Language() {
                     value={locals?.find(l => l.data.name == local?.name)!.name ?? null}
                     onChange={async (e, v) => {
                         if (!v || !locals) return;
-                        await invoke.setLocal(v);
+                        await $invoke.setLocal(v);
                         setLocal(locals.find(l => l.name == v)!.data);
-                        reload();
+                        location.reload();
                     }}
                 >
                     {locals?.map(l => <Option key={l.name} value={l.name}>{l.data.name}</Option>)}

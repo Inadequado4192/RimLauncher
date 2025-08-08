@@ -69,6 +69,8 @@ export class AlertService {
             _internalId: id
         }];
         AlertService.listeners.forEach((listener) => listener(AlertService.list));
+
+
         if (lifeTime !== null) setTimeout(() => AlertService.remove(id), lifeTime ?? 5000);
     }
 

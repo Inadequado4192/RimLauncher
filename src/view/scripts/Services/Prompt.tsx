@@ -1,41 +1,82 @@
 "use client";
 import { Button, Modal, ModalDialog, DialogContent, DialogActions, DialogTitle, Input, FormHelperText, Typography } from "@mui/joy";
 import React from "react";
+import { createService } from "./BaseService";
+
+export interface PromptData {
+    text: React.ReactNode,
+    defaultError?: string,
+    defaultValue?: string,
+
+    onOk?(): void,
+    onCancle?(): void,
+    /** Working at `onChange`
+     * @returns `true` - ok. `string` - error message
+     */
+    // onValidate?(value: string): undefined | { text: string, severity: "danger" | "success" | "warning" },
+    onValidate?(value: string): true | string
+    /**
+     * @param true Success. Close window
+     * @param false Error. Keep window
+     * @deprecated
+     */
+    asyncPending?(value: string): Promise<boolean | string>
+    /**@deprecated */
+    pendingText?(value: string): string
+}
 
 
 
-export function PromptContainer() {
-    const [list, setList] = React.useState<PromptData_Internal[]>([]);
 
-    React.useEffect(() => {
-        return PromptService.subscribe(setList);
-    }, []);
+export const {
+    Service: PromptService,
+    Container: PromptContainer,
+} = createService<PromptData, null | string>({
+    dialog(props) {
+        const [inputText, setInputText] = React.useState(props.defaultValue ?? "");
+        const [errorMessage, setErrorMessage] = React.useState<string | undefined>(props.defaultError);
+        const [isPending, setIsPending] = React.useState(false);
 
-    return list.map(({ _internalId: id, ...props }, i) => React.createElement(function () {
-        const [inputText, setInputText] = React.useState("");
-        const [message, setMessage] = React.useState<ReturnType<typeof props.onValidate & {}>>()
-
-        const okIsDisabled = !inputText || (message?.severity == "danger");
+        const okIsDisabled = !inputText || !!errorMessage;
 
         function onChange(e: React.ChangeEvent<HTMLInputElement>) {
+            if (isPending) return;
             const val = e.target.value;
             setInputText(val);
-            setMessage(props.onValidate?.(val));
+            const validateRes = props.onValidate?.(val);
+            if (typeof validateRes == "string") setErrorMessage(validateRes);
+            else setErrorMessage(undefined);
         }
 
         function onClose() {
+            if (isPending) return;
             props.onCancle?.();
-            props._internalCallback(null);
+            props._close(null);
         }
-        function onOk() {
-            if (okIsDisabled) return;
+        async function onOk() {
+            if (isPending || okIsDisabled) return;
             props.onOk?.();
-            props._internalCallback(inputText);
+
+            if (props.asyncPending) {
+                setIsPending(true)
+                try {
+                    let res = await props.asyncPending(inputText);
+                    if (res !== true) {
+                        if (res !== false) setErrorMessage(res);
+                        return;
+                    }
+                } catch (e) {
+                    throw e;
+                } finally {
+                    setIsPending(false);
+                }
+            }
+            props._close(inputText);
         }
 
         return (
-            <Modal open key={i} onClose={onClose}>
-                <ModalDialog>
+            <Modal open onClose={onClose}>
+                <ModalDialog >
                     <DialogTitle>{props.text}</DialogTitle>
                     <DialogContent>
                         <Input
@@ -43,62 +84,17 @@ export function PromptContainer() {
                             value={inputText}
                             onChange={onChange}
                             onKeyUp={e => e.code == "Enter" && onOk()}
+                            disabled={isPending}
                         />
-                        {message && <Typography color={message.severity}>{message.text}</Typography>}
+                        {errorMessage && <Typography color="danger">{errorMessage}</Typography>}
+                        {isPending && props.pendingText && <Typography color="primary">{props.pendingText(inputText)}</Typography>}
                     </DialogContent>
                     <DialogActions>
-                        <Button color="success" onClick={onOk} disabled={okIsDisabled}>Ok</Button>
-                        <Button color="danger" onClick={onClose}>Cancle</Button>
+                        <Button color="success" onClick={onOk} disabled={isPending || okIsDisabled}>Ok</Button>
+                        <Button color="danger" onClick={onClose} disabled={isPending}>Cancle</Button>
                     </DialogActions>
                 </ModalDialog>
             </Modal>
         )
-    }, { key: id }));
-}
-
-
-export interface PromptData {
-    text: string,
-    onOk?(): void,
-    onCancle?(): void,
-    onValidate?(value: string): undefined | { text: string, severity: "danger" | "success" | "warning" }
-}
-interface PromptData_Internal extends PromptData {
-    _internalId: number,
-    _internalCallback(data: string | null): void
-}
-
-export class PromptService {
-    private static listeners = new Set<(alerts: PromptData_Internal[]) => void>();
-    private static list: PromptData_Internal[] = [];
-    private static idCounter = 0;
-
-    static subscribe(listener: (alerts: PromptData_Internal[]) => void) {
-        PromptService.listeners.add(listener);
-        listener(PromptService.list);
-        return () => void PromptService.listeners.delete(listener);
-    }
-
-    static create(props: PromptData) {
-        return new Promise<string | null>((t, f) => {
-            try {
-                const id = PromptService.idCounter++;
-
-                PromptService.list = [...PromptService.list, {
-                    ...props,
-                    _internalId: id,
-                    _internalCallback(data) {
-                        PromptService.remove(id);
-                        t(data);
-                    },
-                }];
-                PromptService.listeners.forEach((listener) => listener(PromptService.list));
-            } catch (e) { f(e); }
-        })
-    }
-
-    static remove(id: number) {
-        PromptService.list = PromptService.list.filter((alert) => alert._internalId !== id);
-        PromptService.listeners.forEach((listener) => listener(PromptService.list));
-    }
-}
+    },
+})

@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { app, dialog } from "electron";
 import { execSync } from "child_process";
-import UserConfig from "./Config";
+import UserConfigStore from "./store/UserConfigStore";
 import Localize from "@Common/Localize";
 
 type AccessPlatforms = Extract<typeof process.platform, "win32" | "linux" | "darwin">;
@@ -24,7 +24,7 @@ export namespace FindPathes {
                     const match = result.toString().match(/SteamPath\s+REG_SZ\s+(.+)/);
                     if (!match) return;
                     const target = match[1]!.trim();
-                    if (DebugPathes.isSteam(target).success) return target;
+                    if (DebugPathesSpace.isSteam(target).success) return target;
                 } catch { }
             },
             linux() {
@@ -33,27 +33,27 @@ export namespace FindPathes {
                     path.join(app.getPath("home"), ".var/app/com.valvesoftware.Steam/.steam/steam"),
                 ];
                 for (const target of posiblePathes)
-                    if (DebugPathes.isSteam(target).success) return target;
+                    if (DebugPathesSpace.isSteam(target).success) return target;
             },
             darwin() {
                 const posiblePathes = [
                     path.join(app.getPath("home"), "Library", "Application Support", "Steam"),
                 ];
                 for (const target of posiblePathes)
-                    if (DebugPathes.isSteam(target).success) return target;
+                    if (DebugPathesSpace.isSteam(target).success) return target;
             },
         });
     }
     export function RimWorldGamePath() {
-        const steamPath = UserConfig.get("steamPath");
+        const steamPath = UserConfigStore.get("steamPath");
         if (!steamPath) return;
-        
+
         const target = path.join(steamPath, "steamapps", "common", "RimWorld");
-        if (DebugPathes.isRimWorldGamePath(target).success) return target;
+        if (DebugPathesSpace.isRimWorldGamePath(target).success) return target;
     }
 }
 
-export namespace DebugPathes {
+export namespace DebugPathesSpace {
     export function isSteam(_path: string): ReturnedData {
         try {
             if (!_path) return {
@@ -77,16 +77,17 @@ export namespace DebugPathes {
         } catch (e) {
             return {
                 success: false,
-                message: JSON.stringify(e),
+                message: e instanceof Error ? e.message : String(e),
                 fatal: true
             };
         }
     }
     export function isRimWorldGamePath(_path: string): ReturnedData {
         try {
-            if (!_path) return {
+            _path = _path.trim()
+            if (_path === "") return {
                 success: false,
-                message: "The path is undefined",
+                message: "The path is empty",
                 fatal: true
             };
 
@@ -114,53 +115,61 @@ export namespace DebugPathes {
         } catch (e) {
             return {
                 success: false,
-                message: JSON.stringify(e),
+                message: e instanceof Error ? e.message : String(e),
                 fatal: true
             };
         }
     }
 }
 
-export const Pathes = {
-    UserConfig: path.join(app.getPath("userData"), "config.json"),
 
-    RimWorldUser: createPath({
+
+export const Pathes = {
+    get File_UserConfig() {
+        return path.join(app.getPath("userData"), "config.json")
+    },
+
+    Dir_RimWorldUser: createPath({
         win32: () => path.join(app.getPath("home"), `AppData/LocalLow/Ludeon Studios/RimWorld by Ludeon Studios`),
         darwin: () => path.join(app.getPath("home"), `Library/Application Support/RimWorld`),
         linux: () => path.join(app.getPath("home"), `.config/unity3d/Ludeon Studios/RimWorld by Ludeon Studios`),
-    }),
-    get ModPacks() {
-        return path.join(this.RimWorldUser, "ModPacks");
+    }) as `AppData/LocalLow/Ludeon Studios/RimWorld by Ludeon Studios`,
+    get Dir_ModPacks() {
+        return path.join(this.Dir_RimWorldUser, "ModPacks");
     },
-    get Config() {
-        return path.join(this.RimWorldUser, "Config");
+    get Dir_Config() {
+        return path.join(this.Dir_RimWorldUser, "Config") as `${typeof this.Dir_RimWorldUser}/Config`;
     },
-    get ModsConfigXML() {
-        return path.join(this.Config, "ModsConfig.xml");
+    get File_ModsConfigXML() {
+        return path.join(this.Dir_Config, "ModsConfig.xml") as `${typeof this.Dir_Config}/ModsConfig.xml`;
     },
-    get Steam() {
-        return UserConfig.get("steamPath");
+    get Dir_Steam() {
+        return UserConfigStore.get("steamPath") as "./Steam";
     },
-    get Game() {
-        return UserConfig.get("gamePath");
+    get Dir_Game() {
+        return UserConfigStore.get("gamePath") as "./RimWorld";
     },
-    get GameWorkshopFolder() {
-        if (this.Steam) {
-            const target = path.join(this.Steam, "steamapps", "workshop", "content", "294100");
-            if (fs.existsSync(target)) return target; 
+    get Dir_LocalMods() {
+        if (!this.Dir_Game) throw Error("Pathes.Game not found");
+        return path.join(this.Dir_Game, "Mods") as `${typeof this.Dir_Game}/Mods`;
+    },
+
+    get Dir_GameWorkshop() {
+        if (this.Dir_Steam) {
+            const target = path.join(this.Dir_Steam, "steamapps", "workshop", "content", "294100");
+            if (fs.existsSync(target)) return target;
         }
-        if (this.Game) {
-            const target = path.join(this.Game, "../../", "workshop", "content", "294100");
-            if (fs.existsSync(target)) return target; 
+        if (this.Dir_Game) {
+            const target = path.join(this.Dir_Game, "../../", "workshop", "content", "294100");
+            if (fs.existsSync(target)) return target;
         }
     }
 }
+export const PathesMaker = {
+    // gitname: () => `Git-${Date.now().toString()}` as const,
+    gitinfo: "gitinfo.json" as const,
+}
 
-
-export function EnsurePathExists() {
-    if (!fs.existsSync(Pathes.ModsConfigXML)) {
-        dialog.showErrorBox("Error", Localize("error_modsConfigXmlNotFound", [Pathes.ModsConfigXML]));
-        app.quit();
-    }
-    if (!fs.existsSync(Pathes.UserConfig)) fs.writeFileSync(Pathes.UserConfig, "{}");
+export const AppPathes = {
+    icon: "/icon.png"
 }

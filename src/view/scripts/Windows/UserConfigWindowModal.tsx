@@ -4,9 +4,9 @@ import React from "react";
 export default function UserConfigWindowModal(props: { open: boolean, onClose: () => void }) {
     return (
         <Modal open={props.open} onClose={props.onClose}>
-            <UserConfigWindowDialogLazy />
+            <Dialog />
         </Modal>
     )
 }
 
-const UserConfigWindowDialogLazy = React.lazy(() => import("./UserConfigWindowDialog"));
+const Dialog = React.lazy(() => import("./UserConfigWindowDialog"));

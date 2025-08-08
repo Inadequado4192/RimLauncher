@@ -22,7 +22,8 @@ button, img, input::placeholder, .MuiListItemButton-root {
 
 /* width */
 ::-webkit-scrollbar {
-    width: 10px;
+    width: 7px;
+    height: 7px;
 }
   
 /* Track */
@@ -39,3 +40,7 @@ button, img, input::placeholder, .MuiListItemButton-root {
 /* ::-webkit-scrollbar-thumb:hover {
     background: #555;
 } */
+
+svg {
+    font-size: var(--Icon-fontSize);
+}

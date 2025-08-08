@@ -4,7 +4,7 @@ import ModListManager from "./ModListManager"
 import ModUpdates from "./ModUpdates"
 
 export default function ModuleTabs() {
-    const ModUpdates_useTestName = ModUpdates.useTestName();
+    const ModUpdates_useNofify = ModUpdates.useNotify();
 
     return (
         <Tabs
@@ -30,7 +30,7 @@ export default function ModuleTabs() {
         >
             <TabList>
                 <Tab value={0}>{Localize("tab_ModListManager")}</Tab>
-                <Badge badgeInset={6} invisible={!ModUpdates_useTestName}>
+                <Badge badgeInset={6} invisible={!ModUpdates_useNofify}>
                     <Tab value={1}>{Localize("tab_ModUpdates")}</Tab>
                 </Badge>
             </TabList>

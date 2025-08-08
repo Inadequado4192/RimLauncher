@@ -1,16 +1,15 @@
 import React from "react";
-import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Box, Button, Chip, Sheet, Stack, Table, Typography } from "@mui/joy";
-import ModListManager from ".";
-import { GameInfoContext } from "src/view/scripts/Context/GameInfoContext";
-import ModSupportedVersions from "src/view/scripts/Components/ModSupportedVersions";
-import { openUrl } from "../../utils";
+import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, Box, Button, ButtonGroup, Sheet, Stack, Table, Typography } from "@mui/joy";
+import ModSupportedVersions from "@Components/ModSupportedVersions";
 import Localize from "@Common/Localize";
-import { LocalModListContext } from "./Context/LocalModListContext";
-import { Mod } from "../../Classes/Mod";
-import ModTagList from "@Components/ModTagList";
+import { LocalModListStores } from "./Context/LocalModListContext";
+import { Mod, Mod_ALL } from "@Classes/Mod";
+import { openUrl } from "view/scripts/utils";
+import { ModType } from "enums";
 
 export default function ModInfo() {
-    const { selectedMod } = React.useContext(LocalModListContext);
+    const selectedMod = LocalModListStores.selectedMod.use();
+
 
     return !selectedMod
         ? <ModChoiceScreen />
@@ -36,14 +35,13 @@ function ModChoiceScreen() {
 
 
 
-function Info({ mod }: { mod: Mod }) {
+function Info({ mod }: { mod: Mod_ALL }) {
     return (
         <Stack gap={1} flex={1} sx={t => ({
             overflowY: "auto",
             overflowX: "hidden",
             color: t.palette.text.primary,
         })}>
-
             {mod.previewPath && <Box component="img"
                 src={mod.previewPath}
                 width="100%"
@@ -53,39 +51,18 @@ function Info({ mod }: { mod: Mod }) {
                     objectFit: "contain"
                 }}
             />}
-            <Typography level="h3">{mod.name}</Typography>
-            <Table>
-                <tbody>
-                    <ModData label="PackageId" value={<Typography title={mod.packageId} noWrap>{mod.packageId}</Typography>} />
-                    {mod.modVersion && <ModData label={Localize("version")} value={mod.modVersion} />}
-                    <ModData label={Localize("authors")} value={mod.author} />
-                    <SupportedVersions mod={mod} />
-                </tbody>
-            </Table>
-            <Stack
-                direction="row"
-                gap={1}
-                flexWrap="wrap"
-                sx={{ "& > button": { flexGrow: 1, whiteSpace: "nowrap" } }}
-            >
-                <Button color="primary" variant="outlined" onClick={() => mod.toggleState()}>{mod.isActive() ? Localize("disable") : Localize("enable")}</Button>
-                <Button color="primary" variant="outlined" onClick={() => mod.openDir()}>{Localize("openDirectory")}</Button>
-                {mod.steamId && <Button color="primary" variant="outlined" onClick={() => mod.openInSteam()}>{Localize("openInSteam")}</Button>}
-            </Stack>
-            <Description mod={mod} />
-            <AccordionGroup variant="outlined" sx={{ flexGrow: 0 }}>
-                <Accordion>
-                    <AccordionSummary>{Localize("tags")}</AccordionSummary>
-                    <AccordionDetails>
-                        <ModTagList tags={mod.tags} packageId={mod.packageId} />
-                    </AccordionDetails>
-                </Accordion>
+            <Typography level="h3">{mod.about.name}</Typography>
+            <InfoTable mod={mod} />
+            <Actions mod={mod} />
+            <AccordionGroup variant="outlined" sx={{ flexGrow: 0, "&:empty": { display: "none" } }}>
+                <Description description={mod.about.description} />
+                {/* <ModTags mod={mod} /> */}
             </AccordionGroup>
         </Stack>
     )
 }
 
-function ModData({ label, value }: { label: string, value: React.ReactNode }) {
+function ModDataRow({ label, value }: { label: string, value: React.ReactNode }) {
     return (
         <tr>
             <td width={150}><Typography level="body-sm">{label}</Typography></td>
@@ -94,12 +71,44 @@ function ModData({ label, value }: { label: string, value: React.ReactNode }) {
     )
 }
 
+function InfoTable({ mod }: { mod: Mod_ALL }) {
+    return (
+        <Table>
+            <tbody>
+                <ModDataRow label="PackageId" value={<Typography title={mod.about.packageId} noWrap>{mod.about.packageId}</Typography>} />
+                {mod.about.modVersion && <ModDataRow label={Localize("version")} value={mod.about.modVersion} />}
+                <ModDataRow label={Localize("authors")} value={mod.about.author} />
+                <SupportedVersions mod={mod} />
+            </tbody>
+        </Table>
+    )
+}
 
-function SupportedVersions({ mod }: { mod: Mod }) {
-    const { gameInfo } = React.useContext(GameInfoContext);
+function Actions({ mod }: { mod: Mod_ALL }) {
+    mod.useEnablingSub();
 
-    return mod.supportedVersions && (
-        <ModData
+    return (
+        <Stack
+            gap={1}
+        >
+            <ButtonGroup buttonFlex="1">
+                <Button color="neutral" variant="outlined" onClick={() => mod.toggleState()}>{mod.isActive() ? Localize("disable") : Localize("enable")}</Button>
+                {![ModType.Steam, ModType.DLC].includes(mod.type) && <Button color="danger" variant="outlined" onClick={() => { }} disabled>{Localize("delete")}</Button>}
+                {[ModType.Steam].includes(mod.type) && <Button color="danger" variant="outlined" onClick={() => { }} disabled>{Localize("unsubscribe")}</Button>}
+            </ButtonGroup>
+            <ButtonGroup buttonFlex="1" color="primary" variant="outlined">
+                <Button onClick={() => mod.openDir()}>{Localize("openDirectory")}</Button>
+                {mod.isSteam() && <Button onClick={() => mod.openInSteam()}>{Localize("openInSteam")}</Button>}
+                {mod.isGit() && <Button onClick={() => mod.openInGit()}>{Localize("openInGit")}</Button>}
+                {mod.about.url && <Button onClick={() => openUrl(mod.about.url!)}>{Localize("openSource")}</Button>}
+            </ButtonGroup>
+        </Stack>
+    )
+}
+
+function SupportedVersions({ mod }: { mod: Mod_ALL }) {
+    return mod.about.supportedVersions && (
+        <ModDataRow
             label={Localize("supportedVersions")}
             value={
                 <Stack direction="row" gap={1} flexWrap="wrap" sx={{ userSelect: "none" }}>
@@ -110,17 +119,26 @@ function SupportedVersions({ mod }: { mod: Mod }) {
     )
 }
 
-function Description({ mod }: { mod: Mod }) {
-    return mod.description && (
-        <AccordionGroup variant="outlined" sx={{ flexGrow: 0 }}>
-            <Accordion>
-                <AccordionSummary>{Localize("description")}</AccordionSummary>
-                <AccordionDetails
-                    sx={{
-                        whiteSpace: "break-spaces"
-                    }}
-                >{mod.description}</AccordionDetails>
-            </Accordion>
-        </AccordionGroup>
+function Description({ description }: { description: string | undefined }) {
+    return description && (
+        <Accordion>
+            <AccordionSummary>{Localize("description")}</AccordionSummary>
+            <AccordionDetails
+                sx={{
+                    whiteSpace: "break-spaces"
+                }}
+            >{description}</AccordionDetails>
+        </Accordion>
     );
 }
+
+// const ModTags = React.memo(function ModTags({ mod }: { mod: Mod }) {
+//     return (
+//         <Accordion>
+//             <AccordionSummary>{Localize("tags")}</AccordionSummary>
+//             <AccordionDetails>
+//                 <ModTagList tags={mod.tags} packageId={mod.about.packageId} />
+//             </AccordionDetails>
+//         </Accordion>
+//     )
+// }, (p, n) => p.mod.dirPath === n.mod.dirPath && p.mod.tags === n.mod.tags);
