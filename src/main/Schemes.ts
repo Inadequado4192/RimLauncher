@@ -46,7 +46,7 @@ namespace Schemes {
             tags: z.array(ModTag),
             lastCheckModUpdates: z.iso.datetime()
         });
-        
+
         export const DebugPathes = z.object({
             steamPath: z.string().superRefine((_path, ctx) => {
                 const result = DebugPathesSpace.isSteam(_path);
@@ -75,13 +75,14 @@ namespace Schemes {
 
         export namespace ModsConfig {
             export type Type = z.output<typeof Read>;
-            // type xml = z.input<typeof Read extends z.ZodEffects<infer S, any, any> ? S : never>;
 
             export const Read = AnyToEmptyOnject(z.object({
-                version: z.string().catch("0.0.0000 unknown"),
-                activeMods: XMLList(PackageId).catch([]),
-                knownExpansions: XMLList(PackageId).catch([]),
-            }));
+                ModsConfigData: z.object({
+                    version: z.string().catch("0.0.0000 unknown"),
+                    activeMods: XMLList(PackageId).catch([]),
+                    knownExpansions: XMLList(PackageId).catch([]),
+                })
+            })).transform(res => res.ModsConfigData);
 
             export const Write = z.object({
                 version: z.coerce.string(),

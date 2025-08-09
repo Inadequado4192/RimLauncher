@@ -38,5 +38,4 @@ jobs:
             !dist/win-unpacked/**
             !dist/linux-unpacked/**
             !dist/mac-arm64/**
-            |dist/*.yml
-            |dist/*.plist
+            !dist/*.yml

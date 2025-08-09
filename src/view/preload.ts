@@ -7,7 +7,7 @@ import type { FileEvents } from "../main/events/WebEvents";
 //#region IPC
 const internal_invokeProxy = new Proxy({}, {
     get: (target: {}, p: string) => (...args: any[]) => ipcRenderer.invoke(p, ...args)
-}) as typeof IPCEvents_handle;
+}) as IPCEvents_handle;
 const internal_sendProxy = new Proxy({}, {
     get: (target: {}, channel: string) => (...args: any[]) => {
         const taskId = crypto.randomUUID();
@@ -28,7 +28,7 @@ const internal_sendProxy = new Proxy({}, {
         return callbackCreator;
     }
     // }) as { [K in keyof typeof IPCEvents_on]: Awaited<typeof IPCEvents_on[K]> };
-}) as { [K in keyof typeof IPCEvents_on]: (...args: Parameters<typeof IPCEvents_on[K]> extends [id: string, ...infer P] ? P : []) => Awaited<ReturnType<typeof IPCEvents_on[K]>> };
+}) as { [K in keyof IPCEvents_on]: (...args: Parameters<IPCEvents_on[K]> extends [id: string, ...infer P] ? P : []) => Awaited<ReturnType<IPCEvents_on[K]>> };
 
 const internal_onProxy = new Proxy({}, {
     get: (target: {}, channel: string) => (listener: any) => ipcRenderer.on(channel, listener)

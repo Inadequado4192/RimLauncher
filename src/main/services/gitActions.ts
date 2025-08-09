@@ -2,14 +2,10 @@ import { GitSpace } from "@Common/libs/git";
 import fs from "fs";
 import { Pathes, PathesMaker } from "main/Pathes";
 import path from "path";
-import { promisify } from "util";
 import unzipper from 'unzipper';
 import { pipeline } from "stream/promises";
 import { Transform } from "stream";
-import { webEvents } from "@Events/WebEvents";
-import ModListActions from "./modListActions";
 import Schemes from "main/Schemes";
-import { app } from "electron";
 import fetch from "node-fetch";
 
 namespace GitActions {

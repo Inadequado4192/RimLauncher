@@ -14,7 +14,7 @@ import GitActions from "main/services/gitActions";
 
 
 //#region IPC - handle
-export const IPCEvents_handle = {
+const IPCEvents_handle = {
     async reload() {
         app.relaunch()
         app.exit()
@@ -263,7 +263,7 @@ function IPC_on_sendler<Result extends IPC_onCallbacks>(taskid: IDType, channeln
     return send;
 }
 
-export const IPCEvents_on = {
+const IPCEvents_on = {
     async longTask(taskId) {
         const sendler = IPC_on_sendler<{
             onProgress: IPC_onCallbackIn<[percent: number, message: string]>
@@ -332,6 +332,9 @@ export const IPCEvents_on = {
 } & ThisType<Electron.IpcMainInvokeEvent>
 //#endregion
 
+
+export type IPCEvents_on = typeof IPCEvents_on;
+export type IPCEvents_handle = typeof IPCEvents_handle;
 
 
 

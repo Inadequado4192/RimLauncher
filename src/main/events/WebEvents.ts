@@ -1,11 +1,10 @@
 import path from "path";
-import chokidar, { FSWatcher } from "chokidar";
+import chokidar from "chokidar";
 import { win } from "..";
 import UserConfigStore from "../store/UserConfigStore";
 import { Pathes } from "main/Pathes";
 import ModsConfig from "../store/ModsConfigStore";
 import ModPacks from "../services/ModPacks";
-import EventEmitter from "events";
 import ModListActions from "main/services/modListActions";
 
 export interface FileEvents {
@@ -67,6 +66,6 @@ export function InitWebEvents() {
 }
 
 
-export const webEvents = new Proxy({}, {
+const webEvents = new Proxy({}, {
     get: (target: {}, channel: string) => (...data: any) => win.webContents.send(channel, ...data)
 }) as { [C in keyof FileEvents]: (...p: FileEvents[C]) => void }

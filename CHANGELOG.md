@@ -1,5 +1,12 @@
 # Changelog
 
+## [ ] - 
+
+#### Bug Fixes
+- Fixed a bug that occurred if the path to the game was not found.
+
+
+
 ## [v0.9.0] - 2025-08-09
 
 #### What's New

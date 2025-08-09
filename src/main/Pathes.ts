@@ -1,9 +1,8 @@
 import path from "path";
 import fs from "fs";
-import { app, dialog } from "electron";
+import { app } from "electron";
 import { execSync } from "child_process";
 import UserConfigStore from "./store/UserConfigStore";
-import Localize from "@Common/Localize";
 
 type AccessPlatforms = Extract<typeof process.platform, "win32" | "linux" | "darwin">;
 export function createPath<D extends Record<AccessPlatforms, () => (string | undefined)>>(data: D): ReturnType<D[AccessPlatforms]> {
@@ -19,13 +18,13 @@ export namespace FindPathes {
     export function Steam() {
         return createPath({
             win32() {
-                try {
-                    const result = execSync("reg query \"HKCU\\Software\\Valve\\Steam\" /v SteamPath");
-                    const match = result.toString().match(/SteamPath\s+REG_SZ\s+(.+)/);
-                    if (!match) return;
-                    const target = match[1]!.trim();
-                    if (DebugPathesSpace.isSteam(target).success) return target;
-                } catch { }
+                // try {
+                const result = execSync("reg query \"HKCU\\Software\\Valve\\Steam\" /v SteamPath");
+                const match = result.toString().match(/SteamPath\s+REG_SZ\s+(.+)/);
+                if (!match) return;
+                const target = match[1]!.trim();
+                if (DebugPathesSpace.isSteam(target).success) return target;
+                // } catch { }
             },
             linux() {
                 const posiblePathes = [
@@ -43,9 +42,10 @@ export namespace FindPathes {
                     if (DebugPathesSpace.isSteam(target).success) return target;
             },
         });
+
     }
     export function RimWorldGamePath() {
-        const steamPath = UserConfigStore.get("steamPath");
+        const steamPath = Steam();
         if (!steamPath) return;
 
         const target = path.join(steamPath, "steamapps", "common", "RimWorld");
