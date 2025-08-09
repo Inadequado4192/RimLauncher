@@ -32,5 +32,11 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: RimLauncher-${{ matrix.os }}
-          path: out/
+          name: ${{ matrix.os }}
+          path: |
+            dist/**
+            !dist/win-unpacked/**
+            !dist/linux-unpacked/**
+            !dist/mac-arm64/**
+            |dist/*.yml
+            |dist/*.plist

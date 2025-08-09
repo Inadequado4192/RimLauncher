@@ -14,6 +14,7 @@
         "buildResources": "."
     },
     "icon": "build/icons/icon",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
     "mac": {
         "target": ["dmg", "zip", "pkg"]
     },
@@ -23,12 +24,23 @@
     "linux": {
         "target": ["AppImage", "deb", "rpm", "zip"]
     },
+
     "nsis": {
+        "artifactName": "${productName}-${version}-win-Setup.${ext}",
         "oneClick": false,
         "perMachine": false,
         "allowElevation": true,
         "allowToChangeInstallationDirectory": true,
         "createDesktopShortcut": true,
         "createStartMenuShortcut": true
+    },
+    "portable": {
+        "artifactName": "${productName}-${version}-win-Portable.${ext}"
+    },
+    "deb": {
+        "artifactName": "${productName}-${version}-linux.${ext}"
+    },
+    "rpm": {
+        "artifactName": "${productName}-${version}-linux.${ext}"
     }
 }

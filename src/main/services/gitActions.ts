@@ -80,6 +80,7 @@ namespace GitActions {
         url: string,
         onProgress?: (percent: number, message: string) => void
     }) {
+        if (!Pathes.Dir_LocalMods) throw Error("Path to local mods not found");
         const progress = new ProgressManager((percent, message) => opt?.onProgress?.(percent, message ?? ""));
         const progress_cloneGitToTempDir = progress.createStageReporter(0.9, "Downloading zip...");
         const progress_completion = progress.createStageReporter(0.1, "Completion...");
@@ -108,6 +109,7 @@ namespace GitActions {
     export async function updateGitMod(pathToGitMod: string, opt?: {
         onProgress?: (percent: number, message: string) => void
     }) {
+        if (!Pathes.Dir_LocalMods) throw Error("Path to local mods not found");
         const gitinfo = Schemes.GitInfo.parse(JSON.parse(fs.readFileSync(path.join(pathToGitMod, PathesMaker.gitinfo)).toString()));
 
         const progress = new ProgressManager((percent, message) => opt?.onProgress?.(percent, message ?? ""));

@@ -60,7 +60,7 @@ export function InitWebEvents() {
         }
 
         if (Pathes.Dir_GameWorkshop) startWatchUpdates(Pathes.Dir_GameWorkshop);
-        startWatchUpdates(Pathes.Dir_LocalMods);
+        if (Pathes.Dir_LocalMods) startWatchUpdates(Pathes.Dir_LocalMods);
 
         // MainProcessEmitter.on("GameWorkshopFolderPathChanged", startWatchUpdates);
     }

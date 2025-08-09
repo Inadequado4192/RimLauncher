@@ -191,11 +191,13 @@ namespace ModListActions {
             }
         }
 
-        if (!Pathes.Dir_GameWorkshop || !Pathes.Dir_Game) throw Error("No Game Dir");
-
-        ReadDir(Pathes.Dir_GameWorkshop);
-        ReadDir(path.join(Pathes.Dir_Game, "Data"));
-        ReadDir(path.join(Pathes.Dir_Game, "Mods"));
+        if (Pathes.Dir_GameWorkshop) {
+            ReadDir(Pathes.Dir_GameWorkshop);
+        }
+        if (Pathes.Dir_Game) {
+            ReadDir(path.join(Pathes.Dir_Game, "Data"));
+            ReadDir(path.join(Pathes.Dir_Game, "Mods"));
+        }
 
 
         return {

@@ -2,10 +2,7 @@
 > This feature will be available in **version 1.0.0**.
 
 
-<p align="center">
-  <img src="./build/icons//icon.png" alt="RimLauncher Icon" width="32" style="vertical-align: middle; margin-right: 5px;"/>
-  <strong style="font-size: 28px; vertical-align: middle;">RimLauncher</strong>
-</p>
+<h1 align="center">RimLauncher</h1>
 
 
 <p align="center">
@@ -21,27 +18,18 @@
 
 ![RimLauncher Banner](./assets/banner.png)
 
----
-
 ## ℹ️ Note on Pirated Versions
 
 RimLauncher **may work** with pirated versions of RimWorld, but this has **not been tested or officially supported**. Use at your own risk. The developers encourage using legitimate copies to ensure full compatibility and support.
-
----
 
 ## 🔍 Purpose
 
 **RimLauncher** aims to simplify the management of RimWorld mods by providing an intuitive interface that allows users to organize, update, and control their mods with ease.
 
----
 
 ## 🚀 Installation
 
 Download the latest release from the [Releases](https://github.com/Inadequado4192/RimLauncher/releases) page and run the installer. The installer guides you through the setup process, making it quick and hassle-free.
-
-Currently, RimLauncher supports **Windows** exclusively. Versions for **Mac** and **Linux** are planned for future releases, aiming to broaden accessibility for all RimWorld players.
-
----
 
 ## ⚙️ Features
 
@@ -52,13 +40,9 @@ Currently, RimLauncher supports **Windows** exclusively. Versions for **Mac** an
 - 🏷️ **Organize mods using custom tags**, allowing personalized grouping and filtering for better mod management.  
 - ✅ **Import and export modpacks**, facilitating easy backup and sharing with others.
 
----
-
 ## 📌 Roadmap
 
 We are actively working on new features and improvements. Check out our planned roadmap and future goals in [`ROADMAP.md`](./ROADMAP.md) to see what's coming next and contribute your ideas.
-
----
 
 ## 📦 Changelog
 

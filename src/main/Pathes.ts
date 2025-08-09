@@ -144,13 +144,13 @@ export const Pathes = {
         return path.join(this.Dir_Config, "ModsConfig.xml") as `${typeof this.Dir_Config}/ModsConfig.xml`;
     },
     get Dir_Steam() {
-        return UserConfigStore.get("steamPath") as "./Steam";
+        return UserConfigStore.get("steamPath");
     },
     get Dir_Game() {
-        return UserConfigStore.get("gamePath") as "./RimWorld";
+        return UserConfigStore.get("gamePath");
     },
     get Dir_LocalMods() {
-        if (!this.Dir_Game) throw Error("Pathes.Game not found");
+        if (!this.Dir_Game) return null;
         return path.join(this.Dir_Game, "Mods") as `${typeof this.Dir_Game}/Mods`;
     },
 
