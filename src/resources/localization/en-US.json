@@ -24,12 +24,17 @@
         "enable": "Enable",
         "warnings": "Warnings",
         "next": "Next",
+        "close": "Close",
+        "review": "Review",
 
 
         "updateTime": "Update time",
-        "review": "Review",
         "UnableRetrieveChangeNotes": "Unable to retrieve сhange notes. There may be a missing connection. Message: {0}",
 
+        "checkingForUpdates": "Checking for updates",
+        "latestVersion": "Latest version",
+        "updateAvailable": "Update available",
+        "autoUpdateNotSupported": "This format does not support auto-update",
 
         "openDirectory": "Open directory",
         "openInSteam": "Open in Steam",

@@ -1,6 +1,6 @@
 import fs from "fs"
 import path from "path";
-import { parser } from "../utilts";
+import { parser } from "../utils";
 import Schemes from "../Schemes";
 import { Pathes, PathesMaker } from "../Pathes";
 import Localize from "@Common/Localize";

@@ -32,7 +32,7 @@ export const {
     Service: PromptService,
     Container: PromptContainer,
 } = createService<PromptData, null | string>({
-    dialog(props) {
+    element(props) {
         const [inputText, setInputText] = React.useState(props.defaultValue ?? "");
         const [errorMessage, setErrorMessage] = React.useState<string | undefined>(props.defaultError);
         const [isPending, setIsPending] = React.useState(false);

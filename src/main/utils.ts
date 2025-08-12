@@ -9,11 +9,3 @@ export const parser = new XMLParser({
 export const builder = new XMLBuilder({
     format: true
 });
-
-
-
-export function mkdirIfDontExists(path: string) {
-    if (!fs.existsSync(path)) fs.mkdirSync(path);
-}
-
-

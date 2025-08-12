@@ -1,21 +1,6 @@
 import React, { useSyncExternalStore } from "react";
 import { useSyncExternalStoreWithSelector, } from "use-sync-external-store/with-selector";
 
-/**@deprecated */
-export interface IStoreBase {
-    subscribe: (listener: () => void) => void;
-    unsubscribe: (listener: () => void) => void;
-    emit: () => void;
-}
-/**@deprecated */
-export interface IStore<Data> extends IStoreBase {
-    use: <C extends (userConfig: Data) => any = (userConfig: Data) => Data>(selector?: C, isEqual?: StoreCompareType | IsEqualCallback<ReturnType<C>>) => ReturnType<C>,
-    get: () => Data;
-    set: (value: SetType<Data>) => void;
-    setWithoutEmit: (data: SetType<Data>) => void;
-}
-
-
 export enum StoreCompareType {
     /**@example (prev, next) => prev === next */
     Primitive,
@@ -55,16 +40,13 @@ abstract class Store_Base {
     }
 
 
-    public constructor(params: StoreCreatorParams_Base) {
-        this.debugName = params.debugName;
+    public constructor(params?: StoreCreatorParams_Base) {
+        this.debugName = params?.debugName;
         // this.extendUse = params.extendUse;
     }
 
     public abstract use(...args: any[]): any
 
-    public get() {
-        return Store;
-    }
 
     public emit() {
         for (const l of this.listeners) l();
@@ -75,20 +57,28 @@ abstract class Store_Base {
 
 
 
-interface IStoreParams<Data> extends StoreCreatorParams_Base {
+interface IStoreParams<
+    Data,
+    NData extends Data = Data,
+> extends StoreCreatorParams_Base {
     firstLoad: () => Promise<Data> | Data,
     watcher?: (listener: (data: Data) => void) => void,
+    geter?: (data: Data) => NData
 }
-export class Store<Data> extends Store_Base {
-    public store!: Data;
+export class Store<
+    Data,
+    NData extends Data = Data,
+> extends Store_Base {
+    public __data!: Data;
+    public geter: IStoreParams<Data, NData>["geter"] & {} = () => this.__data as NData;
 
-    public constructor(params: IStoreParams<Data>) {
+    public constructor(params: IStoreParams<Data, NData>) {
         super(params);
 
 
         const upd = (data: Data) => {
-            if (!deepEqual(this.store, data)) {
-                this.store = data;
+            if (!deepEqual(this.__data, data)) {
+                this.__data = data;
                 this.emit();
             }
         }
@@ -113,10 +103,10 @@ export class Store<Data> extends Store_Base {
 
 
 
-    public use<C extends (userConfig: Data) => any = (userConfig: Data) => Data>(
-        selector?: C,
-        isEqual: StoreCompareType | IsEqualCallback<ReturnType<C>> = StoreCompareType.Primitive
-    ): ReturnType<C> {
+    public use<S extends (userConfig: NData) => any = (userConfig: NData) => NData>(
+        selector?: S,
+        isEqual: StoreCompareType | IsEqualCallback<ReturnType<S>> = StoreCompareType.Primitive,
+    ): ReturnType<S> {
         if (this.debugName) console.log(this.debugName, "USED", selector);
         // this.extendUse?.();
 
@@ -134,13 +124,16 @@ export class Store<Data> extends Store_Base {
             this.subscribe(listener);
             return () => this.unsubscribe(listener);
         }, []);
-        const get = () => this.store;
+        const get = () => this.geter(this.__data);
 
         if (selector) {
             return useSyncExternalStoreWithSelector(sub, get, get, selector, compare);
         } else {
-            return useSyncExternalStore(sub, get, get) as ReturnType<C>;
+            return useSyncExternalStore(sub, get, get) as ReturnType<S>;
         }
+    }
+    public get() {
+        return this.__data;
     }
 
     public set(value: SetType<Data>) {
@@ -148,8 +141,8 @@ export class Store<Data> extends Store_Base {
         this.emit();
     }
     public setWithoutEmit(data: SetType<Data>) {
-        const value = data instanceof Function ? data(this.store) : data;
-        this.store = value;
+        const value = data instanceof Function ? data(this.__data) : data;
+        this.__data = value;
     }
 }
 
@@ -216,166 +209,6 @@ export class StoreVersion extends Store_Base {
 
 
 
-
-/**@deprecated use {@link Store} */
-export function createStore<
-    Data
->(params: IStoreParams<Data>): IStore<Data> {
-    let store: Data;
-    const listeners = new Set<() => void>();
-
-
-    function subscribe(listener: () => void) {
-        listeners.add(listener);
-    }
-    function unsubscribe(listener: () => void) {
-        listeners.delete(listener);
-    }
-
-
-    function use<C extends (userConfig: Data) => any = (userConfig: Data) => Data>(
-        selector?: C,
-        isEqual: StoreCompareType | IsEqualCallback<ReturnType<C>> = StoreCompareType.Primitive
-    ): ReturnType<C> {
-        if (params.debugName) console.log(params.debugName, "USED", selector);
-
-        const compare: IsEqualCallback = React.useMemo(() => {
-            if (typeof isEqual !== "number") return isEqual;
-            switch (isEqual) {
-                case StoreCompareType.Primitive: return (prev: any, next: any) => prev === next;
-                case StoreCompareType.JSON: return (prev: any, next: any) => JSON.stringify(prev) === JSON.stringify(next);
-                case StoreCompareType.PrimitiveArray: return StoreCompares.primitiveArraysEqual;
-                case StoreCompareType.PrimitiveObject: return StoreCompares.primitiveObjectsEqual;
-            }
-        }, [isEqual]);
-
-        const sub = React.useCallback((listener: () => void) => {
-            subscribe(listener);
-            return () => unsubscribe(listener);
-        }, []);
-        const get = () => store;
-
-        if (selector) {
-            return useSyncExternalStoreWithSelector(sub, get, get, selector, compare);
-        } else {
-            return useSyncExternalStore(sub, get, get) as ReturnType<C>;
-        }
-    }
-
-
-
-
-    function get() {
-        return store;
-    }
-
-    function set(value: SetType<Data>) {
-        setWithoutEmit(value);
-        emit();
-    }
-    function setWithoutEmit(data: SetType<Data>) {
-        const value = data instanceof Function ? data(store) : data;
-        store = value;
-    }
-
-    function emit() {
-        for (const l of listeners) l();
-    }
-
-
-
-
-
-
-
-    let inited = false;
-    (function init() {
-        if (inited) return console.warn("Already inited");
-        inited = true;
-
-        function upd(data: Data) {
-            if (!deepEqual(store, data)) {
-                store = data;
-                emit();
-            }
-        }
-
-
-        const res = params.firstLoad();
-        if (res instanceof Promise) {
-            res.then(res => {
-                if (params.debugName) console.log(params.debugName, "First Data", res);
-                upd(res);
-            });
-        } else {
-            if (params.debugName) console.log(params.debugName, "First Data", res);
-            upd(res);
-        }
-
-        params.watcher?.(res => {
-            if (params.debugName) console.log(params.debugName, "Watched Data", res);
-            upd(res)
-        });
-    })();
-
-
-    return {
-        subscribe, unsubscribe, use, get, set, setWithoutEmit, emit
-    }
-}
-
-
-
-function deepUpdate(target: any, source: any): boolean {
-    let changed = false;
-
-    for (const key of Object.keys(source)) {
-        const next = source[key];
-        const prev = target[key];
-
-        if (Array.isArray(next) && Array.isArray(prev)) {
-            if (next.length !== prev.length) {
-                target[key] = next;
-                changed = true;
-                continue;
-            }
-
-            const arrayChanged = next.some((item, i) => {
-                const prevItem = prev[i];
-
-                if (
-                    typeof item === "object" &&
-                    item !== null &&
-                    typeof prevItem === "object" &&
-                    prevItem !== null
-                ) {
-                    return deepUpdate(prevItem, item);
-                }
-
-                return item !== prevItem;
-            });
-
-            if (arrayChanged) {
-                target[key] = next;
-                changed = true;
-            }
-
-        } else if (
-            typeof next === "object" &&
-            next !== null &&
-            typeof prev === "object" &&
-            prev !== null
-        ) {
-            if (deepUpdate(prev, next)) changed = true;
-
-        } else if (prev !== next) {
-            target[key] = next;
-            changed = true;
-        }
-    }
-
-    return changed;
-}
 export function deepEqual(a: any, b: any): boolean {
     if (a === b) return true;
 

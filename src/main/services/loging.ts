@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { app } from "electron";
 
-const logFilePath = path.join(app.getPath("exe"), "logging.log");
+const logFilePath = path.join(app.getPath("userData"), "logging.log");
 
 function formatMessage(level: string, message: string) {
     const timestamp = new Date().toISOString();
@@ -10,23 +10,22 @@ function formatMessage(level: string, message: string) {
     return l;
 }
 
+function write(msg: string) {
+    fs.appendFileSync(logFilePath, msg);
+}
 
 
 export const logger = {
     info: (msg: string) => {
-        formatMessage("INFO", msg);
-        // fs.appendFileSync(logFilePath, formatMessage("INFO", msg));
+        write(formatMessage("INFO", msg));
     },
     warn: (msg: string) => {
-        formatMessage("WARN", msg);
-        // fs.appendFileSync(logFilePath, formatMessage("WARN", msg));
+        write(formatMessage("WARN", msg));
     },
     error: (msg: string) => {
-        formatMessage("ERROR", msg);
-        // fs.appendFileSync(logFilePath, formatMessage("ERROR", msg));
+        write(formatMessage("ERROR", msg));
     },
     errorUnknown: (error: unknown) => {
-        formatMessage("ERROR", (error instanceof Error && error.stack) || String(error));
-        // fs.appendFileSync(logFilePath, formatMessage("ERROR", (error instanceof Error && error.stack) || String(error)));
+        write(formatMessage("ERROR", (error instanceof Error && error.stack) || String(error)));
     },
 };

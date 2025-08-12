@@ -25,7 +25,7 @@ import * as colorsGroups from "@mui/material/colors";
 
 export default function Actions() {
     return (
-        <Stack flex={0} sx={{ whiteSpace: "nowrap" }} gap={1}>
+        <Stack flex={0} sx={{ whiteSpace: "nowrap" }} gap={1} width="30%">
             <Divider><Typography>{Localize("section_Windows")}</Typography></Divider>
             <OpenPacks />
             <GitMods />

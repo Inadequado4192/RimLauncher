@@ -1,33 +1,42 @@
 import fs from "fs";
 import path from "path";
-import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
+import { BrowserWindow, dialog, ipcMain, shell } from "electron";
 import UserConfigStore from "../store/UserConfigStore";
 import Local from "../localization";
-import { win } from "..";
-import { mkdirIfDontExists } from "../utilts";
-import { Pathes } from "main/Pathes";
+import { Pathes } from "@Main/Pathes";
 import Localize from "@Common/Localize";
-import ModsConfig from "main/store/ModsConfigStore";
-import ModPacks from "main/services/ModPacks";
-import ModListActions from "main/services/modListActions";
-import GitActions from "main/services/gitActions";
+import ModsConfig from "@Main/store/ModsConfigStore";
+import ModPacks from "@Main/services/ModPacks";
+import ModListActions from "@Main/services/modListActions";
+import GitActions from "@Main/services/gitActions";
+import { mkdirIfDontExists } from "@Main/services/fsActions";
+import AppAutoUpdater from "@Main/services/autoUpdater";
 
 
 //#region IPC - handle
 const IPCEvents_handle = {
-    async reload() {
-        app.relaunch()
-        app.exit()
+
+    //#region Window
+    async winClose() {
+        const win = BrowserWindow.fromWebContents(this.sender);
+        win?.close()
+    },
+    async winMinimize() {
+        const win = BrowserWindow.fromWebContents(this.sender);
+        win?.minimize()
+    },
+    async winToggleMaximize() {
+        const win = BrowserWindow.fromWebContents(this.sender);
+        if (win) win.isMaximized() ? win.restore() : win.maximize()
+    },
+    async openDevTools() {
+        const win = BrowserWindow.fromWebContents(this.sender);
+        win?.webContents.openDevTools();
     },
 
-    "winClose": async () => win.close(),
-    "winMinimize": async () => win.minimize(),
-    "winToggleMaximize": async () => win.isMaximized() ? win.restore() : win.maximize(),
-
-    getPathes: async () => ({ ...Pathes }),
 
 
-    "selectFile": (setting: { type: "folder" | "file" }) => {
+    selectFile(setting: { type: "folder" | "file" }) {
         return dialog.showOpenDialog({
             properties: [
                 setting.type == "folder" ? "openDirectory" : "openFile",
@@ -35,16 +44,27 @@ const IPCEvents_handle = {
             ]
         });
     },
-    "openPath": async (path: string) => void await shell.openPath(path),
+    openPath(path: string) {
+        return shell.openPath(path);
+    },
+
+    //#endregion
 
 
 
-    enableMod: async (packageId: PackageId) => {
+    //#region Mods
+    async enableMod(packageId: PackageId) {
         const modsConfig = ModsConfig.get();
         modsConfig.activeMods.push(packageId);
         ModsConfig.save(modsConfig);
     },
-    activeModBefore: async (targetId: PackageId, beforeId: PackageId) => {
+    async disableMod(packageId: PackageId) {
+        const modsConfig = ModsConfig.get();
+        modsConfig.activeMods = modsConfig.activeMods.filter(a => a !== packageId);
+        ModsConfig.save(modsConfig);
+    },
+
+    async activeModBefore(targetId: PackageId, beforeId: PackageId) {
         const modsConfig = ModsConfig.get();
 
         if (targetId == beforeId) return;
@@ -65,7 +85,7 @@ const IPCEvents_handle = {
         }
         ModsConfig.save(modsConfig);
     },
-    activeModAfter: async (targetId: PackageId, afterId: PackageId) => {
+    async activeModAfter(targetId: PackageId, afterId: PackageId) {
         const modsConfig = ModsConfig.get();
         if (targetId == afterId) return;
         const targetIndex = modsConfig.activeMods.indexOf(targetId);
@@ -85,13 +105,8 @@ const IPCEvents_handle = {
         }
         ModsConfig.save(modsConfig);
     },
-    disableMod: async (packageId: PackageId) => {
-        const modsConfig = ModsConfig.get();
-        modsConfig.activeMods = modsConfig.activeMods.filter(a => a !== packageId);
-        ModsConfig.save(modsConfig);
-    },
 
-    setActiveMods: async (list: PackageId[]) => {
+    async setActiveMods(list: PackageId[]) {
         const modsConfig = ModsConfig.get();
         modsConfig.activeMods = list;
         ModsConfig.save(modsConfig);
@@ -101,45 +116,38 @@ const IPCEvents_handle = {
         modsConfig.activeMods = ["ludeon.rimworld" as PackageId];
         ModsConfig.save(modsConfig);
     },
-    getModsConfig: async () => ModsConfig.get(),
+    async getModsConfig() {
+        return ModsConfig.get();
+    },
+    getModList: async () => ModListActions.getModList(),
+    //#endregion
 
 
 
 
     getUserConfig: async () => UserConfigStore.get(),
-    // getUserConfigByKey: async <K extends keyof UserConfig>(key: K) => UserConfig.get(key),
-    // setUserConfig: async (data: UserConfig) => UserConfig.set(data),
     setUserConfigByKey: async <K extends keyof UserConfig>(key: K, data: UserConfig[K]) => UserConfigStore.set(key, data),
 
-    UserConfigDebugPathes: async () => await UserConfigStore.DebugPathes(),
-    /** Loading mods from `Data`, `Core` and `Steam/workshop` */
-    getModList: async (...args: Parameters<typeof ModListActions.getModList>) => ModListActions.getModList(...args),
+    getUserConfigDebugPathes: async () => await UserConfigStore.DebugPathes(),
+    getPathes: async () => ({ ...Pathes }),
 
 
 
+    //#region Game
     async runGame() {
-        // if (!Pathes.Game) return dialog.showErrorBox("Error", Localize("error_gamePathIsUndefined"));
         const data = await UserConfigStore.get();
-
-        // const child = spawn(path.join(Pathes.Game, "RimWorldWin64.exe"), [], {
-        //     detached: true, // Від’єднує процес від Electron
-        //     stdio: "ignore", // Не чекає вхідних/вихідних даних
-        // });
-        // child.unref(); // Дозволяє Electron закритися незалежно від процесу
-
         shell.openExternal("steam://launch/294100");
-        if (data.closeWindowAfterRun) win.close();
+        if (data.closeWindowAfterRun) {
+            const win = BrowserWindow.fromWebContents(this.sender);
+            win?.close();
+        }
     },
-
 
     async getGameInfo() {
         if (!Pathes.Dir_Game) return {
             success: false as const,
             message: Localize("error_gamePathIsUndefined"),
         }
-        // const res = await UserConfig.GetWithValidate();
-        // if (!res.success) return res;
-        // const uc = res.data;
 
         if (!fs.existsSync(path.join(Pathes.Dir_Game, "Version.txt"))) {
             return {
@@ -158,6 +166,7 @@ const IPCEvents_handle = {
             } satisfies GameInfoData
         };
     },
+    //#endregion
 
 
     //#region Localization
@@ -190,7 +199,6 @@ const IPCEvents_handle = {
         return ModPacks.load();
     },
     //#endregion
-
 
 
 
@@ -236,11 +244,9 @@ const IPCEvents_handle = {
 
 
 
-
-    // DEV
-    async openDevTools() {
-        win.webContents.openDevTools();
-    }
+    async checkForUpdatesAndNotify() {
+        return AppAutoUpdater.checkForUpdatesAndNotify();
+    },
 } satisfies Record<string, (...args: any[]) => Promise<any>> & ThisType<Electron.IpcMainInvokeEvent>
 //#endregion
 
@@ -304,6 +310,7 @@ const IPCEvents_on = {
 
         return sendler.__Type__;
     },
+
     async updateGitMod(taskId, pathToGitMod: string) {
         const sendler = IPC_on_sendler<{
             onProgress: IPC_onCallbackIn<[percent: number, message: string]>
@@ -322,6 +329,25 @@ const IPCEvents_on = {
         }
 
         sendler(this.sender, "onDone");
+
+        return sendler.__Type__;
+    },
+
+    async checkForUpdatesAndNotify(taskId) {
+        const sendler = IPC_on_sendler<{
+            onProgress: IPC_onCallbackIn<[percent: number]>
+            onSuccess: IPC_onCallbackIn<[void]>,
+            onError: IPC_onCallbackIn<[message: string]>
+            onDone: IPC_onCallbackIn<[void]>,
+        }>(taskId, "checkForUpdatesAndNotify");
+
+        AppAutoUpdater.downloadAndInstall({
+            onProgress: (percent) => sendler(this.sender, "onProgress", percent),
+            onCancelled: (info) => sendler(this.sender, "onError", "Cancelled"),
+            onDownloaded: (event) => sendler(this.sender, "onSuccess"),
+            onError: (error, message) => sendler(this.sender, "onError", message ?? "Unknown Error"),
+            onFinish: () => sendler(this.sender, "onDone"),
+        });
 
         return sendler.__Type__;
     },

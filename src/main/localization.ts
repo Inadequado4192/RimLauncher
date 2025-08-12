@@ -8,7 +8,7 @@ import UserConfigStore from "./store/UserConfigStore";
 
 namespace Local {
     const localizationPath = app.isPackaged
-        ? path.join(process.resourcesPath, "localization")
+        ? path.join(__dirname, "localization")//path.join(process.resourcesPath, "localization")
         : path.resolve("./src/resources/localization");
 
 
@@ -17,8 +17,13 @@ namespace Local {
 
 
     function loadLocal(fname: string): SomeLocal {
-        let fileName = `${path.basename(fname, ".json")}.json`;
-        return Schemes.Localization.parse(JSON.parse(fs.readFileSync(path.join(localizationPath, fileName)).toString())) as SomeLocal;
+        try {
+            let fileName = `${path.basename(fname, ".json")}.json`;
+            return Schemes.Localization.parse(JSON.parse(fs.readFileSync(path.join(localizationPath, fileName)).toString())) as SomeLocal;
+        } catch {
+            let fileName = `en-US.json`;
+            return Schemes.Localization.parse(JSON.parse(fs.readFileSync(path.join(localizationPath, fileName)).toString())) as SomeLocal;
+        }
     }
     export const getAllLanguages = () =>
         fs.readdirSync(localizationPath)

@@ -13,7 +13,7 @@ export default function Footer() {
                 alignItems="flex-end"
             >
                 <Box sx={{ p: 1 }}>
-                    <Typography level="body-xs">{gameVersionFull}</Typography>
+                    <Typography level="body-xs" noWrap>{gameVersionFull}</Typography>
                 </Box>
                 <Stack direction="row">
                     <Actions />

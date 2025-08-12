@@ -8,6 +8,7 @@ import type { FileEvents } from "../main/events/WebEvents";
 const internal_invokeProxy = new Proxy({}, {
     get: (target: {}, p: string) => (...args: any[]) => ipcRenderer.invoke(p, ...args)
 }) as IPCEvents_handle;
+
 const internal_sendProxy = new Proxy({}, {
     get: (target: {}, channel: string) => (...args: any[]) => {
         const taskId = crypto.randomUUID();

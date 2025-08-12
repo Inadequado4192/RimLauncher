@@ -1,7 +1,7 @@
 import React from "react";
 import { Mod, Mod_ALL } from "@Classes/Mod";
 import { ModListStore } from "@Context/ModListContext";
-import { createStore } from "@Stores/store";
+import { Store } from "@Stores/store";
 
 const LocalModListContext = React.createContext<ReturnType<typeof useDate>>(null as any);
 
@@ -44,7 +44,7 @@ export namespace LocalModListStores {
         selectedMod.setWithoutEmit(undefined);
     }
 
-    export const selectedMod = createStore<Mod_ALL | undefined>({
+    export const selectedMod = new Store<Mod_ALL | undefined>({
         firstLoad: async () => undefined,
     });
 }

@@ -2,22 +2,29 @@
 import Localize from "@Common/Localize";
 import { Button, Modal, ModalDialog, DialogContent, DialogActions, DialogTitle, Input, FormHelperText, Typography } from "@mui/joy";
 import React from "react";
+import { createService } from "./BaseService";
 
 
+export interface ConfirmData {
+    title?: React.ReactNode,
+    text: React.ReactNode,
+    actionsLabel?: {
+        true?: string,
+        false?: string,
+    },
+    fullWidth?: boolean
+}
 
-export function ConfirmContainer() {
-    const [list, setList] = React.useState<ConfirmData_Internal[]>([]);
-
-    React.useEffect(() => {
-        return ConfirmService.subscribe(setList);
-    }, []);
-
-    return list.map(({ _internalId: id, ...props }, i) => React.createElement(function () {
+export const {
+    Service: ConfirmService,
+    Container: ConfirmContainer
+} = createService<ConfirmData, boolean>({
+    element(props) {
         function onClose() {
-            props._internalCallback(false);
+            props._close(false);
         }
         function onOk() {
-            props._internalCallback(true);
+            props._close(true);
         }
 
         React.useEffect(() => {
@@ -30,62 +37,18 @@ export function ConfirmContainer() {
         }, []);
 
         return (
-            <Modal open key={i} onClose={onClose}>
-                <ModalDialog>
-                    <DialogTitle>{Localize("confirmTheAction")}</DialogTitle>
+            <Modal open onClose={onClose}>
+                <ModalDialog minWidth={!props.fullWidth ? void 0 : "80%"} maxWidth={!props.fullWidth ? void 0 : "90%"}>
+                    <DialogTitle>{props.title ?? Localize("confirmTheAction")}</DialogTitle>
                     <DialogContent>
                         <Typography>{props.text}</Typography>
                     </DialogContent>
                     <DialogActions>
-                        <Button color="success" onClick={onOk}>{Localize("yes")}</Button>
-                        <Button color="danger" onClick={onClose}>{Localize("no")}</Button>
+                        <Button color="success" onClick={onOk}>{props.actionsLabel?.true ?? Localize("yes")}</Button>
+                        <Button color="danger" onClick={onClose}>{props.actionsLabel?.false ?? Localize("no")}</Button>
                     </DialogActions>
                 </ModalDialog>
             </Modal>
         )
-    }, { key: id }));
-}
-
-
-export interface ConfirmData {
-    text: string,
-}
-interface ConfirmData_Internal extends ConfirmData {
-    _internalId: number,
-    _internalCallback(data: boolean): void
-}
-
-export class ConfirmService {
-    private static listeners = new Set<(alerts: ConfirmData_Internal[]) => void>();
-    private static list: ConfirmData_Internal[] = [];
-    private static idCounter = 0;
-
-    static subscribe(listener: (alerts: ConfirmData_Internal[]) => void) {
-        ConfirmService.listeners.add(listener);
-        listener(ConfirmService.list);
-        return () => void ConfirmService.listeners.delete(listener);
-    }
-
-    static create(props: ConfirmData) {
-        return new Promise<boolean>((t, f) => {
-            try {
-                const id = ConfirmService.idCounter++;
-
-                ConfirmService.list = [...ConfirmService.list, {
-                    ...props,
-                    _internalId: id,
-                    _internalCallback(data) {
-                        ConfirmService.remove(id);
-                        t(data);
-                    },
-                }];
-                ConfirmService.listeners.forEach((listener) => listener(ConfirmService.list));
-            } catch (e) { f(e); }
-        })
-    }
-
-    static remove(id: number) {
-        ConfirmService.list = ConfirmService.list.filter((alert) => alert._internalId !== id);
-        ConfirmService.listeners.forEach((listener) => listener(ConfirmService.list));
-    }
-}
+    },
+})

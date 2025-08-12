@@ -2,9 +2,7 @@
     "appId": "com.inadequado4192.rimlauncher",
     "files": [
         "./.webpack/*",
-        "!node_modules"
-    ],
-    "extraResources": [
+        "!node_modules",
         {
             "from": "src/resources",
             "to": "."
@@ -14,17 +12,23 @@
         "buildResources": "."
     },
     "icon": "build/icons/icon",
+    "publish": [
+        {
+            "provider": "github",
+            "owner": "Inadequado4192",
+            "repo": "RimLauncher"
+        }
+    ],
     "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
     "mac": {
-        "target": ["dmg", "zip", "pkg"]
+        "target": ["dmg", "zip"]
     },
     "win": {
-        "target": ["nsis", "portable", "zip"]
+        "target": ["nsis", "zip"]
     },
     "linux": {
-        "target": ["AppImage", "deb", "rpm", "zip"]
+        "target": [ "AppImage", "deb", "rpm", "zip"]
     },
-
     "nsis": {
         "artifactName": "${productName}-${version}-win-Setup.${ext}",
         "oneClick": false,

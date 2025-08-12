@@ -52,14 +52,8 @@ export default function GitModsDialog({ list }: { list: ReturnType<typeof useGit
                 effect(ev) {
                     $send.updateGitMod(mod.dirPath)
                         .onProgress(ev.setValues)
-                        .onError(err => {
-                            ev.close();
-                            AlertService.create({
-                                text: err,
-                                color: "danger",
-                                lifeTime: null,
-                            });
-                        }).onDone(ev.close)
+                        .onError(ev.onError)
+                        .onDone(ev.close)
                 },
             }).endPromise;
         }

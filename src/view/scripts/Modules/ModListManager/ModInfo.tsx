@@ -37,11 +37,14 @@ function ModChoiceScreen() {
 
 function Info({ mod }: { mod: Mod_ALL }) {
     return (
-        <Stack gap={1} flex={1} sx={t => ({
-            overflowY: "auto",
-            overflowX: "hidden",
-            color: t.palette.text.primary,
-        })}>
+        <Stack
+            gap={1}
+            flex={1}
+            sx={{
+                overflowY: "auto",
+                overflowX: "hidden",
+            }}
+        >
             {mod.previewPath && <Box component="img"
                 src={mod.previewPath}
                 width="100%"
@@ -65,7 +68,13 @@ function Info({ mod }: { mod: Mod_ALL }) {
 function ModDataRow({ label, value }: { label: string, value: React.ReactNode }) {
     return (
         <tr>
-            <td width={150}><Typography level="body-sm">{label}</Typography></td>
+            <td width={150}>
+                <span
+                    style={{
+                        color: "var(--joy-palette-text-tertiary)"
+                    }}
+                >{label}</span>
+            </td>
             <td>{value}</td>
         </tr>
     )
@@ -88,9 +97,7 @@ function Actions({ mod }: { mod: Mod_ALL }) {
     mod.useEnablingSub();
 
     return (
-        <Stack
-            gap={1}
-        >
+        <Stack gap={1}>
             <ButtonGroup buttonFlex="1">
                 <Button color="neutral" variant="outlined" onClick={() => mod.toggleState()}>{mod.isActive() ? Localize("disable") : Localize("enable")}</Button>
                 {![ModType.Steam, ModType.DLC].includes(mod.type) && <Button color="danger" variant="outlined" onClick={() => { }} disabled>{Localize("delete")}</Button>}
@@ -100,7 +107,7 @@ function Actions({ mod }: { mod: Mod_ALL }) {
                 <Button onClick={() => mod.openDir()}>{Localize("openDirectory")}</Button>
                 {mod.isSteam() && <Button onClick={() => mod.openInSteam()}>{Localize("openInSteam")}</Button>}
                 {mod.isGit() && <Button onClick={() => mod.openInGit()}>{Localize("openInGit")}</Button>}
-                {mod.about.url && <Button onClick={() => openUrl(mod.about.url!)}>{Localize("openSource")}</Button>}
+                {mod.hasSourceUrl() && <Button onClick={() => mod.openSource()}>{Localize("openSource")}</Button>}
             </ButtonGroup>
         </Stack>
     )

@@ -43,9 +43,14 @@ export abstract class Mod implements ModReadingInfo_BASE {
         this.tags = other.tags;
 
 
-        this.store = new StoreVersion({});
+        this.store = new StoreVersion();
+        // this.store2 = new Store<Mod_ALL, Mod_ALL>({
+        //     firstLoad: () => this as Mod_ALL,
+        //     geter: d => ({ ...d } as Mod_ALL)
+        // });
     }
     public store: StoreVersion;
+    // public store2: Store<Mod_ALL, Mod_ALL>;
     public useEnablingSub() {
         ModsConfigStore.use(mc => mc.activeMods.some(pid => this.samePackageId(pid)))
     }
@@ -89,6 +94,12 @@ export abstract class Mod implements ModReadingInfo_BASE {
 
     public openDir() {
         $invoke.openPath(this.dirPath);
+    }
+    public openSource() {
+        if (this.about.url) openUrl(this.about.url);
+    }
+    public hasSourceUrl() {
+        return !!this.about.url;
     }
 
 

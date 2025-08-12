@@ -1,7 +1,7 @@
 import React from "react";
 import { Mod, Mod_ALL, ModErrorType } from "@Classes/Mod";
 import { ModsConfigStore, UserConfigStore } from "@Stores";
-import { createStore, StoreCompares, StoreCompareType } from "@Stores/store";
+import { Store, StoreCompares, StoreCompareType } from "@Stores/store";
 
 const ModListContext = React.createContext<ReturnType<typeof useDate>>(null as any);
 
@@ -143,22 +143,22 @@ export namespace ModListStore {
     }
 
 
-    export const isLoaded = createStore<boolean>({
+    export const isLoaded = new Store<boolean>({
         firstLoad: () => false,
     });
-    export const mods = createStore<ModsCollection>({
+    export const mods = new Store<ModsCollection>({
         firstLoad: () => ({}),
     });
-    export const actives = createStore<Mod_ALL[]>({
+    export const actives = new Store<Mod_ALL[]>({
         firstLoad: () => [],
     });
-    export const unactives = createStore<Mod_ALL[]>({
+    export const unactives = new Store<Mod_ALL[]>({
         firstLoad: () => [],
     });
-    export const modErrorsType = createStore<Record<PackageId, ModErrorType>>({
+    export const modErrorsType = new Store<Record<PackageId, ModErrorType>>({
         firstLoad: () => ({}),
     });
-    export const loadingErrors = createStore<ModReadingProblem[]>({
+    export const loadingErrors = new Store<ModReadingProblem[]>({
         firstLoad: () => [],
     });
 }

@@ -1,17 +1,17 @@
-import { createStore } from "./store";
+import { Store } from "./store";
 
 
-export const ModsConfigStore = createStore<ModsConfig>({
+export const ModsConfigStore = new Store<ModsConfig>({
     firstLoad: $invoke.getModsConfig.bind($invoke),
     watcher: (f) => $on.ModsConfig_Changed((e, data) => f(data)),
 });
 
-export const UserConfigStore = createStore<UserConfig>({
+export const UserConfigStore = new Store<UserConfig>({
     firstLoad: $invoke.getUserConfig.bind($invoke),
     watcher: (f) => $on.UserConfig_Changed((e, data) => f(data)),
 });
 
-export const GameInfoStore = createStore({
+export const GameInfoStore = new Store({
     firstLoad: async () => {
         const res = await $invoke.getGameInfo();
         if (res.success) return res.data as GameInfoData;

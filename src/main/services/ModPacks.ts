@@ -1,9 +1,10 @@
 import path from "path";
 import fs from "fs";
 import { Pathes } from "../Pathes";
-import { mkdirIfDontExists, parser } from "../utilts";
+import { parser } from "../utils";
 import { formatCamelCase } from "@Common/utils";
 import Schemes from "main/Schemes";
+import { mkdirIfDontExists } from "./fsActions";
 
 namespace ModPacks {
     export const modPackExt = ".modpack";

@@ -37,11 +37,7 @@ export function InitWebEvents() {
     });
 
     {
-        // let watcher: FSWatcher | null = null;
-
         function startWatchUpdates(targetPath: string) {
-            // if (watcher) watcher.close();
-            // watcher = 
             chokidar.watch(targetPath, { ignoreInitial: true, depth: 0 })
                 .on("addDir", (newDirPath) => {
                     if (path.basename(newDirPath).startsWith("~")) return;

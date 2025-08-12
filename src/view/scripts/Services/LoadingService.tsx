@@ -3,6 +3,7 @@ import { Button, Modal, ModalDialog, DialogContent, DialogActions, DialogTitle, 
 import React from "react";
 import { createService } from "./BaseService";
 import Localize from "@Common/Localize";
+import { AlertService } from "./Alert";
 
 
 
@@ -12,7 +13,8 @@ export interface Data {
         setProgress(progress: number): void,
         setMessage(message: string): void,
         setValues(progress: number, message: string): void;
-        close(): void
+        close(): void,
+        onError(err: any): void
     }): void
 }
 
@@ -23,7 +25,7 @@ export const {
     Service: LoadingService,
     Container: LoadingContainer,
 } = createService<Data>({
-    dialog(props) {
+    element(props) {
         const [progress, setProgress] = React.useState(0);
         const [message, setMessage] = React.useState<string>();
 
@@ -35,6 +37,14 @@ export const {
                 setMessage(message);
             },
             close: () => props._close(),
+            onError(err) {
+                props._close()
+                AlertService.create({
+                    text: String(err),
+                    color: "danger",
+                    lifeTime: Infinity,
+                });
+            },
         }), []);
 
         return (

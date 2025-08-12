@@ -30,6 +30,11 @@
         "review": "Огляд",
         "UnableRetrieveChangeNotes": "Не вдається отримати нотатки про зміну. Можливо, відсутнє з'єднання. Повідомлення: {0}",
 
+        
+        "checkingForUpdates": "Перевірка оновлень",
+        "latestVersion": "Остання версія",
+        "updateAvailable": "Доступне оновлення",
+        "autoUpdateNotSupported": "Цей формат не підтримує автоматичне оновлення",
 
         "openDirectory": "Відкрити директорію",
         "openInSteam": "Відкрити в Steam",
@@ -88,7 +93,7 @@
         "multiplayerCompability": "Сумісність з мультиплеєром",
         "steamDir": "Директорія Steam",
         "gameDir": "Директорія гри",
-        "activeMods": "Активні моди",
+        "activeMods": "Активні моди:  {0} / {1}",
         "tags": "Теги",
     
         "tagName": "Назва тегу",

@@ -47,7 +47,7 @@ export default function ModTagList({ tags, packageId }: { tags: ModTag[], packag
             )}
             <Stack>
                 {userTags.map(t => {
-                    if (tags.some(mt => mt.name == t.name)) return null
+                    if (tags.some(mt => mt.name == t.name)) return null;
                     return (
                         <ModTag
                             sx={{ opacity: .5 }}

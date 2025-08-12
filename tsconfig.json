@@ -26,13 +26,18 @@
         "baseUrl": "./src",
         "paths": {
             "@Common/*": ["common/*"],
+            "@Main/*": ["main/*"],
+            "@Renderer/*": ["view/*"],
+            
             "@Resources/*": ["resources/*"],
             "@Localization": ["resources/localization"],
             "@Localization/*": ["resources/localization/*"],
-
             "@Tools/*": ["main/tools/*"],
             "@Events/*": ["main/events/*"],
 
+            "@Utils/common": ["common/utils"],
+            "@Utils/main": ["main/utils"],
+            "@Utils/renderer": ["view/utils"],
 
             "@Components": ["view/scripts/Components"],
             "@Components/*": ["view/scripts/Components/*"],

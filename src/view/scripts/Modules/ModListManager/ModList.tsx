@@ -20,6 +20,7 @@ import { StoreCompareType } from "@Stores/store";
 import { Portal } from "@mui/material";
 import { useInView } from "react-intersection-observer";
 import LoadingErrors from "./LoadingErrors";
+import { FaLink } from "react-icons/fa";
 
 const modListItemClass = "mod-list-item";
 
@@ -406,8 +407,10 @@ ModTooltip.Content = ({ mod, errorType }: {
             <Divider />
             <ButtonGroup>
                 <Button sx={{ pointerEvents: "none" }}>{Localize("open")}</Button>
-                {mod.isSteam() && <IconButton variant="solid" onClick={() => mod.openInSteam()}><FaSteam /></IconButton>}
                 <IconButton variant="solid" onClick={() => mod.openDir()}><FaFolder /></IconButton>
+                {mod.hasSourceUrl() && <IconButton variant="solid" onClick={() => mod.openSource()}><FaLink /></IconButton>}
+                {mod.isSteam() && <IconButton variant="solid" onClick={() => mod.openInSteam()}><FaSteam /></IconButton>}
+                {mod.isGit() && <IconButton variant="solid" onClick={() => mod.openInGit()}><FaGithub /></IconButton>}
             </ButtonGroup>
         </Stack>
     )

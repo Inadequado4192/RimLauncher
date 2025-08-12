@@ -43,7 +43,7 @@ function Section_Paths() {
     const [errors, setErrors] = React.useState<z.ZodIssue[] | null>(null);
 
     React.useEffect(() => {
-        $invoke.UserConfigDebugPathes().then(setErrors);
+        $invoke.getUserConfigDebugPathes().then(setErrors);
     }, Object.values(userPathes));
 
 

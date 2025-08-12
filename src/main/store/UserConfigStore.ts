@@ -2,7 +2,6 @@ import fs from "fs";
 import Schemes from "main/Schemes";
 import { Pathes } from "../Pathes";
 import { logger } from "main/services/loging";
-import z from "zod";
 
 namespace UserConfigStore {
     function createDefault(data?: ModsConfig) {
@@ -23,10 +22,10 @@ namespace UserConfigStore {
     export function get(): UserConfig;
     export function get<K extends keyof UserConfig>(key: K): UserConfig[K];
     export function get<K extends keyof UserConfig>(key?: K) {
-        let parsedData: any = {};
-
         if (__loppProtector) throw Error("Loop Detected!");
         __loppProtector = true;
+
+        let parsedData: any = {};
         try {
             if (fs.existsSync(Pathes.File_UserConfig)) {
                 parsedData = JSON.parse(fs.readFileSync(Pathes.File_UserConfig, "utf8"));
@@ -34,10 +33,13 @@ namespace UserConfigStore {
                 parsedData = createDefault();
             }
         } catch { }
-        __loppProtector = false;
 
-        if (!key) return Schemes.UserStore.Read.parse(parsedData);
-        return Schemes.UserStore.Read.def.out.def.shape[key].parse(parsedData[key]);
+        let res;
+        if (!key) res = Schemes.UserStore.Read.parse(parsedData);
+        else res = Schemes.UserStore.Read.def.out.def.shape[key].parse(parsedData[key]);
+
+        __loppProtector = false;
+        return res;
     }
 
     export function set<K extends keyof UserConfig>(key: K, value: UserConfig[K]) {

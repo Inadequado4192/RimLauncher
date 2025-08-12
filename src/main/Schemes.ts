@@ -76,13 +76,23 @@ namespace Schemes {
         export namespace ModsConfig {
             export type Type = z.output<typeof Read>;
 
-            export const Read = AnyToEmptyOnject(z.object({
-                ModsConfigData: z.object({
-                    version: z.string().catch("0.0.0000 unknown"),
-                    activeMods: XMLList(PackageId).catch([]),
-                    knownExpansions: XMLList(PackageId).catch([]),
-                })
-            })).transform(res => res.ModsConfigData);
+            const Body = z.object({
+                version: z.string().catch("0.0.0000 unknown"),
+                activeMods: XMLList(PackageId).catch([]),
+                knownExpansions: XMLList(PackageId).catch([]),
+            });
+
+            export const Read = AnyToEmptyOnject(
+                z.union([
+                    z.object({ ModsConfigData: Body }),
+                    z.object({ modsConfigData: Body }),
+                    Body,
+                ])
+            ).transform(res => {
+                if ("ModsConfigData" in res) return res.ModsConfigData;
+                if ("modsConfigData" in res) return res.modsConfigData;
+                return res;
+            });
 
             export const Write = z.object({
                 version: z.coerce.string(),

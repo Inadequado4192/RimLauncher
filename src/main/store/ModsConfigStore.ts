@@ -1,6 +1,6 @@
 import fs from "fs";
 import { Pathes } from "../Pathes";
-import { builder, parser } from "../utilts";
+import { builder, parser } from "../utils";
 import Schemes from "main/Schemes";
 
 namespace ModsConfig {

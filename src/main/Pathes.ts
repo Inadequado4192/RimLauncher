@@ -16,46 +16,48 @@ export function createPath<D extends Record<AccessPlatforms, () => (string | und
 
 export namespace FindPathes {
     export function Steam() {
-        return createPath({
-            win32() {
-                // try {
-                const result = execSync("reg query \"HKCU\\Software\\Valve\\Steam\" /v SteamPath");
-                const match = result.toString().match(/SteamPath\s+REG_SZ\s+(.+)/);
-                if (!match) return;
-                const target = match[1]!.trim();
-                if (DebugPathesSpace.isSteam(target).success) return target;
-                // } catch { }
-            },
-            linux() {
-                const posiblePathes = [
-                    path.join(app.getPath("home"), ".steam / steam"),
-                    path.join(app.getPath("home"), ".var/app/com.valvesoftware.Steam/.steam/steam"),
-                ];
-                for (const target of posiblePathes)
+        try {
+            return createPath({
+                win32() {
+                    const result = execSync("reg query \"HKCU\\Software\\Valve\\Steam\" /v SteamPath");
+                    const match = result.toString().match(/SteamPath\s+REG_SZ\s+(.+)/);
+                    if (!match) return;
+                    const target = match[1]!.trim();
                     if (DebugPathesSpace.isSteam(target).success) return target;
-            },
-            darwin() {
-                const posiblePathes = [
-                    path.join(app.getPath("home"), "Library", "Application Support", "Steam"),
-                ];
-                for (const target of posiblePathes)
-                    if (DebugPathesSpace.isSteam(target).success) return target;
-            },
-        });
-
+                },
+                linux() {
+                    const posiblePathes = [
+                        path.join(app.getPath("home"), ".steam / steam"),
+                        path.join(app.getPath("home"), ".var/app/com.valvesoftware.Steam/.steam/steam"),
+                    ];
+                    for (const target of posiblePathes)
+                        if (DebugPathesSpace.isSteam(target).success) return target;
+                },
+                darwin() {
+                    const posiblePathes = [
+                        path.join(app.getPath("home"), "Library", "Application Support", "Steam"),
+                    ];
+                    for (const target of posiblePathes)
+                        if (DebugPathesSpace.isSteam(target).success) return target;
+                },
+            });
+        } catch { }
     }
     export function RimWorldGamePath() {
-        const steamPath = Steam();
-        if (!steamPath) return;
+        try {
+            const steamPath = Steam();
+            if (!steamPath) return;
 
-        const target = path.join(steamPath, "steamapps", "common", "RimWorld");
-        if (DebugPathesSpace.isRimWorldGamePath(target).success) return target;
+            const target = path.join(steamPath, "steamapps", "common", "RimWorld");
+            if (DebugPathesSpace.isRimWorldGamePath(target).success) return target;
+        } catch { }
     }
 }
 
 export namespace DebugPathesSpace {
     export function isSteam(_path: string): ReturnedData {
         try {
+            _path = _path.trim();
             if (!_path) return {
                 success: false,
                 message: "The path is undefined",
@@ -84,7 +86,7 @@ export namespace DebugPathesSpace {
     }
     export function isRimWorldGamePath(_path: string): ReturnedData {
         try {
-            _path = _path.trim()
+            _path = _path.trim();
             if (_path === "") return {
                 success: false,
                 message: "The path is empty",
@@ -109,9 +111,7 @@ export namespace DebugPathesSpace {
                 fatal: true
             };
 
-            return {
-                success: true
-            }
+            return { success: true }
         } catch (e) {
             return {
                 success: false,
@@ -149,11 +149,13 @@ export const Pathes = {
     get Dir_Game() {
         return UserConfigStore.get("gamePath");
     },
+    /**@depends {@link Pathes.Dir_Game} */
     get Dir_LocalMods() {
         if (!this.Dir_Game) return null;
         return path.join(this.Dir_Game, "Mods") as `${typeof this.Dir_Game}/Mods`;
     },
 
+    /**@depends {@link Pathes.Dir_Game} / {@link Pathes.Dir_Steam} */
     get Dir_GameWorkshop() {
         if (this.Dir_Steam) {
             const target = path.join(this.Dir_Steam, "steamapps", "workshop", "content", "294100");
