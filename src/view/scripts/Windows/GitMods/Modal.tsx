@@ -1,8 +1,7 @@
 import { Modal } from "@mui/joy";
 import React, { Suspense } from "react";
-import GitModsDialog from "./Dialog";
 import useGitModsNotify from "./Notify";
-import LoadingForModal from "@Components/LoadingForModal";
+import FullscreanLoading from "@Components/LoadingForModal";
 
 
 export default function GitModsModal(props: {
@@ -11,7 +10,7 @@ export default function GitModsModal(props: {
     gitModsDialogParams: ReturnType<typeof useGitModsNotify>["params"]
 }) {
     return (
-        <Suspense fallback={<LoadingForModal />}>
+        <Suspense fallback={<FullscreanLoading />}>
             <Modal open={props.open} onClose={props.onClose}>
                 <Dialog list={props.gitModsDialogParams} />
             </Modal>

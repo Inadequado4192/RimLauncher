@@ -2,25 +2,23 @@ import { ModalDialog, DialogTitle, Divider, DialogContent, DialogActions, Button
 import { PromptService } from "@Services/Prompt";
 import DownloadIcon from "@mui/icons-material/Download";
 import Localize from "@Common/Localize";
-import { GitSpace } from "@Common/libs/git";
+import { GitSpace } from "@Renderer/scripts/Classes/git";
 import { z } from "zod";
 import React from "react";
 import { Mod_Git } from "@Classes/Mod";
-import { openUrl } from "../../utils";
 import useGitModsNotify, { useGitMods } from "./Notify";
 import { LoadingService } from "@Services/LoadingService";
-import { AlertService } from "@Services/Alert";
 
 export default function GitModsDialog({ list }: { list: ReturnType<typeof useGitModsNotify>["params"] }) {
     const gitMods = useGitMods();
 
 
     async function openPrompt(defaultValue?: string, defaultError?: string) {
-        const resultUrl = await PromptService.create({
+        const repoUrl = await PromptService.create({
             text: (
                 <>URL
                     <Typography level="body-xs">
-                        ({GitSpace.list.map(git => git.name).join(" / ")})
+                        ({GitSpace.list.map(git => git.repoName).join(" / ")})
                     </Typography>
                 </>
             ),
@@ -28,15 +26,18 @@ export default function GitModsDialog({ list }: { list: ReturnType<typeof useGit
             onValidate: (val) => z.url().safeParse(val).success || "Wrong URL",
         }).endPromise;
 
-        if (resultUrl) {
+        if (repoUrl) {
             await LoadingService.create({
-                effect: (ev) => $send.downloadGitMod(resultUrl)
-                    .onProgress(ev.setValues)
-                    .onError(msg => {
-                        openPrompt(resultUrl, msg);
-                        ev.close();
-                    })
-                    .onDone(ev.close)
+                async effect(ev) {
+                    const info = await GitSpace.getByUrl(repoUrl, true).parseInfo(repoUrl);
+                    $send.downloadGitMod(info)
+                        .onProgress(ev.setValues)
+                        .onError(msg => {
+                            openPrompt(repoUrl, msg);
+                            ev.close();
+                        })
+                        .onDone(ev.close)
+                }
             })
         }
     }
@@ -49,7 +50,7 @@ export default function GitModsDialog({ list }: { list: ReturnType<typeof useGit
 
         async function onUpdate() {
             await LoadingService.create({
-                effect(ev) {
+                async effect(ev) {
                     $send.updateGitMod(mod.dirPath)
                         .onProgress(ev.setValues)
                         .onError(ev.onError)
@@ -61,10 +62,10 @@ export default function GitModsDialog({ list }: { list: ReturnType<typeof useGit
         return (
             <tr>
                 <td>{mod.about.name}</td>
-                {mod.gitinfo ? (
+                {mod.gitinfo.success ? (
                     <>
-                        <td><Typography noWrap title={mod.gitinfo.url}>{mod.gitinfo.url}</Typography></td>
-                        <td>{new Date(mod.gitinfo.lastUpdate).toLocaleString()}</td>
+                        <td><Typography noWrap title={mod.gitinfo.data.info.repoUrl}>{mod.gitinfo.data.info.repoUrl}</Typography></td>
+                        <td>{new Date(mod.gitinfo.data.lastUpdate).toLocaleString()}</td>
                         <td>
                             <Stack
                                 direction="row"
@@ -77,13 +78,20 @@ export default function GitModsDialog({ list }: { list: ReturnType<typeof useGit
                                     }
                                 }}
                             >
-                                <Button size="sm" onClick={() => onUpdate()} color={canBeUpdated ? "success" : "neutral"} >{Localize("update")}</Button>
-                                <Button size="sm" onClick={() => mod.openInGit()}>{Localize("openInGit")}</Button>
-                                <Button size="sm" onClick={() => mod.openDir()}>{Localize("openDirectory")}</Button>
+                                <Button size="sm" onClick={() => onUpdate()} color={canBeUpdated ? "success" : "neutral"} >{Localize("actions.update")}</Button>
+                                <Button size="sm" onClick={() => mod.openInGit()}>{Localize("actions.openInGit")}</Button>
+                                <Button size="sm" onClick={() => mod.openDir()}>{Localize("actions.openDirectory")}</Button>
                             </Stack>
                         </td>
                     </>
-                ) : <td colSpan={3}>{Localize("error")}</td>}
+                ) : (
+                    <>
+                        <td colSpan={1} title={mod.gitinfo.error.dirPath}>
+                            <Typography noWrap>{mod.gitinfo.error.dirPath}</Typography>
+                        </td>
+                        <td colSpan={2}>{mod.gitinfo.error.message}</td>
+                    </>
+                )}
             </tr>
         )
     }, []);
@@ -91,7 +99,7 @@ export default function GitModsDialog({ list }: { list: ReturnType<typeof useGit
 
     return (
         <ModalDialog minWidth="md">
-            <DialogTitle>{Localize("git")}</DialogTitle>
+            <DialogTitle>Git</DialogTitle>
             <Divider />
             <DialogContent>
                 <Table
@@ -102,10 +110,10 @@ export default function GitModsDialog({ list }: { list: ReturnType<typeof useGit
                 >
                     <thead>
                         <tr>
-                            <th>{Localize("name")}</th>
-                            <th>{Localize("url")}</th>
-                            <th>{Localize("lastUpdate")}</th>
-                            <th>{Localize("actions")}</th>
+                            <th>{Localize("common.name")}</th>
+                            <th>{Localize("common.url")}</th>
+                            <th>{Localize("common.lastUpdate")}</th>
+                            <th>{Localize("common.actions")}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -115,7 +123,7 @@ export default function GitModsDialog({ list }: { list: ReturnType<typeof useGit
             </DialogContent>
             <Divider />
             <DialogActions>
-                <Button startDecorator={<DownloadIcon />} onClick={() => openPrompt()}>{Localize("add")}</Button>
+                <Button startDecorator={<DownloadIcon />} onClick={() => openPrompt()}>{Localize("actions.add")}</Button>
             </DialogActions>
         </ModalDialog>
     )

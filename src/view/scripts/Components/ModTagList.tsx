@@ -1,26 +1,22 @@
 import { Stack } from "@mui/joy";
 import ModTag from "./ModTag";
-import { UserConfigStore } from "@Stores";
-import { StoreCompareType } from "@Stores/store";
+import Tag from "../Classes/Tag";
+import { Mod } from "../Classes/Mod";
+import { __ModListStores__ } from "../Modules/ModListManager/__ModListStore__";
 
-/**@deprecated */
-export default function ModTagList({ tags, packageId }: { tags: ModTag[], packageId: PackageId }) {
-    const userTags = UserConfigStore.use(uc => uc.tags, StoreCompareType.JSON);
+export default function ModTagList({ mod }: { mod: Mod }) {
+    const allTags = __ModListStores__.tags.use();
+    const modTags = mod.store.use(m => m.tags);
 
-    function onAdd(tag: ModTag) {
-        $invoke.setTag({ ...tag, packageIds: [...tag.packageIds, packageId] });
+    function onAdd(tag: Tag) {
+        $invoke.updateTag(tag.name, "packageIds", [...tag.packageIds, mod.about.packageId])
     }
 
-    function onRemove(tag: ModTag) {
-        const cloneTag = { ...tag };
-        cloneTag.packageIds = [...cloneTag.packageIds];
-
-        const ind = cloneTag.packageIds.indexOf(packageId);
-        if (ind >= 0) cloneTag.packageIds.splice(ind, 1);
-        $invoke.setTag({ ...cloneTag });
+    function onRemove(tag: Tag) {
+        $invoke.updateTag(tag.name, "packageIds", tag.packageIds.filter(pid => pid !== mod.about.packageId));
     }
 
-    return !!userTags.length && (
+    return !!allTags.length && (
         <Stack
             direction="column"
             flexWrap="wrap"
@@ -34,9 +30,9 @@ export default function ModTagList({ tags, packageId }: { tags: ModTag[], packag
                 }
             }}
         >
-            {!!tags.length && (
+            {!!modTags.length && (
                 <Stack>
-                    {tags.map((t, i) =>
+                    {modTags.map((t, i) =>
                         <ModTag
                             key={i}
                             tag={t}
@@ -45,12 +41,15 @@ export default function ModTagList({ tags, packageId }: { tags: ModTag[], packag
                     )}
                 </Stack>
             )}
-            <Stack>
-                {userTags.map(t => {
-                    if (tags.some(mt => mt.name == t.name)) return null;
+            <Stack
+                sx={{
+                    opacity: .5
+                }}
+            >
+                {allTags.map(t => {
+                    if (modTags.some(mt => mt.name == t.name)) return null;
                     return (
                         <ModTag
-                            sx={{ opacity: .5 }}
                             key={t.name}
                             onClick={onAdd.bind({}, t)}
                             tag={t}

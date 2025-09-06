@@ -63,3 +63,8 @@ export function shallowEqual(prev: Record<string, any>, next: Record<string, any
 
     return true;
 }
+
+
+export function typedInclude<const T extends V, V>(array: readonly T[], value: V): value is T {
+    return array.includes(value as any);
+}

@@ -50,7 +50,7 @@ export const {
         return (
             <Modal open>
                 <ModalDialog >
-                    <DialogTitle>{Localize("loading")}</DialogTitle>
+                    <DialogTitle>{Localize("common.loading")}</DialogTitle>
                     <DialogContent>
                         <LinearProgress
                             determinate
@@ -63,4 +63,6 @@ export const {
             </Modal>
         )
     },
+}, {
+    fnName: "LoadingContainer"
 })

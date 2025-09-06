@@ -4,26 +4,29 @@ import { app } from "electron";
 
 const logFilePath = path.join(app.getPath("userData"), "logging.log");
 
-function formatMessage(level: string, message: string) {
+type Message = string | number;
+
+function formatMessage(level: string, ...message: Message[]) {
     const timestamp = new Date().toISOString();
-    const l = `[${timestamp}] [${level}] ${message}\n`;
+    const l = `[${timestamp}] [${level}] ${message.join(" ")}\n`;
     return l;
 }
 
 function write(msg: string) {
+    console.log(msg);
     fs.appendFileSync(logFilePath, msg);
 }
 
 
 export const logger = {
-    info: (msg: string) => {
-        write(formatMessage("INFO", msg));
+    info: (...message: Message[]) => {
+        write(formatMessage("INFO", ...message));
     },
-    warn: (msg: string) => {
-        write(formatMessage("WARN", msg));
+    warn: (...message: Message[]) => {
+        write(formatMessage("WARN", ...message));
     },
-    error: (msg: string) => {
-        write(formatMessage("ERROR", msg));
+    error: (...message: Message[]) => {
+        write(formatMessage("ERROR", ...message));
     },
     errorUnknown: (error: unknown) => {
         write(formatMessage("ERROR", (error instanceof Error && error.stack) || String(error)));

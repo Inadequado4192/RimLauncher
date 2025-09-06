@@ -5,12 +5,13 @@ import UserConfigStore from "../store/UserConfigStore";
 import Local from "../localization";
 import { Pathes } from "@Main/Pathes";
 import Localize from "@Common/Localize";
-import ModsConfig from "@Main/store/ModsConfigStore";
-import ModPacks from "@Main/services/ModPacks";
-import ModListActions from "@Main/services/modListActions";
+import ModsConfigStore from "@Main/store/ModsConfigStore";
+import ModPacks from "@Main/services/modPacks";
+import ModList from "@Main/services/modList";
 import GitActions from "@Main/services/gitActions";
 import { mkdirIfDontExists } from "@Main/services/fsActions";
 import AppAutoUpdater from "@Main/services/autoUpdater";
+import GameInfoStore from "@Main/store/GameInfoStore";
 
 
 //#region IPC - handle
@@ -54,18 +55,18 @@ const IPCEvents_handle = {
 
     //#region Mods
     async enableMod(packageId: PackageId) {
-        const modsConfig = ModsConfig.get();
+        const modsConfig = ModsConfigStore.get();
         modsConfig.activeMods.push(packageId);
-        ModsConfig.save(modsConfig);
+        ModsConfigStore.save(modsConfig);
     },
     async disableMod(packageId: PackageId) {
-        const modsConfig = ModsConfig.get();
+        const modsConfig = ModsConfigStore.get();
         modsConfig.activeMods = modsConfig.activeMods.filter(a => a !== packageId);
-        ModsConfig.save(modsConfig);
+        ModsConfigStore.save(modsConfig);
     },
 
     async activeModBefore(targetId: PackageId, beforeId: PackageId) {
-        const modsConfig = ModsConfig.get();
+        const modsConfig = ModsConfigStore.get();
 
         if (targetId == beforeId) return;
 
@@ -83,10 +84,10 @@ const IPCEvents_handle = {
             if (targetIndex !== -1) modsConfig.activeMods.splice(targetIndex, 1);
             modsConfig.activeMods.splice(beforeIndex, 0, targetId);
         }
-        ModsConfig.save(modsConfig);
+        ModsConfigStore.save(modsConfig);
     },
     async activeModAfter(targetId: PackageId, afterId: PackageId) {
-        const modsConfig = ModsConfig.get();
+        const modsConfig = ModsConfigStore.get();
         if (targetId == afterId) return;
         const targetIndex = modsConfig.activeMods.indexOf(targetId);
         const afterIndex = modsConfig.activeMods.indexOf(afterId);
@@ -103,23 +104,23 @@ const IPCEvents_handle = {
             if (targetIndex !== -1) modsConfig.activeMods.splice(targetIndex, 1);
             modsConfig.activeMods.splice(afterIndex + 1, 0, targetId);
         }
-        ModsConfig.save(modsConfig);
+        ModsConfigStore.save(modsConfig);
     },
 
     async setActiveMods(list: PackageId[]) {
-        const modsConfig = ModsConfig.get();
+        const modsConfig = ModsConfigStore.get();
         modsConfig.activeMods = list;
-        ModsConfig.save(modsConfig);
+        ModsConfigStore.save(modsConfig);
     },
     async clearModsConfig() {
-        const modsConfig = ModsConfig.get();
+        const modsConfig = ModsConfigStore.get();
         modsConfig.activeMods = ["ludeon.rimworld" as PackageId];
-        ModsConfig.save(modsConfig);
+        ModsConfigStore.save(modsConfig);
     },
     async getModsConfig() {
-        return ModsConfig.get();
+        return ModsConfigStore.get();
     },
-    getModList: async () => ModListActions.getModList(),
+    getModList: async () => ModList.getModList(),
     //#endregion
 
 
@@ -144,27 +145,7 @@ const IPCEvents_handle = {
     },
 
     async getGameInfo() {
-        if (!Pathes.Dir_Game) return {
-            success: false as const,
-            message: Localize("error_gamePathIsUndefined"),
-        }
-
-        if (!fs.existsSync(path.join(Pathes.Dir_Game, "Version.txt"))) {
-            return {
-                success: false as const,
-            }
-        }
-
-        const gameVersionFull = fs.readFileSync(path.join(Pathes.Dir_Game, "Version.txt")).toString().trim() as FullVersion;
-        const gameVersionShort = gameVersionFull.match(/^(\d+\.\d+)./)![1]! as ShortVersion;
-
-        return {
-            success: true as const,
-            data: {
-                gamePath: Pathes.Dir_Game,
-                gameVersionFull, gameVersionShort,
-            } satisfies GameInfoData
-        };
+        return GameInfoStore.get()
     },
     //#endregion
 
@@ -180,19 +161,15 @@ const IPCEvents_handle = {
 
     //#region ModPacks
     async saveModPack(packName: string) {
-        mkdirIfDontExists(Pathes.Dir_ModPacks);
         ModPacks.save(packName);
     },
     async useModPack(packName: string) {
-        mkdirIfDontExists(Pathes.Dir_ModPacks);
         ModPacks.use(packName);
     },
     async deleteModPack(packName: string) {
-        mkdirIfDontExists(Pathes.Dir_ModPacks);
         ModPacks.remove(packName);
     },
     async renameModPack(oldname: string, newname: string) {
-        mkdirIfDontExists(Pathes.Dir_ModPacks);
         ModPacks.rename(oldname, newname);
     },
     async getModPacksList() {
@@ -207,19 +184,18 @@ const IPCEvents_handle = {
         const tags = UserConfigStore.get("tags");
         return tags.some(a => a.name == name);
     },
-    async setTag(tag: ModTag) {
+    async addTag(tag: ModTagJSON) {
         const tags = UserConfigStore.get("tags");
 
-        const targetTagInd = tags.findIndex(a => a.name == tag.name);
-        if (targetTagInd >= 0) {
-            tags.splice(targetTagInd, 1, tag);
+        if (tags.some(t => t.name == tag.name)) {
+            throw Error("This name already exists")
         } else {
             tags.push(tag);
         }
 
         UserConfigStore.set("tags", tags);
     },
-    async updateTag<K extends keyof ModTag>(tagname: string, key: K, newvalue: ModTag[K]): Promise<CreateResponse> {
+    async updateTag<K extends keyof ModTagJSON>(tagname: string, key: K, newvalue: ModTagJSON[K]): Promise<CreateResponse> {
         const tags = UserConfigStore.get("tags");
 
         const targetTag = tags.find(a => a.name == tagname);
@@ -246,6 +222,9 @@ const IPCEvents_handle = {
 
     async checkForUpdatesAndNotify() {
         return AppAutoUpdater.checkForUpdatesAndNotify();
+    },
+    async quitAndInstallUpdate() {
+        return AppAutoUpdater.quitAndInstall();
     },
 } satisfies Record<string, (...args: any[]) => Promise<any>> & ThisType<Electron.IpcMainInvokeEvent>
 //#endregion
@@ -287,7 +266,7 @@ const IPCEvents_on = {
         return sendler.__Type__;
     },
 
-    async downloadGitMod(taskId, url: string) {
+    async downloadGitMod(taskId, info: GitInfo["info"]) {
         const sendler = IPC_on_sendler<{
             onProgress: IPC_onCallbackIn<[percent: number, message: string]>
             onDone: IPC_onCallbackIn<[void]>
@@ -297,12 +276,13 @@ const IPCEvents_on = {
 
         try {
             await GitActions.downloadGitMod({
-                url,
+                git: info,
                 onProgress: (percent, message) => {
                     sendler(this.sender, "onProgress", percent, message)
                 },
             });
         } catch (e) {
+            console.error(e);
             sendler(this.sender, "onError", e instanceof Error ? e.message : String(e));
         }
 
@@ -319,7 +299,8 @@ const IPCEvents_on = {
         }>(taskId, "updateGitMod");
 
         try {
-            await GitActions.updateGitMod(pathToGitMod, {
+            await GitActions.updateGitMod({
+                pathToGitMod,
                 onProgress: (percent, message) => {
                     sendler(this.sender, "onProgress", percent, message)
                 },

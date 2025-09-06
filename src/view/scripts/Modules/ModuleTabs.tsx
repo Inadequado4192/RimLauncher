@@ -1,14 +1,24 @@
-import { Badge, Box, Tab, TabList, TabPanel, Tabs } from "@mui/joy"
-import Localize from "@Common/Localize"
+import { TabList, Tabs } from "@mui/joy"
 import ModListManager from "./ModListManager"
 import ModUpdates from "./ModUpdates"
+import React from "react";
+import XMLModBuilder from "./XMLModBuilder";
+import BaseModule from "./BaseModule";
+import { ContextStore, Store } from "../Stores/store";
 
+
+const Modules = [
+    new ModListManager(),
+    new ModUpdates(),
+    new XMLModBuilder(),
+] as const satisfies BaseModule[];
 export default function ModuleTabs() {
-    const ModUpdates_useNofify = ModUpdates.useNotify();
 
     return (
         <Tabs
-            defaultValue={0}
+            // value={Modules[0].key}
+            
+            defaultValue={Modules[0].key}
             sx={{
                 backgroundColor: "transparent",
                 flex: 1,
@@ -21,25 +31,18 @@ export default function ModuleTabs() {
                     height: "100%",
                     maxHeight: "100%",
                 },
-                // "& > .MuiTabPanel-root > *": {
-                //     height: "100%",
-                //     maxHeight: "100%",
-                //     overflow: "auto",
-                // }
             }}
         >
+
             <TabList>
-                <Tab value={0}>{Localize("tab_ModListManager")}</Tab>
-                <Badge badgeInset={6} invisible={!ModUpdates_useNofify}>
-                    <Tab value={1}>{Localize("tab_ModUpdates")}</Tab>
-                </Badge>
+                {Modules.map(M => <M.tabRender key={M.key} />)}
             </TabList>
-            <TabPanel value={0}>
-                <ModListManager />
-            </TabPanel>
-            <TabPanel value={1}>
-                <ModUpdates />
-            </TabPanel>
-        </Tabs >
+
+            {Modules.map(M => <M.panelRender key={M.key} />)}
+        </Tabs>
     )
 }
+
+// ModuleTabs.Store = new ContextStore({
+//     selectedTab: new Store({ value: Modules[0].key })
+// }, []);

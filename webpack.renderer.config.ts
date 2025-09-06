@@ -3,6 +3,8 @@ import path from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import { commmon, rules } from "./webpack.common";
 
+
+
 module.exports = {
     entry: "./src/view/renderer.ts",
     target: "electron-renderer",
@@ -25,13 +27,23 @@ module.exports = {
         port: 3000
     },
     infrastructureLogging: {
-        level: "warn", // або "error", або "none"
+        level: "warn",
     },
     ...commmon,
     plugins: [
         ...commmon.plugins,
         new HtmlWebpackPlugin({
-            template: "./src/view/index.html"
-        })
+            template: "./src/view/index.html",
+            inject: "body",
+            // scriptLoading: "blocking",
+            // додаємо React DevTools скрипт тільки у dev
+            templateParameters: {
+                DEVTOOLS_SCRIPT:
+                    process.env.NODE_ENV !== "production"
+                        ? '<script src="http://localhost:8097"></script>'
+                        : "",
+            },
+        }),
+        // new (require('webpack-bundle-analyzer').BundleAnalyzerPlugin)()
     ],
 } satisfies Configuration & { devServer?: any };

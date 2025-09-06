@@ -1,9 +1,9 @@
 import fs from "fs";
 import { Pathes } from "../Pathes";
-import { builder, parser } from "../utils";
+import { builder, buildXMLWithDeclaration, parser } from "../utils";
 import Schemes from "main/Schemes";
 
-namespace ModsConfig {
+namespace ModsConfigStore {
     function createDefault(data?: ModsConfig) {
         const parsedData = Schemes.XML.ModsConfig.Read.parse(data);
         fs.writeFileSync(Pathes.File_ModsConfigXML, JSON.stringify(parsedData, null, 4));
@@ -26,10 +26,10 @@ namespace ModsConfig {
         return Schemes.XML.ModsConfig.Read.parse(parsedData);
     }
     export function save(modsConfig: ModsConfig) {
-        const string = `<?xml version="1.0" encoding="utf-8"?>\n` + builder.build(Schemes.XML.ModsConfig.Write.parse(modsConfig));
+        const string = buildXMLWithDeclaration(Schemes.XML.ModsConfig.Write.parse(modsConfig));
         if (!fs.existsSync(Pathes.Dir_Config)) fs.mkdirSync(Pathes.Dir_Config, { recursive: true });
         fs.writeFileSync(Pathes.File_ModsConfigXML, string);
     }
 }
 
-export default ModsConfig;
+export default ModsConfigStore;

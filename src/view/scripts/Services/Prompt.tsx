@@ -3,6 +3,7 @@ import { Button, Modal, ModalDialog, DialogContent, DialogActions, DialogTitle, 
 import React from "react";
 import { createService } from "./BaseService";
 
+
 export interface PromptData {
     text: React.ReactNode,
     defaultError?: string,
@@ -25,12 +26,8 @@ export interface PromptData {
     pendingText?(value: string): string
 }
 
-
-
-
 export const {
     Service: PromptService,
-    Container: PromptContainer,
 } = createService<PromptData, null | string>({
     element(props) {
         const [inputText, setInputText] = React.useState(props.defaultValue ?? "");
@@ -97,4 +94,6 @@ export const {
             </Modal>
         )
     },
+}, {
+    fnName: "PromptContainer"
 })

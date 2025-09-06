@@ -1,20 +1,25 @@
-import { Button, ButtonGroup, Dropdown, Menu, MenuButton, Tooltip, Typography } from "@mui/joy";
-import RimWorldIcon from "@Components/Icons/RimWorld";
+import React from "react";
+import { Button, ButtonGroup, Dropdown, IconButton, Link, Menu, MenuButton, Tooltip, Typography } from "@mui/joy";
+import RimWorldIcon from "@Renderer/scripts/Components/Icons/RimWorldIcon";
+import SteamIcon from "@Renderer/scripts/Components/Icons/SteamIcon";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import SettingsIcon from "@mui/icons-material/Settings";
 import FolderIcon from "@mui/icons-material/Folder";
 import PagesIcon from "@mui/icons-material/Pages";
 import PersonIcon from "@mui/icons-material/Person";
-import React from "react";
+import BugReportIcon from "@mui/icons-material/BugReport";
 import UserConfigWindowModal from "../../Windows/UserConfigWindowModal";
 import { UserConfigStore } from "@Stores";
 import Localize from "@Common/Localize";
 import { StoreCompareType } from "@Stores/store";
-import { FaSteam } from "react-icons/fa";
 import { ActionDialogService } from "@Renderer/scripts/Services/ActionDialog";
 import { LoadingService } from "@Renderer/scripts/Services/LoadingService";
 import { AlertService } from "@Renderer/scripts/Services/Alert";
 import { UpdateCheckResult } from "electron-updater";
+import { AlertBigService } from "@Renderer/scripts/Services/AlertBig";
+import { ConfirmService } from "@Renderer/scripts/Services/Confirm";
+import createBugReportWindow from "@Renderer/scripts/Windows/BugReport/BugReportWindow";
+import { openUrl } from "@Renderer/scripts/utils";
 
 export default function Actions() {
     return (
@@ -31,32 +36,35 @@ export default function Actions() {
             }}
         >
             <CheckUpdates />
+            <Bug />
             <DevTools />
+            <Kofi />
             <OpenPath />
             <UserConfigButton />
             <Button
                 color="success"
                 startDecorator={<PlayArrowIcon />}
                 onClick={() => $invoke.runGame()}
-            >{Localize("play")}</Button>
+            >{Localize("actions.play")}</Button>
         </ButtonGroup>
     )
 }
 
+
 function CheckUpdates() {
     const [loading, setLoading] = React.useState(true);
-    const [message, setMessage] = React.useState(Localize("checkingForUpdates"));
+    const [message, setMessage] = React.useState(Localize("updates.checkingForUpdates"));
     const [updateCheckResult, setUpdateCheckResult] = React.useState<Awaited<ReturnType<typeof $invoke.checkForUpdatesAndNotify>>>(null);
     const [isUpdateAvailable, setIsUpdateAvailable] = React.useState(false);
 
     const openMore = React.useCallback(function (res: UpdateCheckResult) {
         ActionDialogService.create({
             title: res.updateInfo.releaseName,
-            text: <span dangerouslySetInnerHTML={{ __html: String(res.updateInfo.releaseNotes) }}></span>,
+            body: <span dangerouslySetInnerHTML={{ __html: String(res.updateInfo.releaseNotes) }}></span>,
             fullWidth: true,
             actions: [
                 {
-                    label: Localize("update"),
+                    label: Localize("actions.update"),
                     color: "success",
                     disabled: !isUpdateAvailable,
                     onClick(props) {
@@ -65,6 +73,7 @@ function CheckUpdates() {
                                 $send.checkForUpdatesAndNotify()
                                     .onProgress(ev.setProgress)
                                     .onError(ev.onError)
+                                    .onSuccess(() => openQuitAndInstall())
                                     .onDone(() => {
                                         ev.close();
                                         props._close();
@@ -74,7 +83,7 @@ function CheckUpdates() {
                     },
                 },
                 {
-                    label: Localize("close"),
+                    label: Localize("actions.close"),
                     color: "neutral",
                     onClick(props) {
                         props._close();
@@ -84,16 +93,30 @@ function CheckUpdates() {
         })
     }, [isUpdateAvailable]);
 
+    const openQuitAndInstall = React.useCallback(async () => {
+        const restart = await ConfirmService.create({
+            title: Localize("windows.updateReady.title"),
+            message: Localize("windows.updateReady.message"),
+            actionsLabel: { false: Localize("common.later") }
+        }).endPromise;
+
+        if (restart) $invoke.quitAndInstallUpdate();
+    }, []);
+
+    function onClick() {
+        if (updateCheckResult && typeof updateCheckResult !== "string") openMore(updateCheckResult)
+    }
+
     React.useEffect(() => {
         $invoke.checkForUpdatesAndNotify()
             .then(res => {
-                if (res === "NotSupported") {
-                    setMessage(Localize("autoUpdateNotSupported"));
+                if (res === null) {
+                    setMessage(Localize("updates.autoUpdateNotSupported"));
                 } else {
-                    if (!res?.isUpdateAvailable) {
-                        setMessage(Localize("latestVersion"));
+                    if (!res.isUpdateAvailable) {
+                        setMessage(Localize("updates.latestVersion"));
                     } else {
-                        setMessage(Localize("updateAvailable"));
+                        setMessage(Localize("updates.updateAvailable"));
                     }
 
                     if (res) setIsUpdateAvailable(res.isUpdateAvailable);
@@ -113,20 +136,37 @@ function CheckUpdates() {
             });
     }, []);
 
-    function onClick() {
-        if (updateCheckResult && typeof updateCheckResult !== "string") openMore(updateCheckResult)
-    }
 
     return (
-        <Button loading={loading} onClick={onClick}>
+        <Button loading={loading} onClick={onClick} color={isUpdateAvailable ? "success" : "neutral"}>
             {message}
         </Button>
     );
 }
+
+function Bug() {
+    return (
+        <Button onClick={() => createBugReportWindow()} color="danger">
+            <BugReportIcon />
+        </Button>
+    )
+}
+
 function DevTools() {
     return (
         <Button onClick={() => $invoke.openDevTools()} color="danger">
             DevTools
+        </Button>
+    )
+}
+function Kofi() {
+    return (
+        <Button
+            startDecorator={<img src="https://storage.ko-fi.com/cdn/cup-border.png" height={20} width={20} />}
+            color="success"
+            onClick={openUrl.bind({}, "https://ko-fi.com/C0C01KFX3A")}
+        >
+            Support Me
         </Button>
     )
 }
@@ -141,7 +181,7 @@ function UserConfigButton() {
                 onClick={() => setOpen(true)}
                 startDecorator={<SettingsIcon />}
             >
-                <Typography noWrap>{Localize("config")}</Typography>
+                <Typography noWrap>{Localize("windows.config.label")}</Typography>
             </Button>
         </>
     )
@@ -164,11 +204,11 @@ function OpenPath() {
         if (!userPathes) return;
         $invoke.getPathes().then(p => {
             setPathes([
-                { label: Localize("modPacks"), path: p.Dir_ModPacks, icon: <PagesIcon /> },
-                { label: Localize("gameConfig"), path: p.Dir_RimWorldUser, icon: <SettingsIcon /> },
-                { label: Localize("userConfig"), path: p.File_UserConfig, icon: <PersonIcon /> },
-                ...(userPathes.steamPath ? [{ label: Localize("steamDir"), path: userPathes.steamPath, icon: <FaSteam /> }] : []),
-                ...(userPathes.gamePath ? [{ label: Localize("gameDir"), path: userPathes.gamePath, icon: <RimWorldIcon /> }] : []),
+                { label: Localize("environment.dirs.modPacks"), path: p.Dir_ModPacks, icon: <PagesIcon /> },
+                { label: Localize("environment.dirs.gameConfig"), path: p.Dir_RimWorldUser, icon: <SettingsIcon /> },
+                { label: Localize("environment.dirs.userConfig"), path: p.File_UserConfig, icon: <PersonIcon /> },
+                ...(userPathes.steamPath ? [{ label: Localize("environment.dirs.steam"), path: userPathes.steamPath, icon: <SteamIcon /> }] : []),
+                ...(userPathes.gamePath ? [{ label: Localize("environment.dirs.game"), path: userPathes.gamePath, icon: <RimWorldIcon /> }] : []),
             ]);
         });
     }, Object.values(userPathes));
@@ -202,7 +242,7 @@ function OpenPath() {
             <Button
                 startDecorator={<FolderIcon />}
                 onClick={() => setOpen(o => !o)}
-            >{Localize("open_paths")}</Button>
+            >{Localize("actions.openPaths")}</Button>
         </Tooltip>
     )
 }

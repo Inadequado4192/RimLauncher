@@ -1,7 +1,4 @@
-import type Schemes from "main/Schemes";
 import type { ModType } from "./enums";
-import { z } from "zod";
-import type { GitSpace } from "@Common/libs/git";
 
 
 
@@ -14,14 +11,23 @@ declare global {
 
 
 
-    //#region ModReadingResult
-    type ModReadingResult =
-        | { success: true, data: ModReadingInfo_ALL }
-        | { success: false, error: ModReadingProblem }
-    interface ModReadingProblem {
+
+    type Result<T, F = ProblemByPath> =
+        | { success: true, data: T }
+        | { success: false, error: F }
+        
+    interface ProblemByPath {
         dirPath: string,
-        message: string
+        message: string,
     }
+
+    //#region ModReadingResult
+    type ModReadingResult = Result<ModReadingInfo_ALL, ModReadingProblem>;
+
+    interface ModReadingProblem extends ProblemByPath {
+        modinfo?: ModReadingInfo_ALL
+    }
+
 
     interface ModReadingInfo_BASE<T extends ModType = ModType> {
         type: T,
@@ -39,8 +45,7 @@ declare global {
     interface ModReadingInfo_Local extends ModReadingInfo_BASE<ModType.Local> {
     }
     interface ModReadingInfo_Git extends ModReadingInfo_BASE<ModType.Git> {
-        gitinfo: null | GitInfo;
-        gitrepo: null | GitSpace.GitRepo
+        gitinfo: Result<GitInfo>;
     }
     //#endregion
 
@@ -48,7 +53,7 @@ declare global {
 
 
     interface ModPackInfo {
-        path: string,
+        dirPath: string,
         name: string,
         modCount: number,
         DLC: string[],
@@ -127,5 +132,39 @@ declare global {
                 }
             }
         }
+    }
+    interface GitInfoRequest_GitHub_api {
+        "oid": "4cfc023464459d9e4a38b12a4dc662a6d0735d91",
+        "url": "/CombatExtended-Continued/CombatExtended/commit/4cfc023464459d9e4a38b12a4dc662a6d0735d91",
+        "date": "2025-08-20T22:07:01.000-04:00",
+        "shortMessageHtmlLink": "<a data-pjax=\"true\" class=\"Link--secondary\" href=\"/CombatExtended-Continued/CombatExtended/commit/4cfc023464459d9e4a38b12a4dc662a6d0735d91\">Merge pull request</a> <a class=\"issue-link js-issue-link\" data-error-text=\"Failed to load title\" data-id=\"3335188688\" data-permission-text=\"Title is private\" data-url=\"https://github.com/CombatExtended-Continued/CombatExtended/issues/4182\" data-hovercard-type=\"pull_request\" data-hovercard-url=\"/CombatExtended-Continued/CombatExtended/pull/4182/hovercard\" href=\"https://github.com/CombatExtended-Continued/CombatExtended/pull/4182\">#4182</a> <a data-pjax=\"true\" class=\"Link--secondary\" href=\"/CombatExtended-Continued/CombatExtended/commit/4cfc023464459d9e4a38b12a4dc662a6d0735d91\">from SaltyKarl/volt</a>",
+        "bodyMessageHtml": "Patch Volt Weaponry",
+        "author": {
+            "displayName": "N7Huntsman",
+            "login": "N7Huntsman",
+            "path": "/N7Huntsman",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/38633594?s=40&v=4"
+        },
+        "authors": [
+            {
+                "login": "N7Huntsman",
+                "displayName": "N7Huntsman",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/38633594?v=4",
+                "path": "/N7Huntsman",
+                "isGitHub": false
+            }
+        ],
+        "committerAttribution": false,
+        "committer": {
+            "login": "web-flow",
+            "displayName": "GitHub",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/19864447?v=4",
+            "path": "/web-flow",
+            "isGitHub": true
+        },
+        "pusher": null,
+        "pushedDate": null,
+        "status": "success",
+        "isSpoofed": false
     }
 }

@@ -5,7 +5,25 @@ import { DebugPathesSpace, FindPathes } from "./Pathes";
 
 
 namespace Schemes {
-    const AnyToEmptyOnject = <T extends z.ZodTypeAny>(schema: T) => z.preprocess(any => typeof any === "object" && any !== null && !Array.isArray(any) ? any : {}, schema)
+    type ExportType<R extends z.ZodType, W extends z.ZodType> = {
+        ReadOut: z.output<R>;
+        ReadIn: z.input<R>;
+        WriteOut: z.output<W>;
+        WriteIn: z.input<W>;
+    }
+
+    const AnyToEmptyObject = <T extends z.ZodTypeAny>(schema: T) => z.preprocess(any => typeof any === "object" && any !== null && !Array.isArray(any) ? any : {}, schema)
+    function json<T extends z.ZodTypeAny>(type: T,): z.ZodPipe<z.ZodTransform<unknown, unknown>, T> {
+        return z.preprocess((input, ctx) => {
+            if (typeof input !== "string") return input
+            try {
+                return JSON.parse(input);
+            } catch {
+                ctx.addIssue({ code: "custom", message: "Invalid JSON", input })
+                return z.NEVER;
+            }
+        }, type);
+    }
 
 
     const PackageId = z.coerce.string()
@@ -29,7 +47,7 @@ namespace Schemes {
     export namespace UserStore {
         export type Type = z.output<typeof Read>;
 
-        export const Read = AnyToEmptyOnject(z.object({
+        export const Read = AnyToEmptyObject(z.object({
             steamPath: z.string().nullable().catch(() => FindPathes.Steam() ?? null),
             gamePath: z.string().nullable().catch(() => FindPathes.RimWorldGamePath() ?? null),
             closeWindowAfterRun: z.boolean().catch(false),
@@ -62,6 +80,41 @@ namespace Schemes {
 
 
 
+    export namespace ModPack {
+        export type Types = ExportType<typeof Read, typeof Write>;
+
+        // const key = "ModPackData";
+
+
+        export const Read = json(z.object({
+            version: z.string().catch("0.0.0000 unknown"),
+            activeMods: z.array(PackageId).catch([]),
+        }));
+        export const Write = z.object({
+            version: z.string(),
+            activeMods: z.array(PackageId),
+        });
+        // export const Read = z.union([
+        //     AnyToEmptyObject(z.object({
+        //         [key]: z.object({
+        //             version: z.string().catch("0.0.0000 unknown"),
+        //             activeMods: XMLList(PackageId).catch([]),
+        //         })
+        //     })).transform(res => res[key]),
+        //     ModsConfig.Read,
+        // ])
+
+        // export const Write = z.object({
+        //     version: z.coerce.string(),
+        //     activeMods: z.array(PackageId),
+        // }).transform(o => ({
+        //     [key]: {
+        //         version: o.version,
+        //         activeMods: { li: o.activeMods },
+        //     }
+        // }));
+    }
+
 
 
 
@@ -74,7 +127,7 @@ namespace Schemes {
         }
 
         export namespace ModsConfig {
-            export type Type = z.output<typeof Read>;
+            export type Types = ExportType<typeof Read, typeof Write>;
 
             const Body = z.object({
                 version: z.string().catch("0.0.0000 unknown"),
@@ -82,7 +135,7 @@ namespace Schemes {
                 knownExpansions: XMLList(PackageId).catch([]),
             });
 
-            export const Read = AnyToEmptyOnject(
+            export const Read = AnyToEmptyObject(
                 z.union([
                     z.object({ ModsConfigData: Body }),
                     z.object({ modsConfigData: Body }),
@@ -107,12 +160,6 @@ namespace Schemes {
             }))
         }
 
-        export const ModsPack = z.object({
-            version: z.coerce.string(),
-            activeMods: XMLList(PackageId),
-            knownExpansions: XMLList(PackageId),
-        });
-
 
         export const ModDependency = z.object({
             displayName: z.coerce.string(),
@@ -125,7 +172,7 @@ namespace Schemes {
             name: z.coerce.string().default(path.basename(dirpath)),
             packageId: PackageId,
             author: z.coerce.string().optional(),
-            url: z.coerce.string().optional(),
+            url: z.url().optional().catch(undefined),
             modVersion: z.coerce.string().optional(),
             description: z.coerce.string().optional(),
             supportedVersions: XMLList(z.coerce.string()).optional(),
@@ -136,42 +183,46 @@ namespace Schemes {
             forceLoadAfter: XMLList(PackageId).optional(),
             incompatibleWith: XMLList(PackageId).optional(),
         });
-
-        // export const ModMetaData = (dirpath: string) => z.union([
-        //     z.object({ ModMetaData: ModMetaDataScehema(dirpath) }),
-        //     z.object({ modMetaData: ModMetaDataScehema(dirpath) }),
-        // ]).transform(v => ({ ModMetaData: "modMetaData" in v ? v.modMetaData : v.ModMetaData }));
     }
 
 
+    export namespace GitInfo {
+        export type Types = ExportType<typeof Read, typeof Write>;
 
+        const Root = z.object({
+            info: z.object({
+                repoUrl: z.url(),
+                user: z.string(),
+                repo: z.string(),
+                tree: z.string(),
+                downloadZipUrl: z.url(),
+            }),
+            lastUpdate: z.number(),
+            excludeFiles: z.array(z.string()).default([]),
+            distDir: z.string().default("./")
+        });
 
-    export const Localization = z.object({
-        name: z.string(),
-        // localName: z.string(),
-        keys: z.record(z.string(), z.string()),
-    });
-
-
-
-
-    export const GitInfo = z.object({
-        url: z.string().url(),
-        lastUpdate: z.number(),
-    });
+        export const Read = json(Root);
+        export const Write = Root.transform(res => JSON.stringify(res, null, 4));
+    }
 }
 
 
 declare global {
-    interface ModsConfig extends Schemes.XML.ModsConfig.Type { }
     interface UserConfig extends Schemes.UserStore.Type { }
     interface ModMetaData extends z.infer<ReturnType<typeof Schemes.XML.ModMetaData>> { }
     interface ModDependency extends z.output<typeof Schemes.XML.ModDependency> { }
-    interface ModTag extends z.output<typeof Schemes.ModTag> { }
-    interface ModTag_Visualdata extends Pick<ModTag, "name" | "color"> { }
+    type ModTagJSON = z.output<typeof Schemes.ModTag>;
 
-    interface GitInfo extends z.output<typeof Schemes.GitInfo> { }
+    
+    type ModsConfig = Schemes.XML.ModsConfig.Types["ReadOut"];
+    interface ModsConfig_Types extends Schemes.XML.ModsConfig.Types { }
 
+    type ModPack = Schemes.ModPack.Types["ReadOut"];
+    interface ModPack_Types extends Schemes.ModPack.Types { }
+
+    type GitInfo = Schemes.GitInfo.Types["ReadOut"];
+    interface GitInfo_Types extends Schemes.GitInfo.Types { }
 }
 
 export default Schemes;

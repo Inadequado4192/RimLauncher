@@ -1,8 +1,6 @@
-import { IconButton, Stack, Typography } from "@mui/joy";
-import React from "react";
-import { IoClose } from "react-icons/io5";
-import { MdCropSquare } from "react-icons/md";
-import { VscChromeMinimize } from "react-icons/vsc";
+import { IconButton, Stack, SvgIcon, Typography } from "@mui/joy";
+import CropSquareIcon from "@mui/icons-material/CropSquare";
+import CloseIcon from "@mui/icons-material/Close";
 
 
 export default function TitleBar() {
@@ -17,19 +15,13 @@ export default function TitleBar() {
             >
                 <Typography level="body-xs">{TITLE}</Typography>
             </Stack>
-            <Stack
-                direction="row"
-                sx={{
-                    "& button": {
-                        borderRadius: 0
-                    }
-                }}
-            >
-                {/* <IconButton color="success" onClick={() => invoke.reload()}><ReplayIcon /></IconButton> */}
-                <IconButton color="neutral" onClick={() => $invoke.winMinimize()}><VscChromeMinimize /></IconButton>
-                <IconButton color="neutral" onClick={() => $invoke.winToggleMaximize()}><MdCropSquare /></IconButton>
-                <IconButton color="danger" onClick={() => $invoke.winClose()}><IoClose /></IconButton>
+            <Stack direction="row">
+                <IconButton color="neutral" onClick={() => $invoke.winMinimize()}><MiddleMinimizeIcon /></IconButton>
+                <IconButton color="neutral" onClick={() => $invoke.winToggleMaximize()}><CropSquareIcon /></IconButton>
+                <IconButton color="danger" onClick={() => $invoke.winClose()}><CloseIcon /></IconButton>
             </Stack>
         </Stack>
     )
 }
+
+const MiddleMinimizeIcon = () => <SvgIcon focusable="false" aria-hidden="true" viewBox="0 0 24 24" data-testid="MinimizeIcon"><path d="M6 12h12v2H6z"></path></SvgIcon>

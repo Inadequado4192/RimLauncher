@@ -1,16 +1,16 @@
-import { ModListStore } from "@Context/ModListContext";
 import { Button, List, ListItem, ListItemButton, Stack, Typography } from "@mui/joy";
-import { AlertService } from "@Services/Alert";
 import { AlertBigService } from "@Services/AlertBig";
 import React from "react";
+import { __GlobalStores__ } from "@Renderer/scripts/Context/__GlobalStore__";
+import Localize from "@Common/Localize";
 
 export default function LoadingErrors() {
-    const loadingErrors = ModListStore.loadingErrors.use();
+    const loadingErrors = __GlobalStores__.loadingErrors.use();
 
     const onClick = React.useCallback(function onClick() {
         AlertBigService.create({
             title: "Loading Errors",
-            text: (
+            message: (
                 <List>
                     {loadingErrors.map((w, i) => (
                         <ListItem key={i}>
@@ -30,5 +30,5 @@ export default function LoadingErrors() {
         });
     }, [loadingErrors]);
 
-    return loadingErrors.length > 0 && <Button color="danger" onClick={onClick}>Loading Errors: {loadingErrors.length}</Button>;
+    return loadingErrors.length > 0 && <Button color="danger" onClick={onClick}>{Localize("errors.loadingErrors", [loadingErrors.length])}</Button>;
 }

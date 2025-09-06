@@ -10,21 +10,22 @@ interface Action {
     onClick?(props: ServiceData_Internal<ActionDialogData, void>): void,
 }
 interface ActionDialogData {
-    title: React.ReactNode,
-    text: React.ReactNode,
+    title: (() => React.ReactNode) | React.ReactNode,
+    body: (() => React.ReactNode) | React.ReactNode,
     actions: Action[],
     fullWidth?: boolean,
     minWidth?: ModalDialogProps["minWidth"],
     maxWidth?: ModalDialogProps["maxWidth"],
+    dontCloseOnBackdropClick?: boolean
 }
 
 export const { Service: ActionDialogService } = createService<ActionDialogData>({
     element(props) {
         return (
-            <Modal open>
+            <Modal open onClose={() => !props.dontCloseOnBackdropClick && props._close()}>
                 <ModalDialog maxWidth={props.fullWidth ? "90%" : props.maxWidth} minWidth={props.fullWidth ? "90%" : props.minWidth}>
-                    <DialogTitle>{props.title}</DialogTitle>
-                    <DialogContent sx={{ overflow: "auto" }}>{props.text}</DialogContent>
+                    <DialogTitle>{createService.FV(props.title)}</DialogTitle>
+                    <DialogContent sx={{ overflow: "auto" }}>{createService.FV(props.body)}</DialogContent>
                     <DialogActions>
                         {props.actions.map((a, i) =>
                             <Button
@@ -39,4 +40,6 @@ export const { Service: ActionDialogService } = createService<ActionDialogData>(
             </Modal>
         )
     },
+}, {
+    fnName: "ActionDialogContainer"
 });

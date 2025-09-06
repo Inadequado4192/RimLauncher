@@ -82,18 +82,22 @@ export const {
                 <Box flex={1}>
                     <Typography>{props.text}</Typography>
 
-                    {props.actions && <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
-                        {props.actions.map((a, i) =>
-                            <Button
-                                key={i}
-                                variant="outlined"
-                                size="sm"
-                                onClick={a.onClick}
-                            >{a.label}</Button>
-                        )}
-                    </Box>}
+                    {props.actions &&
+                        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
+                            {props.actions.map((a, i) =>
+                                <Button
+                                    key={i}
+                                    variant="outlined"
+                                    size="sm"
+                                    onClick={a.onClick}
+                                >{a.label}</Button>
+                            )}
+                        </Box>
+                    }
                 </Box>
             </Alert>
         )
     },
+}, {
+    fnName: "AlertContainer"
 })

@@ -19,8 +19,11 @@ namespace AppAutoUpdater {
     }
 
     export async function checkForUpdatesAndNotify() {
-        if (!fs.existsSync(appUpdatePath)) return "NotSupported";
+        if (!fs.existsSync(appUpdatePath)) return null;
         return autoUpdater.checkForUpdatesAndNotify();
+    }
+    export async function quitAndInstall() {
+        return autoUpdater.quitAndInstall();
     }
 
     export async function downloadAndInstall(props: {
@@ -41,7 +44,7 @@ namespace AppAutoUpdater {
         }
 
         function onDownloadProgress(data: ProgressInfo) {
-            props.onProgress?.(data.percent);
+            props.onProgress?.(data.percent / 100);
         }
         function onUpdateCancelled(info: UpdateInfo) {
             props.onCancelled?.(info);

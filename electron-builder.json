@@ -20,6 +20,12 @@
         }
     ],
     "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "extraMetadata": {
+    "archMapping": {
+            "x64": "x64",
+            "x86_64": "x64"
+        }
+    },
     "mac": {
         "target": ["dmg", "zip"]
     },

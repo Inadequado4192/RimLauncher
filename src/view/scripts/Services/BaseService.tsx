@@ -14,6 +14,8 @@ export function createService<
 >(params: {
     element: (props: ServiceData_Internal<Data, Res>) => React.ReactNode,
     container?: (props: { children: React.ReactNode[] }) => React.ReactNode,
+}, opt: {
+    fnName: string,
 }) {
     abstract class Service {
         private static listeners = new Set<(alerts: ServiceData_Internal<Data, Res>[]) => void>();
@@ -72,12 +74,34 @@ export function createService<
         return children;
     }
 
-    containersList.push(<Container key={containersList.length} />)
+
+    Object.defineProperty(Container, "name", { value: opt.fnName });
+
+
+    const cnt = <Container key={opt.fnName} />;
+    if (containersList.set)
+    {
+        delete containersList.def;
+        containersList.set(containersList => [...containersList, cnt]);
+    } else {
+        containersList.def?.push(cnt)
+    }
 
     return { Service, Container };
 }
 
-const containersList: JSX.Element[] = [];
-createService.Containers = () => {
-    return containersList;
+const containersList = {
+    def: [] as JSX.Element[] | undefined,
+    set: null as React.Dispatch<React.SetStateAction<JSX.Element[]>> | null,
+}
+
+createService.Containers = function ServicesContainer() {
+    const [containers, setContainers] = React.useState<JSX.Element[]>(containersList.def ?? []);
+
+    containersList.set = setContainers;
+
+    return containers;
+}
+createService.FV = function (Comp: (() => React.ReactNode) | React.ReactNode): React.ReactNode {
+    return Comp instanceof Function ? <Comp /> : Comp;
 }

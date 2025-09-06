@@ -1,5 +1,4 @@
-import React, { useSyncExternalStore } from "react";
-import { useSyncExternalStoreWithSelector, } from "use-sync-external-store/with-selector";
+import React from "react";
 
 export enum StoreCompareType {
     /**@example (prev, next) => prev === next */
@@ -26,14 +25,14 @@ interface StoreCreatorParams_Base {
     debugName?: string
     // extendUse?: () => void,
 }
-
 abstract class Store_Base {
     protected debugName?: string;
     // protected extendUse?: () => void
 
-    public listeners = new Set<() => void>();
+    private listeners = new Set<() => void>();
     public subscribe(listener: () => void) {
         this.listeners.add(listener);
+        return () => this.unsubscribe(listener)
     }
     public unsubscribe(listener: () => void) {
         this.listeners.delete(listener);
@@ -57,22 +56,18 @@ abstract class Store_Base {
 
 
 
-interface IStoreParams<
-    Data,
-    NData extends Data = Data,
-> extends StoreCreatorParams_Base {
-    firstLoad: () => Promise<Data> | Data,
+interface IStoreParams<Data> extends StoreCreatorParams_Base {
+    value: (() => Promise<Data> | Data) | Data,
     watcher?: (listener: (data: Data) => void) => void,
-    geter?: (data: Data) => NData
+    // geter?: (data: Data) => NData
+    clone?: (original: Data) => Data
 }
-export class Store<
-    Data,
-    NData extends Data = Data,
-> extends Store_Base {
-    public __data!: Data;
-    public geter: IStoreParams<Data, NData>["geter"] & {} = () => this.__data as NData;
+export class Store<Data> extends Store_Base {
+    protected __data!: Data;
+    // protected firstValue!: Data;
+    // public geter: IStoreParams<Data, NData>["geter"] & {} = () => this.__data as NData;
 
-    public constructor(params: IStoreParams<Data, NData>) {
+    public constructor(params: IStoreParams<Data>) {
         super(params);
 
 
@@ -83,7 +78,7 @@ export class Store<
             }
         }
 
-        const res = params.firstLoad();
+        const res = params.value instanceof Function ? params.value() : params.value;
         if (res instanceof Promise) {
             res.then(res => {
                 if (params.debugName) console.log(params.debugName, "First Data", res);
@@ -98,17 +93,16 @@ export class Store<
             if (params.debugName) console.log(params.debugName, "Watched Data", res);
             upd(res)
         });
+
+        if (params.clone) this.clone = params.clone;
     }
 
 
-
-
-    public use<S extends (userConfig: NData) => any = (userConfig: NData) => NData>(
-        selector?: S,
-        isEqual: StoreCompareType | IsEqualCallback<ReturnType<S>> = StoreCompareType.Primitive,
-    ): ReturnType<S> {
+    public use<S extends any = Data>(
+        selector?: (userConfig: Data) => S,
+        isEqual: StoreCompareType | IsEqualCallback<S> = StoreCompareType.Primitive,
+    ): S {
         if (this.debugName) console.log(this.debugName, "USED", selector);
-        // this.extendUse?.();
 
         const compare: IsEqualCallback = React.useMemo(() => {
             if (typeof isEqual !== "number") return isEqual;
@@ -124,14 +118,21 @@ export class Store<
             this.subscribe(listener);
             return () => this.unsubscribe(listener);
         }, []);
-        const get = () => this.geter(this.__data);
+        const get = () => this.__data;
+
 
         if (selector) {
-            return useSyncExternalStoreWithSelector(sub, get, get, selector, compare);
+            return useSyncExternalStoreWithCompare(sub, get, get, selector, compare);
+            // return useSyncExternalStoreWithSelector(sub, get, get, selector, compare);
         } else {
-            return useSyncExternalStore(sub, get, get) as ReturnType<S>;
+            return React.useSyncExternalStore(sub, get, get) as unknown as S;
         }
     }
+
+    // public clear() {
+    //     this.__data = this.firstValue;
+    // }
+
     public get() {
         return this.__data;
     }
@@ -144,57 +145,38 @@ export class Store<
         const value = data instanceof Function ? data(this.__data) : data;
         this.__data = value;
     }
-}
 
+    public clone: IStoreParams<Data>["clone"] & {} = () => { throw Error("Not implemented"); }
 
-
-
-
-interface IStoreVersionParams extends StoreCreatorParams_Base { }
-export class StoreVersion extends Store_Base {
-    private version = 0;
-    public use(): {} {
-        if (this.debugName) console.log(this.debugName, "USED");
-
-        const sub = React.useCallback((listener: () => void) => {
-            this.subscribe(listener);
-            return () => this.unsubscribe(listener);
-        }, []);
-
-        const get = () => this.version;
-
-        return useSyncExternalStore(sub, get, get);
-    }
-    public override emit() {
-        this.version++;
-        super.emit();
+    public update(mutator: (draft: Data) => void) {
+        const copy = this.clone(this.__data);
+        mutator(copy);
+        this.set(copy);
     }
 }
 
-// interface PrimitiveStoreParams<Data> extends StoreCreatorParams_Base {
-//     value: Data
-// }
-// export class PrimitiveStore<Data> extends Store_Base {
-//     public store: Data;
-
-//     public constructor(params: PrimitiveStoreParams<Data>) {
-//         super(params);
-//         this.store = params.value;
-//     }
 
 
-//     public use<T>(selector: (value: Data) => T): T {
+
+
+// interface IStoreVersionParams extends StoreCreatorParams_Base { }
+// class StoreVersion extends Store_Base {
+//     private version = 0;
+//     public use(): {} {
 //         if (this.debugName) console.log(this.debugName, "USED");
-//         this.extendUse?.();
 
 //         const sub = React.useCallback((listener: () => void) => {
 //             this.subscribe(listener);
 //             return () => this.unsubscribe(listener);
 //         }, []);
 
-//         const get = () => selector(this.store);
+//         const get = () => this.version;
 
 //         return useSyncExternalStore(sub, get, get);
+//     }
+//     public override emit() {
+//         this.version++;
+//         super.emit();
 //     }
 // }
 
@@ -203,6 +185,51 @@ export class StoreVersion extends Store_Base {
 
 
 
+
+
+
+
+
+
+export class ContextStore<D extends Record<string, Store<any>> = {}> {
+    // public stores!: D;
+
+    public constructor(
+        public stores: D,
+        // private storesCreator: () => D,
+        public effects: (() => void)[]
+    ) {
+
+        Object.defineProperty(this._Providers, "name", { value: `ContextStoreProvider` });
+
+        return new Proxy(this, {
+            get(target, prop, receiver) {
+                if (prop in target) {
+                    return Reflect.get(target, prop, receiver);
+                }
+                if (target.stores && prop in target.stores) {
+                    return (target.stores as any)[prop];
+                }
+            }
+        }) as this & D;
+    }
+
+    public Providers = this._Providers.bind(this);
+    private _Providers() {
+        React.useEffect(() => {
+            // this.stores = this.storesCreator();
+            return () => this.stores = null!;
+        }, []);
+
+        return this.effects.map((e, key) => {
+            // const name = `Store_${e.name}`;
+            // const c = { [name]: () => (e(), null) }[name]!;
+            const C = () => (e(), null);
+            Object.defineProperty(C, "name", { value: `Store_${e.name}` });
+            return React.createElement(C, { key })
+        });
+    }
+}
 
 
 
@@ -301,4 +328,31 @@ export namespace StoreCompares {
         return true;
     }
 
+}
+
+
+
+function useSyncExternalStoreWithCompare<TStore, TSel>(
+    subscribe: (onStoreChange: () => void) => () => void,
+    getStoreSnapshot: () => TStore,
+    getServerSnapshot: () => TStore,
+    selector: (s: TStore) => TSel,
+    isEqual: (a: TSel, b: TSel) => boolean,
+) {
+    const last = React.useRef<{ sel?: TSel; snap?: TSel }>({});
+
+    const getSelected = () => {
+        const storeSnap = getStoreSnapshot();
+        const selected = selector(storeSnap);
+        if (last.current.sel !== undefined && isEqual(last.current.sel, selected)) {
+            return last.current.snap as TSel; // повертаємо попередній референс
+        }
+        last.current.sel = selected;
+        last.current.snap = selected;
+        return selected;
+    };
+
+    const getServerSelected = getServerSnapshot ? () => selector(getServerSnapshot()) : undefined;
+
+    return React.useSyncExternalStore(subscribe, getSelected, getServerSelected ?? (() => selector(getStoreSnapshot())));
 }

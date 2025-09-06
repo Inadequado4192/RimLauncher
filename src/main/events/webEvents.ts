@@ -3,14 +3,14 @@ import chokidar from "chokidar";
 import { win } from "..";
 import UserConfigStore from "../store/UserConfigStore";
 import { Pathes } from "main/Pathes";
-import ModsConfig from "../store/ModsConfigStore";
-import ModPacks from "../services/ModPacks";
-import ModListActions from "main/services/modListActions";
+import ModsConfigStore from "../store/ModsConfigStore";
+import ModPacks from "../services/modPacks";
+import ModList from "@Main/services/modList";
 
 export interface FileEvents {
     UserConfig_Changed: [config: UserConfig],
     ModsConfig_Changed: [xml: ModsConfig],
-    ModPacks_Changed: [list: ModPackInfo[]],
+    ModPacks_Changed: [list: Result<ModPackInfo, ProblemByPath>[]],
     ModList_Changed: [method: "add", newContent: ModReadingResult] | [method: "remove", path: string]
 }
 
@@ -25,12 +25,22 @@ export interface FileEvents {
 
 
 export function InitWebEvents() {
-    chokidar.watch(Pathes.File_UserConfig, { ignoreInitial: true }).on("all", (event, path) => {
+    chokidar.watch(Pathes.File_UserConfig, {
+        ignoreInitial: true,
+        // awaitWriteFinish: {
+        //     stabilityThreshold: 200
+        // }
+    }).on("all", (event, path) => {
         // add, change, unlink
         webEvents.UserConfig_Changed(UserConfigStore.get());
     });
-    chokidar.watch(Pathes.File_ModsConfigXML, { ignoreInitial: true }).on("all", (event, path) => {
-        webEvents.ModsConfig_Changed(ModsConfig.get());
+    chokidar.watch(Pathes.File_ModsConfigXML, {
+        ignoreInitial: true,
+        // awaitWriteFinish: {
+        //     stabilityThreshold: 200
+        // }
+    }).on("all", (event, path) => {
+        webEvents.ModsConfig_Changed(ModsConfigStore.get());
     });
     chokidar.watch(Pathes.Dir_ModPacks, { ignoreInitial: true }).on("all", (event, path) => {
         webEvents.ModPacks_Changed(ModPacks.load());
@@ -42,7 +52,7 @@ export function InitWebEvents() {
                 .on("addDir", (newDirPath) => {
                     if (path.basename(newDirPath).startsWith("~")) return;
                     setTimeout(async () => {
-                        const v = await ModListActions.getModFrom(newDirPath);
+                        const v = await ModList.getModFrom(newDirPath);
                         webEvents.ModList_Changed("add", v);
                     }, 1000);
                 })

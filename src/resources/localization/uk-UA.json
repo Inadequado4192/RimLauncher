@@ -1,126 +1,153 @@
 {
     "name": "Українська",
     "keys": {
-        "yes": "Так",
-        "no": "Ні",
-        "change": "Змінити",
-        "open": "Відкрити",
-        "save": "Зберегти",
-        "load": "Завантажити",
-        "update": "Оновити",
-        "rename": "Перейменувати",
-        "sort": "Сортувати",
-        "play": "Грати",
-        "search": "Шукати",
-        "import": "Імпортувати",
-        "install": "Встановити",
-        "delete": "Видалити",
-        "use": "Використовувати",
-        "add": "Додати",
-        "error": "Помилка",
-        "size": "Розмір",
-        "name": "Назва",
-        "disable": "Вимкнути",
-        "enable": "Увімкнути",
-        "warnings": "Попередження",
-        "next": "Далі",
-
-
-        "updateTime": "Час оновлення",
-        "review": "Огляд",
-        "UnableRetrieveChangeNotes": "Не вдається отримати нотатки про зміну. Можливо, відсутнє з'єднання. Повідомлення: {0}",
-
-        
-        "checkingForUpdates": "Перевірка оновлень",
-        "latestVersion": "Остання версія",
-        "updateAvailable": "Доступне оновлення",
-        "autoUpdateNotSupported": "Цей формат не підтримує автоматичне оновлення",
-
-        "openDirectory": "Відкрити директорію",
-        "openInSteam": "Відкрити в Steam",
-        "open_paths": "Відкрити...",
-
-        "modChoiceScreenText": "Виберіть мод",
-
-        "authors": "Автори",
-        "description": "Опис",
-
-
-        "modPacks_Table_Name": "Назва",
-        "modPacks_Table_Count": "Кількість модів",
-        "modPacks_Table_DLC": "DLC",
-        "modPacks_Table_GameVersion": "Версія гри",
-
-
-
-
-        "config": "Конфігурація",
-        "pathToSteam": "Шлях до Steam",
-        "pathToGame": "Шлях до гри",
-        "pathToModsConfig": "Шлях до ModsConfig.xml",
-        "closeWindowAfterRun": "Закрити вікно після запуску",
-        "theme": "Тема",
-        "theme_dark": "Темна",
-        "theme_light": "Світла",
-        "language": "Мова",
-
-
-        "confirmTheAction": "Підтвердити дію",
-        "confirmDeletionModpack": "Ви впевнені, що хочете видалити цей модпак?",
-        "confirmUpdationModpack": "Ви впевнені, що хочете оновити цей модпак?",
-        "confirmDeletionTag": "Ви впевнені, що хочете видалити цей тег?",
-
-
-
-        "config_sectionPaths": "Шляхи",
-        "config_sectionPaths_hint": "Після зміни шляху потрібно перезавантажити програму для того, щоб зміни набрали чинності.",
-
-
-        "error_modsConfigXmlNotFound": "Програма не змогла знайти шлях до “modsConfig.xml”. Зв'яжіться з підтримкою. Шлях, де ми шукаємо файл: {0}",
-        "error_gamePathIsUndefined": "Шлях до гри не вказано. Перейдіть до конфігурації та вкажіть шлях до гри.",
-
-        "missingDependencies": "Відсутні залежності",
-        "incompatibleWith": "Несумісно з",
-        "loadBefore": "Завантажити перед",
-        "loadAfter": "Завантажити після",
-        
-        "version": "Версія",
-        "supportedVersions": "Підтримувані версії",
-        "gameConfig": "Конфігурація гри",
-        "userConfig": "Конфігурація користувача",
-        "modPacks": "Модпаки",
-        "clearActiveMods": "Очистити активні моди",
-        "multiplayerCompability": "Сумісність з мультиплеєром",
-        "steamDir": "Директорія Steam",
-        "gameDir": "Директорія гри",
-        "activeMods": "Активні моди:  {0} / {1}",
-        "tags": "Теги",
-    
-        "tagName": "Назва тегу",
-
-        "modPackName": "Назва модпака",
-        "renameModPack": "Перейменувати модпак",
-        "thisNameAlreadyUsed": "Ця назва вже використовується.",
-    
-        "wrongModVersion": "Неправильна версія мода",
-        "wrongModVersion_message": "Мод не підтримує цю версію гри. Можливі проблеми.",
-        "missingModVersion": "Відсутня версія мода",
-        "missingModVersion_message": "Мод не містить інформації про цільову версію гри. Можливі проблеми.",
-
-        
-        "section_Windows": "Вікна",
-        "section_ModList": "Список модів",
-        "section_Stats": "Статистика",
-        "section_Tags": "Теги",
-
-        "tab_ModListManager": "Менеджер списку модів",
-        "tab_ModUpdates": "Оновлення модів",
-
-        
-        "fileNotFound": "{0} не знайдено",
-        "missingSteamId": "Відсутній ідентифікатор Steam",
-
-
-        "modUpdates_hint": "Оновлення для модів Steam перевіряються через Workshop, а не шляхом змін у ваших файлах, тому нові оновлення можуть ще не бути завантажені."
+        "common": {
+            "yes": "Так",
+            "no": "Ні",
+            "error": "Помилка",
+            "size": "Розмір",
+            "name": "Назва",
+            "version": "Версія",
+            "url": "URL",
+            "color": "Колір",
+            "next": "Далі",
+            "later": "Пізніше",
+            "warnings": "Попередження",
+            "actions": "Дії",
+            "lastUpdate": "Останнє оновлення",
+            "loading": "Завантаження...",
+            "unsubscribe": "Відписатися",
+            "gameVersion": "Версія гри",
+            "DLC": "DLC",
+            "countOfMods": "Кількість модів",
+            "change": "Змінити",
+            "validation": {
+                "thisNameAlreadyUsed": "Ця назва вже використовується."
+            }
+        },
+        "actions": {
+            "open": "Відкрити",
+            "close": "Закрити",
+            "save": "Зберегти",
+            "load": "Завантажити",
+            "update": "Оновити",
+            "rename": "Перейменувати",
+            "sort": "Сортувати",
+            "play": "Грати",
+            "search": "Пошук",
+            "import": "Імпортувати",
+            "install": "Встановити",
+            "delete": "Видалити",
+            "use": "Використати",
+            "add": "Додати",
+            "disable": "Вимкнути",
+            "enable": "Увімкнути",
+            "removeAll": "Видалити все",
+            "review": "Огляд",
+            "report": "Поскаржитися",
+            "openDirectory": "Відкрити каталог",
+            "openInSteam": "Відкрити в Steam",
+            "openInGit": "Відкрити в Git",
+            "openSource": "Відкрити вихідний код",
+            "openPaths": "Відкрити..."
+        },
+        "updates": {
+            "checkingForUpdates": "Перевірка оновлень",
+            "latestVersion": "Остання версія",
+            "updateAvailable": "Доступне оновлення",
+            "autoUpdateNotSupported": "Цей формат не підтримує автооновлення",
+            "updateTime": "Час оновлення"
+        },
+        "windows": {
+            "bugReport": {
+                "title": "Звіт про помилку",
+                "message": "Ви знайшли помилку чи хочете запропонувати покращення?\nБудь ласка, створіть новий Issue на GitHub.\n\nЩоб ми виправили швидше, додайте:\n• що ви очікували побачити\n• що сталося насправді\n• кроки для відтворення\n• версію лаунчера.",
+                "reportWithAI": "Поскаржитися за допомогою AI",
+                "reportWithAI_prompt": "Створити Issue у Inadequado4192/RimLauncher для"
+            },
+            "updateReady": {
+                "title": "Оновлення готове до встановлення",
+                "message": "Останню версію завантажено. Перезапустити зараз, щоб застосувати оновлення?"
+            },
+            "unknownPackageIds": {
+                "title": "Невідомі PackageId",
+                "message": "Ці PackageId активні у списку модів, але не були завантажені. Ви хочете їх видалити?",
+                "button": "Невідомі PackageId: {0}"
+            },
+            "config": {
+                "label": "Налаштування",
+                "sections": {
+                    "paths": "Шляхи"
+                },
+                "closeWindowAfterRun": "Закривати вікно після запуску",
+                "theme": {
+                    "label": "Тема",
+                    "dark": "Темна",
+                    "light": "Світла"
+                },
+                "language": "Мова"
+            }
+        },
+        "mods": {
+            "modPacks": "Пакети модів",
+            "clearActiveMods": "Очистити активні моди",
+            "multiplayerCompability": "Сумісність із мультиплеєром",
+            "supportedVersions": "Підтримувані версії",
+            "activeMods": "Активні моди: {0} / {1}",
+            "tags": "Теги",
+            "wrongModVersion": "Неправильна версія мода",
+            "wrongModVersion_message": "Мод не підтримує цю версію гри. Можливі проблеми.",
+            "missingModVersion": "Відсутня версія мода",
+            "missingModVersion_message": "Мод не містить інформації про цільову версію гри. Можливі проблеми.",
+            "missingDependencies": "Відсутні залежності",
+            "incompatibleWith": "Несумісний з",
+            "loadBefore": "Завантажити перед",
+            "loadAfter": "Завантажити після"
+        },
+        "sections": {
+            "windows": "Вікна",
+            "modList": "Список модів",
+            "stats": "Статистика",
+            "tags": "Теги"
+        },
+        "tabs": {
+            "modListManager": "Менеджер списку модів",
+            "modUpdates": "Оновлення модів",
+            "xmlModBuilder": "XML конструктор модів"
+        },
+        "confirm": {
+            "deletionModpack": "Ви впевнені, що хочете видалити цей пакет модів?",
+            "updationModpack": "Ви впевнені, що хочете оновити цей пакет модів?",
+            "deletionTag": "Ви впевнені, що хочете видалити цей тег?"
+        },
+        "environment": {
+            "dirs": {
+                "modPacks": "Пакети модів",
+                "steam": "Каталог Steam",
+                "game": "Каталог гри",
+                "gameConfig": "Налаштування гри",
+                "userConfig": "Налаштування користувача"
+            },
+            "paths": {
+                "toSteam": "Шлях до Steam",
+                "toGame": "Шлях до гри"
+            }
+        },
+        "errors": {
+            "modsConfigXmlNotFound": "Програмі не вдалося знайти шлях до “modsConfig.xml”. Зверніться в підтримку. Шлях, де ми шукаємо файл: {0}",
+            "gamePathIsUndefined": "Шлях до гри не вказаний. Перейдіть у налаштування та вкажіть шлях до гри.",
+            "notFound": "{0} не знайдено",
+            "missingSteamId": "Відсутній Steam ID",
+            "loadingErrors": "Помилки завантаження: {0}",
+            "unableRetrieveChangeNotes": "Не вдалося отримати примітки до змін. Можливо, відсутнє з’єднання. Повідомлення: {0}"
+        },
+        "info": {
+            "authors": "Автори",
+            "description": "Опис",
+            "modChoiceScreenText": "Виберіть мод"
+        },
+        "NONAMED": {
+            "modUpdatesHint": "Оновлення для модів зі Steam перевіряються через Workshop, а не шляхом зміни ваших файлів, тому нові оновлення могли ще не завантажитися."
+        }
     }
 }

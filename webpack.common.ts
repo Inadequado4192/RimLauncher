@@ -26,7 +26,7 @@ const resolve_extensions: ResolveOptions["extensions"] = [".js", ".ts", ".jsx", 
 const resolve_plugins: ResolveOptions["plugins"] = [
     new TsconfigPathsPlugin({
         extensions: [".ts", ".tsx", ".js"]
-    }),
+    })
 ];
 export const resolve: Configuration["resolve"] = {
     extensions: resolve_extensions,

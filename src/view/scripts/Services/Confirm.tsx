@@ -4,10 +4,9 @@ import { Button, Modal, ModalDialog, DialogContent, DialogActions, DialogTitle, 
 import React from "react";
 import { createService } from "./BaseService";
 
-
 export interface ConfirmData {
     title?: React.ReactNode,
-    text: React.ReactNode,
+    message?: React.ReactNode,
     actionsLabel?: {
         true?: string,
         false?: string,
@@ -17,7 +16,6 @@ export interface ConfirmData {
 
 export const {
     Service: ConfirmService,
-    Container: ConfirmContainer
 } = createService<ConfirmData, boolean>({
     element(props) {
         function onClose() {
@@ -39,16 +37,18 @@ export const {
         return (
             <Modal open onClose={onClose}>
                 <ModalDialog minWidth={!props.fullWidth ? void 0 : "80%"} maxWidth={!props.fullWidth ? void 0 : "90%"}>
-                    <DialogTitle>{props.title ?? Localize("confirmTheAction")}</DialogTitle>
+                    {props.title && <DialogTitle>{props.title}</DialogTitle>}
                     <DialogContent>
-                        <Typography>{props.text}</Typography>
+                        <Typography>{props.message}</Typography>
                     </DialogContent>
                     <DialogActions>
-                        <Button color="success" onClick={onOk}>{props.actionsLabel?.true ?? Localize("yes")}</Button>
-                        <Button color="danger" onClick={onClose}>{props.actionsLabel?.false ?? Localize("no")}</Button>
+                        <Button color="success" onClick={onOk}>{props.actionsLabel?.true ?? Localize("common.yes")}</Button>
+                        <Button color="danger" onClick={onClose}>{props.actionsLabel?.false ?? Localize("common.no")}</Button>
                     </DialogActions>
                 </ModalDialog>
             </Modal>
         )
     },
-})
+}, {
+    fnName: "ConfirmContainer"
+});

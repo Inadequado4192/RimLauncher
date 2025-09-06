@@ -1,6 +1,5 @@
 import Localize from "@Common/Localize";
 import { UserConfigStore } from "@Stores";
-import { LocalContext } from "@Context/LocalContext";
 import { Button, ButtonGroup, CircularProgress, DialogContent, DialogTitle, Divider, FormControl, FormHelperText, FormLabel, Input, ModalDialog, Option, Radio, RadioGroup, RadioGroupProps, RadioProps, Select, Table, Typography, useColorScheme } from "@mui/joy";
 import ModalClose from "@mui/joy/ModalClose";
 import React from "react";
@@ -14,10 +13,10 @@ export default function UserConfigWindowDialog() {
         <ModalDialog minWidth="md">
             <DialogTitle>
                 <ModalClose />
-                {Localize("config")}
+                {Localize("windows.config.label")}
             </DialogTitle>
 
-            <Divider><Typography>{Localize("config_sectionPaths")}</Typography></Divider>
+            <Divider><Typography>{Localize("windows.config.sections.paths")}</Typography></Divider>
             <Section_Paths />
 
             <Divider />
@@ -69,10 +68,10 @@ function Section_Paths() {
                                             $invoke.setUserConfigByKey(pkey, p.filePaths[0]);
                                     })
                                 }
-                            >{Localize("change")}</Button>
+                            >{Localize("common.change")}</Button>
                             <Button
                                 onClick={() => userPathes[pkey] && $invoke.openPath(userPathes[pkey])}
-                            >{Localize("open")}</Button>
+                            >{Localize("actions.open")}</Button>
                         </ButtonGroup>
                     }
                 />
@@ -83,8 +82,8 @@ function Section_Paths() {
 
     return (
         <DialogContent sx={{ overflow: "hidden" }}>
-            <PathInput pkey="steamPath" label={Localize("pathToSteam")} />
-            <PathInput pkey="gamePath" label={Localize("pathToGame")} />
+            <PathInput pkey="steamPath" label={Localize("environment.paths.toSteam")} />
+            <PathInput pkey="gamePath" label={Localize("environment.paths.toGame")} />
         </DialogContent>
     )
 }
@@ -133,7 +132,7 @@ const _RadioGroupProps: RadioGroupProps = {
 function CloseWindowAfterRun({ checked }: { checked: boolean }) {
     return (
         <tr>
-            <td><Typography>{Localize("closeWindowAfterRun")}</Typography></td>
+            <td><Typography>{Localize("windows.config.closeWindowAfterRun")}</Typography></td>
 
             <td>
                 <RadioGroup
@@ -141,8 +140,8 @@ function CloseWindowAfterRun({ checked }: { checked: boolean }) {
                     value={checked}
                     onChange={e => $invoke.setUserConfigByKey("closeWindowAfterRun", e.currentTarget.value == "true")}
                 >
-                    <Radio {..._RadioProps} value={true} label={Localize("yes")} />
-                    <Radio {..._RadioProps} value={false} label={Localize("no")} />
+                    <Radio {..._RadioProps} value={true} label={Localize("common.yes")} />
+                    <Radio {..._RadioProps} value={false} label={Localize("common.no")} />
                 </RadioGroup>
             </td>
         </tr>
@@ -155,7 +154,7 @@ function ThemeChanger() {
 
     return (
         <tr>
-            <td><Typography>{Localize("theme")}</Typography></td>
+            <td><Typography>{Localize("windows.config.theme.label")}</Typography></td>
             <td>
                 <RadioGroup
                     {..._RadioGroupProps}
@@ -163,24 +162,25 @@ function ThemeChanger() {
                     onChange={e => coolotScheme.setMode(isDark ? "light" : "dark")}
                 >
 
-                    <Radio {..._RadioProps} value="light" label={Localize("theme_light")} />
-                    <Radio {..._RadioProps} value="dark" label={Localize("theme_dark")} />
+                    <Radio {..._RadioProps} value="light" label={Localize("windows.config.theme.light")} />
+                    <Radio {..._RadioProps} value="dark" label={Localize("windows.config.theme.dark")} />
                 </RadioGroup>
             </td>
         </tr>
     )
 }
 function Language() {
-    const { local, setLocal } = React.useContext(LocalContext);
+    const [local, setLocal] = React.useState<SomeLocal>();
     const [locals, setLocals] = React.useState<Awaited<ReturnType<typeof $invoke.getAccessLanguages>>>();
 
     React.useEffect(() => {
+        $invoke.getTargetLocalJSON().then(setLocal);
         $invoke.getAccessLanguages().then(setLocals);
     }, []);
 
     return (
         <tr>
-            <td><Typography>{Localize("language")}</Typography></td>
+            <td><Typography>{Localize("windows.config.language")}</Typography></td>
             <td>
                 <Select
                     value={locals?.find(l => l.data.name == local?.name)!.name ?? null}

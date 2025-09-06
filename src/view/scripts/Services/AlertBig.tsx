@@ -5,16 +5,16 @@ import Localize from "@Common/Localize";
 import { createService } from "./BaseService";
 
 interface AlertBigData {
-    title: React.ReactNode,
-    text: React.ReactNode,
-    size?: ModalDialogProps["size"],
-    minWidth?: ModalDialogProps["minWidth"],
-    maxWidth?: ModalDialogProps["maxWidth"],
+    title?: (() => React.ReactNode) | React.ReactNode,
+    message: (() => React.ReactNode) | React.ReactNode,
+    modal?: {
+        dontCloseOnBackdropClick?: boolean
+    }
+    dialogProps?: ModalDialogProps;
 }
 
 export const {
     Service: AlertBigService,
-    Container: AlertBigContainer,
 } = createService<AlertBigData>({
     element(props) {
         function onNext() {
@@ -31,15 +31,18 @@ export const {
 
 
         return (
-            <Modal open>
-                <ModalDialog size={props.size} maxWidth={props.maxWidth} minWidth={props.minWidth}>
-                    <DialogTitle>{props.title}</DialogTitle>
-                    <DialogContent sx={{ overflow: "auto" }}>{props.text}</DialogContent>
+            <Modal open onClose={() => !props.modal?.dontCloseOnBackdropClick && props._close()}>
+                <ModalDialog {...props.dialogProps}>
+                    {props.title && <DialogTitle>{createService.FV(props.title)}</DialogTitle>}
+                    <DialogContent sx={{ overflow: "auto" }}>{createService.FV(props.message)}</DialogContent>
                     <DialogActions>
-                        <Button color="success" onClick={onNext}>{Localize("close")}</Button>
+                        <Button color="success" onClick={onNext}>{Localize("actions.close")}</Button>
                     </DialogActions>
                 </ModalDialog>
             </Modal>
         )
     },
+}, {
+    fnName: "AlertBigContainer"
 });
+

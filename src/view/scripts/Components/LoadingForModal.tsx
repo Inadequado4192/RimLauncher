@@ -1,6 +1,6 @@
 import { CircularProgress, Modal } from "@mui/joy";
 
-export default function LoadingForModal() {
+export default function FullscreanLoading() {
     return (
         <Modal open sx={{
             display: "flex",

@@ -2,7 +2,7 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 import { ipcRenderer, IpcRendererEvent, shell } from "electron";
 import type { IPCEvents_handle, IPCEvents_on } from "../main/events/IPCEvents";
-import type { FileEvents } from "../main/events/WebEvents";
+import type { FileEvents } from "../main/events/webEvents";
 
 //#region IPC
 const internal_invokeProxy = new Proxy({}, {
@@ -57,17 +57,14 @@ declare global {
 
 
 
-addEventListener("keydown", function (e) {
-    if (e.code == "Tab") e.preventDefault();
-});
-
-addEventListener("click", (e) => {
-    const target = e.target as HTMLAnchorElement;
-    if (target.tagName === "A" && target.href.startsWith("http")) {
-        e.preventDefault();
-        shell.openExternal(target.href);
+addEventListener("focusin", (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return;
+    if (t.matches('button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"]')) {
+        t.blur();
     }
 });
+
 
 
 declare global {
@@ -77,10 +74,3 @@ const appVersion = process.argv.find(arg => arg.startsWith("--appVersion="))?.sp
 const appName = process.argv.find(arg => arg.startsWith("--appName="))?.split("=")[1] || "unknown";
 
 (window as any).TITLE = `${appName} v${appVersion}`;
-
-
-// console.log("Pathes", {
-//     "process.resourcesPath": process.resourcesPath,
-//     "__dirname": __dirname,
-//     "path.resolve(\"./\")": path.resolve("./")
-// });

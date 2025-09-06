@@ -1,7 +1,7 @@
 import path from "path";
 import type { Configuration } from "webpack";
 import { commmon, rules } from "./webpack.common";
-import { AfterPackContext } from "electron-builder";
+
 
 module.exports = {
     entry: "./src/main/index.ts",
