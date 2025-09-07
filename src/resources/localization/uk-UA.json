@@ -44,7 +44,7 @@
             "enable": "Увімкнути",
             "removeAll": "Видалити все",
             "review": "Огляд",
-            "report": "Поскаржитися",
+            "report": "Звіт",
             "openDirectory": "Відкрити каталог",
             "openInSteam": "Відкрити в Steam",
             "openInGit": "Відкрити в Git",
@@ -62,7 +62,7 @@
             "bugReport": {
                 "title": "Звіт про помилку",
                 "message": "Ви знайшли помилку чи хочете запропонувати покращення?\nБудь ласка, створіть новий Issue на GitHub.\n\nЩоб ми виправили швидше, додайте:\n• що ви очікували побачити\n• що сталося насправді\n• кроки для відтворення\n• версію лаунчера.",
-                "reportWithAI": "Поскаржитися за допомогою AI",
+                "reportWithAI": "Звіт за допомогою AI",
                 "reportWithAI_prompt": "Створити Issue у Inadequado4192/RimLauncher для"
             },
             "updateReady": {

@@ -2,4 +2,9 @@
 
 ## [v1.0.0] - 2025-09-05
 
-Release
+🎉 Initial Release
+
+First stable version of the project, ready to use.
+
+# Known issues
+- Updating mods from git may not work properly.
