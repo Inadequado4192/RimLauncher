@@ -1,5 +1,10 @@
 # Changelog
 
+## [v1.0.1] - 2025-09-07
+
+# Fixes
+- Updating modifications from git now works correctly.
+
 ## [v1.0.0] - 2025-09-05
 
 🎉 Initial Release

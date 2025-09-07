@@ -197,7 +197,7 @@ namespace GitActions {
         onProgress?: (percent: number, message: string) => void
     }) {
         if (!Pathes.Dir_LocalMods) throw Error("Path to local mods not found");
-        const gitinfo = Schemes.GitInfo.Read.parse(fs.readFileSync(path.join(params.pathToGitMod, PathesMaker.gitinfo).toString()));
+        const gitinfo = Schemes.GitInfo.Read.parse(fs.readFileSync(path.join(params.pathToGitMod, PathesMaker.gitinfo)).toString());
 
         const progress = new ProgressManager((percent, message) => params.onProgress?.(percent, message ?? ""));
         const progress_cloneGitToTempDir = progress.createStageReporter(1, "Downloading zip...");

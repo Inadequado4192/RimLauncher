@@ -1,7 +1,7 @@
 {
     "name": "rimlauncher",
     "productName": "RimLauncher",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Launcher for RimWorld",
     "main": ".webpack/main.js",
     "scripts": {
@@ -14,6 +14,7 @@
         "build:main": "cross-env NODE_ENV=production webpack --config webpack.main.config.ts",
         "build:preload": "cross-env NODE_ENV=production webpack --config webpack.preload.config.ts",
         "build:renderer": "cross-env NODE_ENV=production webpack --config webpack.renderer.config.ts",
+        "build:release-body": "ts-node ./build/release-body.ts",
         "build": "concurrently --raw \"npm:build:*\"",
         "package": "electron-builder --publish never",
         "make": "npm run build && npm run package",
