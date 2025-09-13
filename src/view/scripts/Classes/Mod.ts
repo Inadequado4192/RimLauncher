@@ -33,11 +33,10 @@ export abstract class Mod extends Storabled implements ModReadingInfo_BASE {
     public about: ModReadingInfo_BASE["about"];
     public dirPath: ModReadingInfo_BASE["dirPath"];
     public previewPath: ModReadingInfo_BASE["previewPath"];
+    /**@deprecated */
     public warnings: ModReadingInfo_BASE["warnings"];
 
-    // public tags = new Store<Tag[]>({ value: [] });
     public tags: Tag[] = [];
-    // public errorReport = new ModErrorReport(this);
 
     public override store = new Store<Mod>({ value: this })
 
@@ -256,10 +255,17 @@ export class Mod_Steam extends Mod implements ModReadingInfo_Steam {
     public openInSteam() {
         if (this.steamId) openModInSteam(this.steamId);
     }
+    public unsubscribe() {
+        if (this.steamId) $invoke.unsubscribeFromSteamMod(this.steamId);
+    }
 }
 
 export class Mod_Local extends Mod implements ModReadingInfo_Local {
     declare type: ModType.Local;
+
+    public delete() {
+        $invoke.deleteMod(this.dirPath);
+    }
 }
 
 export class Mod_Git extends Mod implements ModReadingInfo_Git {
@@ -281,7 +287,7 @@ export class Mod_Git extends Mod implements ModReadingInfo_Git {
     }
     public async canBeUpdateGit(): Promise<boolean> {
         if (!this.gitinfo.success || !this.gitrepo) return false;
-        return (await this.gitrepo.checkUpdate(this.gitinfo.data.info.repoUrl, this.gitinfo.data.lastUpdate)).canBeUpdate;
+        return (await this.gitrepo.checkUpdate(this.gitinfo.data)).canBeUpdate;
     }
 }
 

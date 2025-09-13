@@ -121,6 +121,13 @@ const IPCEvents_handle = {
         return ModsConfigStore.get();
     },
     getModList: async () => ModList.getModList(),
+
+    async deleteMod(dirPath: string) {
+        fs.rmSync(dirPath, { force: true, recursive: true });
+    },
+    async unsubscribeFromSteamMod(publishedfileid: string) {
+        
+    },
     //#endregion
 
 

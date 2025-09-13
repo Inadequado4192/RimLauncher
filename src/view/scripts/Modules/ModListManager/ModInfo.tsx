@@ -6,6 +6,7 @@ import { ModType } from "enums";
 import ModTagList from "@Renderer/scripts/Components/ModTagList";
 import { GameInfoStore } from "@Renderer/scripts/Stores";
 import { StoreCompareType } from "@Renderer/scripts/Stores/store";
+import { ConfirmService } from "@Renderer/scripts/Services/Confirm";
 
 export default function ModInfo() {
     const selectedMod = __ModListStores__.selectedMod.use();
@@ -168,11 +169,23 @@ Info.Actions = React.memo(function Actions() {
     }, []);
     const DeleteButton = React.useCallback(function DeleteButton() {
         const display = __ModListStores__.selectedMod.use(mod => [ModType.Local, ModType.Git].includes(mod?.type!));
-        return display && <Button color="danger" onClick={() => { }} disabled>{Localize("actions.delete")}</Button>
+        if (!display) return null;
+        return (
+            <Button
+                color="danger"
+                onClick={async () => {
+                    const mod = __ModListStores__.selectedMod.get();
+                    if (mod?.isLocal() && await ConfirmService.create({}).endPromise) mod.delete();
+                }}
+            >{Localize("actions.delete")}</Button>
+        );
     }, []);
     const UnsubscribeButton = React.useCallback(function UnsubscribeButton() {
         const display = __ModListStores__.selectedMod.use(mod => [ModType.Steam].includes(mod?.type!));
-        return display && <Button color="danger" onClick={() => { }} disabled>{Localize("common.unsubscribe")}</Button>
+        return display && <Button color="danger" onClick={() => {
+            const mod = __ModListStores__.selectedMod.get();
+            if (mod?.isSteam()) mod.unsubscribe();
+        }} disabled>{Localize("common.unsubscribe")}</Button>
     }, []);
 
 

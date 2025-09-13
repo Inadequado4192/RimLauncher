@@ -64,6 +64,9 @@ jobs:
           git tag temp-${{ github.sha }}
           git push origin temp-${{ github.sha }}
 
+      - name: Generate RELEASE.md
+        run: node ./build/release-body.js
+
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:

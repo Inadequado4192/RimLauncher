@@ -20,7 +20,6 @@
             "gameVersion": "Game Version",
             "DLC": "DLC",
             "countOfMods": "Count of Mods",
-            "change": "Change",
             "validation": {
                 "thisNameAlreadyUsed": "This name is already used."
             }
@@ -49,7 +48,9 @@
             "openInSteam": "Open in Steam",
             "openInGit": "Open in Git",
             "openSource": "Open Source",
-            "openPaths": "Open..."
+            "openPaths": "Open...",
+            "change": "Change",
+            "confirmAction": "Confirm action"
         },
         "updates": {
             "checkingForUpdates": "Checking for updates",
@@ -72,7 +73,11 @@
             "unknownPackageIds": {
                 "title": "Unknown PackageIds",
                 "message": "These PackageId are active in the mod list but have not been downloaded. Would you like to delete them?",
-                "button": "Unknown PackageIds: {0}"
+                "button": "Unknown PackageIds: {0}",
+                "deletePackageId": {
+                    "title": "Delete PackageId",
+                    "message": "Are you sure you want to delete the PackageId \"{0}\"?"
+                }
             },
             "config": {
                 "label": "Config",

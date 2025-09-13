@@ -163,7 +163,7 @@ async function fetchChangeNote(workshopId: string) {
 
     } catch {
         AlertService.create({
-            text: Localize("errors.unableRetrieveChangeNotes"),
+            message: Localize("errors.unableRetrieveChangeNotes"),
             color: "danger"
         });
         return null;

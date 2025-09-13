@@ -20,7 +20,6 @@
             "gameVersion": "Версія гри",
             "DLC": "DLC",
             "countOfMods": "Кількість модів",
-            "change": "Змінити",
             "validation": {
                 "thisNameAlreadyUsed": "Ця назва вже використовується."
             }
@@ -49,7 +48,9 @@
             "openInSteam": "Відкрити в Steam",
             "openInGit": "Відкрити в Git",
             "openSource": "Відкрити вихідний код",
-            "openPaths": "Відкрити..."
+            "openPaths": "Відкрити...",
+            "change": "Змінити",
+            "confirmAction": "Підтвердити дію"
         },
         "updates": {
             "checkingForUpdates": "Перевірка оновлень",
@@ -72,7 +73,11 @@
             "unknownPackageIds": {
                 "title": "Невідомі PackageId",
                 "message": "Ці PackageId активні у списку модів, але не були завантажені. Ви хочете їх видалити?",
-                "button": "Невідомі PackageId: {0}"
+                "button": "Невідомі PackageId: {0}",
+                "deletePackageId": {
+                    "title": "Видалити PackageId",
+                    "message": "Ви впевнені, що хочете видалити PackageId \"{0}\"?"
+                }
             },
             "config": {
                 "label": "Налаштування",

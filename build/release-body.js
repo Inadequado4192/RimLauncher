@@ -1,5 +1,4 @@
-import fs from "fs";
-import path from "path";
+const fs = require("fs");
 
 const CHANGELOG = fs.readFileSync("CHANGELOG.md").toString();
 

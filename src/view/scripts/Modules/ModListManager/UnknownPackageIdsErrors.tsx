@@ -10,7 +10,10 @@ export default function UnknownPackageIdsErrors() {
     const unknownPackageIds = __ModListStores__.unknownPackageIds.use();
 
     const deletePackageId = React.useCallback(async (pid: PackageId) => {
-        const cnf = await ConfirmService.create({}).endPromise;
+        const cnf = await ConfirmService.create({
+            title: Localize("windows.unknownPackageIds.deletePackageId.title"),
+            message: Localize("windows.unknownPackageIds.deletePackageId.message", [pid]),
+        }).endPromise;
         if (cnf) $invoke.disableMod(pid);
     }, []);
     

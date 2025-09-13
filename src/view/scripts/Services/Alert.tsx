@@ -15,13 +15,12 @@ interface AlertAction {
 }
 
 interface AlertData extends Pick<AlertProps, "color"> {
-    text: string
+    message: string
     lifeTime?: number | null,
     actions?: AlertAction[]
 }
 export const {
     Service: AlertService,
-    Container: AlertContainer
 } = createService<AlertData>({
     container({ children }) {
         return (
@@ -59,45 +58,43 @@ export const {
                 size="md"
                 startDecorator={items[props.color ?? "neutral"]}
                 endDecorator={
-                    <IconButton
-                        variant="plain"
-                        onClick={() => props._close()}
-                        sx={{
-                            "--IconButton-size": "32px",
-                            transform: "translate(0.5rem, -0.5rem)",
-                        }}
-                    >
-                        <CloseRoundedIcon />
-                    </IconButton>
+                    <>
+                        {props.actions?.map((a, i) =>
+                            <Button
+                                key={i}
+                                variant="plain"
+                                size="sm"
+                                onClick={a.onClick}
+                            >{a.label}</Button>
+                        )}
+                        <IconButton
+                            variant="plain"
+                            onClick={() => props._close()}
+                        >
+                            <CloseRoundedIcon />
+                        </IconButton>
+                    </>
                 }
                 sx={{
                     boxShadow: "0 0 10px 10px rgb(0,0,0,.25)",
-                    alignItems: "flex-start",
                     minWidth: 300
                 }}
                 invertedColors
                 variant="outlined"
                 color={props.color}
             >
-                <Box flex={1}>
-                    <Typography>{props.text}</Typography>
-
-                    {props.actions &&
-                        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
-                            {props.actions.map((a, i) =>
-                                <Button
-                                    key={i}
-                                    variant="outlined"
-                                    size="sm"
-                                    onClick={a.onClick}
-                                >{a.label}</Button>
-                            )}
-                        </Box>
-                    }
-                </Box>
+                <Typography>{props.message}</Typography>
             </Alert>
         )
     },
 }, {
     fnName: "AlertContainer"
 })
+
+export function createErrorAlert(err: unknown) {
+    return AlertService.create({
+        message: String(err),
+        color: "danger",
+        lifeTime: Infinity
+    })
+}

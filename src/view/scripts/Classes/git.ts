@@ -8,7 +8,7 @@ export namespace GitSpace {
         public abstract parseInfo(repoUrl: _url): Promise<GitInfo["info"]>
 
         // public abstract getLastCommit(repoUrl: _url): any;
-        public abstract checkUpdate(repoUrl: _url, lastUpdate: number): Promise<{ canBeUpdate: boolean }>;
+        public abstract checkUpdate(data: GitInfo): Promise<{ canBeUpdate: boolean }>;
     }
 
 
@@ -20,12 +20,19 @@ export namespace GitSpace {
         public override get repoName() { return GitGudRepo.repoName }
 
         public override async parseInfo(repoUrl: _url) {
-            const html = await (await fetch(repoUrl)).text();
-            const [, obj] = html.match(/gl.startup_graphql_calls\s*=.+?"variables":\s*(\{.+?\})/) as [any, string];
-            const data = JSON.parse(obj);
+            let [, user, repo, tree] = new URL(repoUrl).pathname.replace(/\/$/, "").match(/\/?(.+?)\/(.+?)(?:$|\/-\/tree\/(.+))/) as [string, string, string, undefined | string];
 
-            const [user, repo] = data.projectPath.split("/") as [string, string];
-            const tree = data.ref;
+            if (tree === undefined) {
+                for (const posTree of ["master", "main"]) {
+                    const res = await fetch(`${repoUrl}/-/tree/${posTree}`, { method: "HEAD" });
+                    if (res.ok) {
+                        tree = posTree;
+                        break;
+                    }
+                }
+            }
+
+            if (!tree) throw Error("Tree not found.");
 
             return {
                 repoUrl, user, repo, tree,
@@ -33,8 +40,8 @@ export namespace GitSpace {
             };
         }
 
-        public override async checkUpdate(repoUrl: _url, lastUpdate: number) {
-            const { user, repo, tree } = await this.parseInfo(repoUrl);
+        public override async checkUpdate(data: GitInfo) {
+            const { user, repo, tree } = data.info;
             const json = await fetch("https://gitgud.io/api/graphql", {
                 method: "POST",
                 headers: {
@@ -52,7 +59,7 @@ export namespace GitSpace {
             }).then(async res => (await res.json()) as GitInfoRequest_GitGud_api_graphql);
 
             return {
-                canBeUpdate: new Date(json.data.project.repository.lastCommit.committedDate).getTime() > lastUpdate
+                canBeUpdate: new Date(json.data.project.repository.lastCommit.committedDate).getTime() > data.lastUpdate
             }
         }
     }
@@ -89,8 +96,8 @@ export namespace GitSpace {
                 downloadZipUrl: this.url.origin + data.overview.codeButton.local.platformInfo.zipballUrl
             }
         }
-        public override async checkUpdate(repoUrl: _url, lastUpdate: number) {
-            const { user, repo, tree } = await this.parseInfo(repoUrl);
+        public override async checkUpdate(data: GitInfo) {
+            const { user, repo, tree } = data.info;
             const res = await fetch(`https://github.com/${user}/${repo}/latest-commit/${tree}`, {
                 headers: {
                     "Accept": "application/json",
@@ -100,7 +107,7 @@ export namespace GitSpace {
             const json = (await res.json()) as GitInfoRequest_GitHub_api;
 
             return {
-                canBeUpdate: new Date(json.date).getTime() > lastUpdate
+                canBeUpdate: new Date(json.date).getTime() > data.lastUpdate
             }
         }
     }

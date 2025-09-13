@@ -3,7 +3,8 @@ import { Button, Modal, ModalDialog, DialogContent, DialogActions, DialogTitle, 
 import React from "react";
 import { createService } from "./BaseService";
 import Localize from "@Common/Localize";
-import { AlertService } from "./Alert";
+import { AlertService, createErrorAlert } from "./Alert";
+import { AlertBigService } from "./AlertBig";
 
 
 
@@ -15,7 +16,7 @@ export interface Data {
         setValues(progress: number, message: string): void;
         close(): void,
         onError(err: any): void
-    }): void
+    }): Promise<void>
 }
 
 
@@ -29,23 +30,25 @@ export const {
         const [progress, setProgress] = React.useState(0);
         const [message, setMessage] = React.useState<string>();
 
-        React.useEffect(() => void props.effect({
-            setProgress,
-            setMessage,
-            setValues(progress, message) {
-                setProgress(progress);
-                setMessage(message);
-            },
-            close: () => props._close(),
-            onError(err) {
-                props._close()
-                AlertService.create({
-                    text: String(err),
-                    color: "danger",
-                    lifeTime: Infinity,
+        React.useEffect(() => {
+            props.effect({
+                setProgress,
+                setMessage,
+                setValues(progress, message) {
+                    setProgress(progress);
+                    setMessage(message);
+                },
+                close: () => props._close(),
+                onError(err) {
+                    props._close()
+                    createErrorAlert(err);
+                },
+            })
+                .catch(err => {
+                    props._close();
+                    createErrorAlert(err);
                 });
-            },
-        }), []);
+        }, []);
 
         return (
             <Modal open>

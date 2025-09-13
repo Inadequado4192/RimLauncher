@@ -64,10 +64,6 @@ export default function ModList() {
 }
 
 const itemHeight = 36;
-type ItemData_R = {
-    list: Mod_ALL[],
-    errors: Record<PackageId, ModErrorType>,
-};
 type ItemData = {
     mod: Mod_ALL,
     errorType: ModErrorType,
@@ -406,7 +402,7 @@ ModTooltip.Content = function Content({ mod, errorType }: {
     }, [errorType, mod]);
 
     return (
-        <Stack spacing={2} p={1} divider={<Divider />}>
+        <Stack spacing={2} p={1} divider={<Divider />} maxWidth={500}>
             {ErrorReport}
             <ModTagList mod={mod} />
             <ButtonGroup>

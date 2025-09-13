@@ -26,19 +26,16 @@ export interface FileEvents {
 
 export function InitWebEvents() {
     chokidar.watch(Pathes.File_UserConfig, {
-        ignoreInitial: true,
-        // awaitWriteFinish: {
-        //     stabilityThreshold: 200
-        // }
+        ignoreInitial: true
     }).on("all", (event, path) => {
         // add, change, unlink
         webEvents.UserConfig_Changed(UserConfigStore.get());
     });
     chokidar.watch(Pathes.File_ModsConfigXML, {
         ignoreInitial: true,
-        // awaitWriteFinish: {
-        //     stabilityThreshold: 200
-        // }
+        awaitWriteFinish: {
+            stabilityThreshold: 20
+        }
     }).on("all", (event, path) => {
         webEvents.ModsConfig_Changed(ModsConfigStore.get());
     });

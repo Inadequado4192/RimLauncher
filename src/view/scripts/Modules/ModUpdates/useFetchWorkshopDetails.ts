@@ -21,7 +21,7 @@ export default function useFetchWorkshopDetails() {
             })
             .catch((e) => {
                 AlertService.create({
-                    text: Localize("errors.unableRetrieveChangeNotes", [e.message ?? String(e)]),
+                    message: Localize("errors.unableRetrieveChangeNotes", [e.message ?? String(e)]),
                     color: "danger",
                     lifeTime: null
                 })

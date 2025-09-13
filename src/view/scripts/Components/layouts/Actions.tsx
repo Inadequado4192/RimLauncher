@@ -126,7 +126,7 @@ function CheckUpdates() {
             .catch(err => {
                 setMessage(String(err));
                 AlertService.create({
-                    text: String(err),
+                    message: String(err),
                     lifeTime: 10000,
                     color: "danger",
                 });

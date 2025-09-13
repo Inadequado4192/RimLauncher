@@ -37,7 +37,7 @@ export const {
         return (
             <Modal open onClose={onClose}>
                 <ModalDialog minWidth={!props.fullWidth ? void 0 : "80%"} maxWidth={!props.fullWidth ? void 0 : "90%"}>
-                    {props.title && <DialogTitle>{props.title}</DialogTitle>}
+                    <DialogTitle>{props.title ?? Localize("actions.confirmAction")}</DialogTitle>
                     <DialogContent>
                         <Typography>{props.message}</Typography>
                     </DialogContent>
