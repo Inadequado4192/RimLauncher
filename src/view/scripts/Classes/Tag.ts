@@ -18,6 +18,7 @@ export default class Tag extends Storabled implements ModTagJSON {
         this.name = data.name;
         this.color = data.color;
         this.packageIds = data.packageIds;
+        this.store.emit();
     }
 
     public toJSON(): ModTagJSON {
@@ -41,12 +42,15 @@ export default class Tag extends Storabled implements ModTagJSON {
         return true;
     }
 
+    /**@deprecated */
     public static storeComparePattern(...data: ("name" | "color")[]) {
-        return (p: Tag[], n: Tag[]) => StoreCompares.isEqualAtArray(p, n, (p, n) => {
-            if (data.includes("name") && p.name !== n.name) return false;
-            if (data.includes("color") && p.color !== n.color) return false;
-            return true;
-        })
+        return (p: Tag[], n: Tag[]) => {
+            return StoreCompares.isEqualAtArray(p, n, (p, n) => {
+                if (data.includes("name") && p.name !== n.name) return false;
+                if (data.includes("color") && p.color !== n.color) return false;
+                return true;
+            })
+        }
     }
 }
 

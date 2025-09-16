@@ -12,8 +12,8 @@ import RimWorldIcon from "@Renderer/scripts/Components/Icons/RimWorldIcon";
 import SteamIcon from "@Renderer/scripts/Components/Icons/SteamIcon";
 import FolderIcon from "@mui/icons-material/Folder";
 import GithubIcon from "@mui/icons-material/GitHub";
-import { SvgIconProps } from "@mui/joy";
-import { SvgIconOwnProps } from "@mui/material";
+import ExtensionIcon from '@mui/icons-material/Extension';
+import { SvgIcon, SvgIconOwnProps } from "@mui/material";
 
 export type Mod_ALL = Mod_DLC | Mod_Steam | Mod_Local | Mod_Git;
 export abstract class Mod extends Storabled implements ModReadingInfo_BASE {
@@ -33,6 +33,7 @@ export abstract class Mod extends Storabled implements ModReadingInfo_BASE {
     public about: ModReadingInfo_BASE["about"];
     public dirPath: ModReadingInfo_BASE["dirPath"];
     public previewPath: ModReadingInfo_BASE["previewPath"];
+    public iconPath: ModReadingInfo_BASE["iconPath"];
     /**@deprecated */
     public warnings: ModReadingInfo_BASE["warnings"];
 
@@ -46,21 +47,46 @@ export abstract class Mod extends Storabled implements ModReadingInfo_BASE {
         this.type = data.type;
         this.dirPath = data.dirPath;
         this.previewPath = data.previewPath;
+        this.iconPath = data.iconPath;
         this.warnings = data.warnings;
     }
 
-    /**@deprecated */
-    public useEnablingSub() {
-        ModsConfigStore.use(mc => mc.activeMods.some(pid => this.samePackageId(pid)))
-    }
+    // /**@deprecated */
+    // public useEnablingSub() {
+    //     const prevStateRef = React.useRef(this.isActive());
+    //     // ModsConfigStore.use(mc => mc.activeMods.some(pid => this.samePackageId(pid)))
+    //     React.useEffect(() => {
+    //         const callback = () => {
+    //             const newState = this.isActive();
+    //             if (prevStateRef.current !== newState) this.
+    //         }
 
-    public getIcon(props?: SvgIconOwnProps): JSX.Element {
+    //         const subs = [
+    //             store.subscribe(callback),
+    //             ModsConfigStore.subscribe(callback)
+    //         ]
+
+    //         return () => subs.forEach(c => c());
+    //     }, []);
+    // }
+
+    public getTypeIcon(props?: SvgIconOwnProps): JSX.Element {
         switch (this.type) {
             case ModType.Steam: return React.createElement(SteamIcon, props);
             case ModType.Local: return React.createElement(FolderIcon, props);
             case ModType.DLC: return React.createElement(RimWorldIcon, props);
             case ModType.Git: return React.createElement(GithubIcon, props);
         }
+    }
+    public getSelfIcon(props?: SvgIconOwnProps): React.ReactNode {
+        if (!this.iconPath) return React.createElement(ExtensionIcon, props);
+        return React.createElement(
+            SvgIcon,
+            {
+                ...props,
+                children: React.createElement("image", { href: this.iconPath, width: "100%", height: "100%" })
+            }
+        );
     }
 
 
@@ -82,7 +108,7 @@ export abstract class Mod extends Storabled implements ModReadingInfo_BASE {
      * @returns `null` - mod disabled
      */
     public getPositionAtList() {
-        const pos = __ModListStores__.actives.get().indexOf(this as Mod_ALL);
+        const pos = __ModListStores__.enabled.get().indexOf(this as Mod_ALL);
         return pos >= 0 ? pos : null;
     }
     /**Position at `modsConfig`
@@ -160,8 +186,8 @@ export abstract class Mod extends Storabled implements ModReadingInfo_BASE {
 
     public * getMissingDependencies(): Iterable<DeepReadonly<Mod_ALL> | ModDependency> {
         if (!this.isActive()) return [];
-        const actives = __ModListStores__.actives.get();
-        const unactives = __ModListStores__.unactives.get();
+        const actives = __ModListStores__.enabled.get();
+        const unactives = __ModListStores__.disabled.get();
 
 
         deps:
@@ -185,7 +211,7 @@ export abstract class Mod extends Storabled implements ModReadingInfo_BASE {
 
     public * getIncompatible(): Iterable<DeepReadonly<Mod_ALL>> {
         if (!this.isActive()) return;
-        const actives = __ModListStores__.actives.get();
+        const actives = __ModListStores__.enabled.get();
 
         for (const pid of this.about.incompatibleWith ?? []) {
             for (const mod of actives) {
@@ -203,7 +229,7 @@ export abstract class Mod extends Storabled implements ModReadingInfo_BASE {
     public * getLoadAfterErrors() {
         const pos = this.getPositionAtList();
         if (!pos) return;
-        const actives = __ModListStores__.actives.get();
+        const actives = __ModListStores__.enabled.get();
         // const actives = ModsConfigStore.get().activeMods;
 
 
@@ -221,7 +247,7 @@ export abstract class Mod extends Storabled implements ModReadingInfo_BASE {
     public * getLoadBeforeErrors(): Iterable<DeepReadonly<Mod_ALL>> {
         const pos = this.getPositionAtList();
         if (!pos) return;
-        const actives = __ModListStores__.actives.get();
+        const actives = __ModListStores__.enabled.get();
 
         for (const pid of this.about.loadBefore ?? []) {
             for (let i = 0; i < pos; i++) {
@@ -381,8 +407,8 @@ class ModErrorReport {
 
     public * getMissingDependencies(): Iterable<Mod_ALL | ModDependency> {
         if (!this.mod.isActive()) return [];
-        const actives = __ModListStores__.actives.get();
-        const unactives = __ModListStores__.unactives.get();
+        const actives = __ModListStores__.enabled.get();
+        const unactives = __ModListStores__.disabled.get();
 
 
         deps:
@@ -400,7 +426,7 @@ class ModErrorReport {
     }
     public * getIncompatible(): Iterable<Mod_ALL> {
         if (!this.mod.isActive()) return;
-        const actives = __ModListStores__.actives.get();
+        const actives = __ModListStores__.enabled.get();
 
         for (const pid of this.mod.about.incompatibleWith ?? []) {
             for (const mod of actives) {
@@ -413,7 +439,7 @@ class ModErrorReport {
     public * getLoadAfterErrors(): Iterable<Mod_ALL> {
         const pos = this.mod.getPositionAtList();
         if (!pos) return;
-        const actives = __ModListStores__.actives.get();
+        const actives = __ModListStores__.enabled.get();
 
 
         for (const pid of this.mod.about.loadAfter ?? []) {
@@ -426,7 +452,7 @@ class ModErrorReport {
     public * getLoadBeforeErrors(): Iterable<Mod_ALL> {
         const pos = this.mod.getPositionAtList();
         if (!pos) return;
-        const actives = __ModListStores__.actives.get();
+        const actives = __ModListStores__.enabled.get();
 
         for (const pid of this.mod.about.loadBefore ?? []) {
             for (let i = 0; i < pos; i++) {

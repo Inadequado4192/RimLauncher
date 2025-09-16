@@ -8,6 +8,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';;
 
 import { createService } from "./BaseService";
+import Localize from "@Common/Localize";
 
 interface AlertAction {
     label: string,
@@ -90,11 +91,3 @@ export const {
 }, {
     fnName: "AlertContainer"
 })
-
-export function createErrorAlert(err: unknown) {
-    return AlertService.create({
-        message: String(err),
-        color: "danger",
-        lifeTime: Infinity
-    })
-}

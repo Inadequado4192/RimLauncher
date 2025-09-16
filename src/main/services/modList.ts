@@ -65,6 +65,10 @@ namespace ModList {
             path.join(aboutDirPath, "preview.png"),
         ]);
 
+        const iconPath = (ps => ps.find(p => fs.existsSync(p)))([
+            path.join(aboutDirPath, "ModIcon.png"),
+        ]);
+
 
         const warnings: ModReadingProblem[] = []
         const dirName = path.dirname(dirPath);
@@ -76,8 +80,8 @@ namespace ModList {
 
         function createMod<const T extends ModType>(data: Omit<
             Extract<ModReadingInfo_ALL, { type: T }>,
-            "dirPath" | "previewPath" | "about" | "warnings"
-        >) { return { ...data, dirPath, previewPath, about, warnings }; }
+            "dirPath" | "previewPath" | "iconPath" | "about" | "warnings"
+        >) { return { ...data, dirPath, previewPath, iconPath, about, warnings }; }
 
         if (parentDir === "Data") {
             data = createMod<ModType.DLC>({ type: ModType.DLC });

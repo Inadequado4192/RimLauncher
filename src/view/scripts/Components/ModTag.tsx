@@ -56,6 +56,7 @@ const ModTag = React.memo(function ModTag({
                     level="body-xs"
                     sx={{
                         color: getContrastColor(tag.color),
+                        fontSize: "10px"
                     }}
                     title={tag.name}
                     maxWidth={100}

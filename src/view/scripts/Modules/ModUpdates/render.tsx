@@ -5,7 +5,7 @@ import { __GlobalStores__ } from "@Renderer/scripts/Context/__GlobalStore__";
 import { AlertService } from "@Renderer/scripts/Services/Alert";
 import { openModChangesInSteam } from "@Renderer/scripts/utils";
 import React from "react";
-import useFetchWorkshopDetails, { PublishedFile } from "./useFetchWorkshopDetails";
+import useFetchWorkshopDetails, { PublishedFileOk } from "./useFetchWorkshopDetails";
 import { UserConfigStore } from "@Renderer/scripts/Stores";
 import { TableVirtuoso } from "react-virtuoso";
 import { AlertBigService } from "@Renderer/scripts/Services/AlertBig";
@@ -75,7 +75,7 @@ function DataTable() {
 
 
 
-const Content = React.memo(function Content({ publishedFile }: { publishedFile: PublishedFile }) {
+const Content = React.memo(function Content({ publishedFile }: { publishedFile: PublishedFileOk }) {
 
     async function loadChanges() {
         AlertBigService.create(({

@@ -1,4 +1,4 @@
-import { SvgIcon, SvgIconProps } from "@mui/joy";
+import { SvgIcon, SvgIconProps } from "@mui/material";
 
 export default function GithubIcon(props: SvgIconProps) {
     return (

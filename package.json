@@ -1,7 +1,7 @@
 {
     "name": "rimlauncher",
     "productName": "RimLauncher",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Launcher for RimWorld",
     "main": ".webpack/main.js",
     "scripts": {
@@ -9,7 +9,6 @@
         "dev:preload": "webpack --config webpack.preload.config.ts --watch",
         "dev:renderer": "webpack serve --config webpack.renderer.config.ts",
         "dev:electron": "wait-on http://localhost:3000 && nodemon --quiet --watch .webpack/main.js --exec \"electron ./.webpack/main.js\"",
-        "dev:react-devtools": "react-devtools",
         "dev": "rimraf .webpack && concurrently -k --raw \"npm:dev:*\"",
         "build:main": "cross-env NODE_ENV=production webpack --config webpack.main.config.ts",
         "build:preload": "cross-env NODE_ENV=production webpack --config webpack.preload.config.ts",
@@ -60,9 +59,9 @@
         "css-loader": "^7.1.2",
         "electron": "^30.5.1",
         "electron-builder": "^26.0.12",
+        "electron-devtools-installer": "^4.0.0",
         "html-webpack-plugin": "^5.6.3",
         "nodemon": "^3.1.10",
-        "react-devtools": "^6.1.5",
         "rimraf": "^6.0.1",
         "style-loader": "^4.0.0",
         "ts-loader": "^9.5.2",

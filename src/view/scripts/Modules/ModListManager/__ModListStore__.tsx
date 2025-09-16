@@ -6,67 +6,73 @@ import { ModsConfigStore, UserConfigStore } from "@Renderer/scripts/Stores";
 import { __GlobalStores__ } from "@Renderer/scripts/Context/__GlobalStore__";
 
 export const __ModListStore__ = new ContextStore({
+    
+    searchTextD: new Store<string>({ value: "", }),
+    searchTextE: new Store<string>({ value: "", }),
+    splitSearchInput: new Store<boolean>({ value: false, }),
+    showModIcon: new Store<boolean>({ value: false, }),
 
-    actives: new Store<Mod_ALL[]>({
-        value: () => [],
-    }),
-    unactives: new Store<Mod_ALL[]>({
-        value: () => [],
-    }),
+
+    enabled: new Store<Mod_ALL[]>({ value: [], }),
+    disabled: new Store<Mod_ALL[]>({ value: [], }),
     /**@deprecated Не дуже оптимізовано. Треба замінити. */
-    modErrorsType: new Store<Record<PackageId, ModErrorType>>({
-        value: () => ({}),
-    }),
+    modErrorsType: new Store<Record<PackageId, ModErrorType>>({ value: {} }),
 
-    unknownPackageIds: new Store<PackageId[]>({
-        value: () => [],
-    }),
+    unknownPackageIds: new Store<PackageId[]>({ value: [] }),
 
-    selectedMod: new Store<Mod_ALL | undefined>({
-        value: undefined,
-    }),
+    selectedMods: new Store<Mod_ALL[]>({ value: [] }),
+    tags: new Store<Tag[]>({ value: [] }),
     filterByTags: new Store<Set<Tag>>({
         value: new Set(),
         clone: original => new Set(original)
     }),
-    tags: new Store<Tag[]>({
-        value: () => [],
-    }),
 }, [
     function UpdateTags() {
-        const mods = __GlobalStores__.mods.use();
-
         // Update tag list
-        const userTagsJSON = UserConfigStore.use(uc => uc.tags, Tag.Compare as any);
         React.useEffect(() => {
-            const currentTags = __ModListStores__.tags.get();
-            const newCollection: Tag[] = [];
-            for (const ut of userTagsJSON) {
-                const currentTag = currentTags.find(t => ut.name == t.name);
+            function callback() {
+                const currentTags = __ModListStores__.tags.get();
+                const newCollection: Tag[] = [];
+                for (const ut of UserConfigStore.get().tags) {
+                    const currentTag = currentTags.find(t => ut.name == t.name);
 
-                let tag: Tag;
-                if (currentTag) {
-                    currentTag.update(ut);
-                    tag = currentTag;
-                } else {
-                    tag = new Tag(ut);
+                    let tag: Tag;
+                    if (currentTag) {
+                        currentTag.update(ut);
+                        tag = currentTag;
+                    } else {
+                        tag = new Tag(ut);
+                    }
+
+                    newCollection.push(tag);
                 }
-
-                newCollection.push(tag);
+                __ModListStores__.tags.set(newCollection);
             }
-            __ModListStores__.tags.set(newCollection);
-        }, [userTagsJSON]);
+            callback();
+
+            return UserConfigStore.subscribe(callback);
+        }, []);
 
         // Update tags for Mods
-        const tags = __ModListStores__.tags.use();
         React.useEffect(() => {
-            for (const pid in mods) {
-                const mod = mods[pid as PackageId]!;
-                const targetTags = [...tags].filter(t => t.packageIds.some(pid => mod.samePackageId(pid)));
-                mod.tags = targetTags;
-                mod.store.emit();
+            function callback() {
+                const mods = __GlobalStores__.mods.get();
+                const tags = __ModListStores__.tags.get();
+                for (const pid in mods) {
+                    const mod = mods[pid as PackageId]!;
+                    const targetTags = [...tags].filter(t => t.packageIds.some(pid => mod.samePackageId(pid)));
+                    mod.tags = targetTags;
+                    mod.store.emit();
+                }
             }
-        }, [mods, tags]);
+            callback();
+
+            const subs = [
+                __GlobalStores__.mods.subscribe(callback),
+                __ModListStores__.tags.subscribe(callback),
+            ]
+            return () => subs.forEach(c => c());
+        }, []);
     },
     function CreatingLists() {
         const mods = __GlobalStores__.mods.use();
@@ -88,14 +94,14 @@ export const __ModListStore__ = new ContextStore({
                 return activeMods.findIndex(p => a.samePackageId(p)) - activeMods.findIndex(p => b.samePackageId(p));
             });
 
-            __ModListStores__.actives.set(actives);
-            __ModListStores__.unactives.set(unactives);
+            __ModListStores__.enabled.set(actives);
+            __ModListStores__.disabled.set(unactives);
         }, [mods, activeMods]);
 
     },
     function Errors() {
         const mods = __GlobalStores__.mods.use();
-        const actives = __ModListStores__.actives.use();
+        const actives = __ModListStores__.enabled.use();
         const activeMods = ModsConfigStore.use(mc => mc.activeMods, StoreCompareType.PrimitiveArray);
 
         // Finding Errors
@@ -126,7 +132,7 @@ export const __ModListStore__ = new ContextStore({
     },
     function UpdateModActivity() {
         const [prevList, sestPrevList] = React.useState<Mod_ALL[]>([]);
-        const currentList = __ModListStores__.actives.use();
+        const currentList = __ModListStores__.enabled.use();
 
         React.useEffect(() => {
             for (const mod of currentList) {

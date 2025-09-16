@@ -68,7 +68,7 @@ function Section_Paths() {
                                             $invoke.setUserConfigByKey(pkey, p.filePaths[0]);
                                     })
                                 }
-                            >{Localize("common.change")}</Button>
+                            >{Localize("actions.change")}</Button>
                             <Button
                                 onClick={() => userPathes[pkey] && $invoke.openPath(userPathes[pkey])}
                             >{Localize("actions.open")}</Button>

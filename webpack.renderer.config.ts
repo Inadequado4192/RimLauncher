@@ -34,15 +34,7 @@ module.exports = {
         ...commmon.plugins,
         new HtmlWebpackPlugin({
             template: "./src/view/index.html",
-            inject: "body",
-            // scriptLoading: "blocking",
-            // додаємо React DevTools скрипт тільки у dev
-            templateParameters: {
-                DEVTOOLS_SCRIPT:
-                    process.env.NODE_ENV !== "production"
-                        ? '<script src="http://localhost:8097"></script>'
-                        : "",
-            },
+            inject: "body"
         }),
         // new (require('webpack-bundle-analyzer').BundleAnalyzerPlugin)()
     ],

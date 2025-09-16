@@ -1,6 +1,6 @@
 import path from "path";
 import chokidar from "chokidar";
-import { win } from "..";
+import { win } from "../mainWindow";
 import UserConfigStore from "../store/UserConfigStore";
 import { Pathes } from "main/Pathes";
 import ModsConfigStore from "../store/ModsConfigStore";

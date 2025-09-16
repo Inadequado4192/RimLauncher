@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, ButtonGroup, Dropdown, IconButton, Link, Menu, MenuButton, Tooltip, Typography } from "@mui/joy";
+import { Box, Button, ButtonGroup, Dropdown, IconButton, Link, Menu, MenuButton, Tooltip, Typography } from "@mui/joy";
 import RimWorldIcon from "@Renderer/scripts/Components/Icons/RimWorldIcon";
 import SteamIcon from "@Renderer/scripts/Components/Icons/SteamIcon";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -20,6 +20,7 @@ import { AlertBigService } from "@Renderer/scripts/Services/AlertBig";
 import { ConfirmService } from "@Renderer/scripts/Services/Confirm";
 import createBugReportWindow from "@Renderer/scripts/Windows/BugReport/BugReportWindow";
 import { openUrl } from "@Renderer/scripts/utils";
+import TemplateServices from "@Renderer/scripts/Services/TemplateServices";
 
 export default function Actions() {
     return (
@@ -60,7 +61,18 @@ function CheckUpdates() {
     const openMore = React.useCallback(function (res: UpdateCheckResult) {
         ActionDialogService.create({
             title: res.updateInfo.releaseName,
-            body: <span dangerouslySetInnerHTML={{ __html: String(res.updateInfo.releaseNotes) }}></span>,
+            body: <Box
+                sx={{
+                    whiteSpace: "normal",
+                    "& h1, & h2, & h3, & h4, & h5, & h6, & p": {
+                        my: 1
+                    },
+                    "& a": {
+                        color: "var(--joy-palette-text-primary)"
+                    }
+                }}
+                dangerouslySetInnerHTML={{ __html: String(res.updateInfo.releaseNotes) }}
+            />,
             fullWidth: true,
             actions: [
                 {
@@ -124,12 +136,8 @@ function CheckUpdates() {
                 setUpdateCheckResult(res);
             })
             .catch(err => {
-                setMessage(String(err));
-                AlertService.create({
-                    message: String(err),
-                    lifeTime: 10000,
-                    color: "danger",
-                });
+                setMessage("ERROR");
+                TemplateServices.createErrorAlert(Localize("errors.checkForUpdatesAndNotify"), err);
             })
             .finally(() => {
                 setLoading(false);

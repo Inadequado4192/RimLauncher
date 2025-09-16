@@ -4,7 +4,7 @@
     position: relative;
     user-select: none;
     cursor: pointer;
-    padding: 8px;
+    padding: 4px 8px;
 }
 
 #lists .list-item[data-status="none"] {

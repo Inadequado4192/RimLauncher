@@ -26,6 +26,9 @@ export default class ModListManager extends BaseModule {
                     "& > :nth-of-type(1)": { flex: 2 }, // ModList
                     "& > :nth-of-type(2)": { flex: 1 }, // Actions
                     "& > :nth-of-type(3)": { flex: 2 }, // ModInfo
+                    "& > *": {
+                        overflow: "hidden"
+                    }
                 }}
             >
                 <__ModListStore__.Providers />
@@ -39,4 +42,4 @@ export default class ModListManager extends BaseModule {
 
 const ModList = React.lazy(() => import("./ModList"));
 const Actions = React.lazy(() => import("./Actions"));
-const ModInfo = React.lazy(() => import("./ModInfo"));
+const ModInfo = React.lazy(() => import("./InfoBlock"));

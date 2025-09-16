@@ -23,21 +23,16 @@ import UnknownPackageIdsErrors from "./UnknownPackageIdsErrors";
 import Tag from "@Renderer/scripts/Classes/Tag";
 import { __GlobalStores__ } from "@Renderer/scripts/Context/__GlobalStore__";
 import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
+import { ModActions } from "@Renderer/scripts/Components/ModActions";
 
 const modListItemClass = "mod-list-item";
 const listsId = "lists";
 
 export default function ModList() {
-    const [searchText, setSearchText] = React.useState("");
-
     return (
         <Stack gap={1}>
-            <Input
-                placeholder={Localize("actions.search")}
-                value={searchText}
-                onChange={e => setSearchText(e.currentTarget.value)}
-                endDecorator={<IconButton onClick={() => setSearchText("")} sx={{ borderRadius: "50%" }}><CloseIcon /></IconButton>}
-            />
+            <Search />
+            <Actions />
 
             <Stack
                 id={listsId}
@@ -46,7 +41,7 @@ export default function ModList() {
                 flex={1}
                 overflow="hidden"
             >
-                <LF_List searchText={searchText} />
+                <LF_List />
             </Stack>
             <Stack
                 direction="row"
@@ -63,17 +58,95 @@ export default function ModList() {
     )
 }
 
-const itemHeight = 36;
-type ItemData = {
-    mod: Mod_ALL,
-    errorType: ModErrorType,
-};
+
+function Search() {
+    const searchTextD = __ModListStores__.searchTextD.use();
+    const searchTextE = __ModListStores__.searchTextE.use();
+    const splitSearchInput = __ModListStores__.splitSearchInput.use();
+
+    if (!splitSearchInput) {
+        return (
+            <Input
+                placeholder={Localize("actions.search")}
+                value={searchTextD}
+                onChange={e => {
+                    __ModListStores__.searchTextD.set(e.currentTarget.value);
+                    __ModListStores__.searchTextE.set(e.currentTarget.value);
+                }}
+                endDecorator={
+                    <IconButton
+                        onClick={() => {
+                            __ModListStores__.searchTextD.set("");
+                            __ModListStores__.searchTextE.set("");
+                        }}
+                        sx={{ borderRadius: "50%" }}
+                    ><CloseIcon /></IconButton>
+                }
+            />
+        );
+    } else {
+        return (
+            <Stack direction="row" spacing={1}>
+                <Input
+                    placeholder={Localize("actions.search")}
+                    value={searchTextD}
+                    onChange={e => __ModListStores__.searchTextD.set(e.currentTarget.value)}
+                    endDecorator={
+                        <IconButton
+                            onClick={() => __ModListStores__.searchTextD.set("")}
+                            sx={{ borderRadius: "50%" }}
+                        ><CloseIcon /></IconButton>
+                    }
+                    fullWidth
+                />
+                <Input
+                    placeholder={Localize("actions.search")}
+                    value={searchTextE}
+                    onChange={e => __ModListStores__.searchTextE.set(e.currentTarget.value)}
+                    endDecorator={
+                        <IconButton
+                            onClick={() => __ModListStores__.searchTextE.set("")}
+                            sx={{ borderRadius: "50%" }}
+                        ><CloseIcon /></IconButton>
+                    }
+                    fullWidth
+                />
+            </Stack>
+        )
+    }
+}
+function Actions() {
+    const SplitSearch = React.useCallback(function SplitSearch() {
+        const e = __ModListStores__.splitSearchInput.use();
+        return (
+            <IconButton
+                variant={e ? "solid" : "soft"}
+                onClick={() => __ModListStores__.splitSearchInput.set(e => !e)}
+                title="Split search"
+            >S</IconButton>
+        )
+    }, []);
+    const ShowModIcon = React.useCallback(function ShowModIcon() {
+        const e = __ModListStores__.showModIcon.use();
+        return (
+            <IconButton
+                variant={e ? "solid" : "soft"}
+                onClick={() => __ModListStores__.showModIcon.set(e => !e)}
+                title="Show mod icon"
+            >I</IconButton>
+        )
+    }, []);
+    return (
+        <ButtonGroup variant="outlined">
+            <SplitSearch />
+            <ShowModIcon />
+        </ButtonGroup>
+    )
+}
 
 
 
-
-
-function LF_List({ searchText }: { searchText: string }) {
+function LF_List() {
     const filterByTags = __ModListStores__.filterByTags.use();
 
 
@@ -87,20 +160,37 @@ function LF_List({ searchText }: { searchText: string }) {
     const errors = __ModListStores__.modErrorsType.use();
 
 
-    const Item = React.useCallback(React.memo(function Item({ mod, errorType }: ItemData) {
+    const Item = React.useCallback(React.memo(function Item({ mod, errorType }: {
+        mod: Mod_ALL,
+        errorType: ModErrorType,
+    }) {
         // console.log("ITEM");
-        const isSelected = __ModListStores__.selectedMod.use(sm => sm?.dirPath == mod.dirPath);
+        const isSelected = __ModListStores__.selectedMods.use(m => m.includes(mod));
 
         const ref = React.useRef<HTMLLIElement>(null);
         const status = React.useMemo(() => {
             if (errorType == ModErrorType.Error) return "error";
             else if (errorType == ModErrorType.Warn) return "warn";
             else if (errorType == ModErrorType.None) return "none";
+            return "none";
         }, [errorType]);
 
 
         //#region Events
-        const onClick = () => __ModListStores__.selectedMod.set(mod);
+        const onClick = React.useCallback((e: React.MouseEvent<HTMLElement>) => {
+            if (e.ctrlKey) {
+                __ModListStores__.selectedMods.set(mods => {
+                    if (mods.includes(mod)) return mods.filter(m => m !== mod);
+                    else return [...mods, mod];
+                });
+            } else if (e.shiftKey) {
+                const list = mod.isActive() ? __ModListStores__.enabled.get() : __ModListStores__.disabled.get();
+                const firstMod = __ModListStores__.selectedMods.get()[0];
+                if (firstMod) __ModListStores__.selectedMods.set(Select.FromTo(list, firstMod, mod));
+            } else {
+                __ModListStores__.selectedMods.set([mod]);
+            }
+        }, [mod]);
         const onMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
             if (
                 !(e.relatedTarget instanceof HTMLElement) ||
@@ -111,7 +201,9 @@ function LF_List({ searchText }: { searchText: string }) {
             ) ModTooltip.Store.set(undefined)
         }
         const onContextMenu = () => ModTooltip.Store.set({ mod, anchorEl: ref.current!, errorType });
-        const onDoubleClick = () => mod.toggleState();
+        const onDoubleClick = (e: React.MouseEvent<HTMLElement>) => {
+            if (!e.ctrlKey && !e.shiftKey) mod.toggleState()
+        };
         const onDragOver = (e: React.DragEvent<HTMLElement>) => e.preventDefault();
         const onDragStart = (e: React.DragEvent<HTMLElement>) => e.dataTransfer.setData("packageId", mod.about.packageId);
         const onDrop = React.useCallback((e: React.DragEvent<HTMLElement>) => {
@@ -131,18 +223,26 @@ function LF_List({ searchText }: { searchText: string }) {
         //#endregion
 
 
-        const BG = React.useCallback(function BG() {
+        const BG = React.useCallback(React.memo(function BG() {
             const modTags = mod.store.use(mod => mod.tags, Tag.storeComparePattern("color"));
             if (modTags.length <= 0) return null;
             return <div className="background" style={{ background: `linear-gradient(90deg, transparent 50%, ${modTags.map(t => t.color).join(", ")})` }} />;
-        }, [mod]);
+        }), [mod]);
+
+        const Icon = React.useCallback(React.memo(function Icon() {
+            const showModIcon = __ModListStores__.showModIcon.use();
+            return <div
+                className="icon"
+                style={{ width: 18, height: 18 }}
+            >{showModIcon ? mod.getSelfIcon({}) : mod.getTypeIcon()}</div>;
+        }), [mod]);
 
 
         return (
             <li
                 ref={ref}
                 className={`list-item ${isSelected ? "selected" : ""} ${modListItemClass}`}
-                style={{ height: itemHeight }}
+                // style={{ height: itemHeight }}
                 data-mod-path={mod.dirPath}
                 data-status={status}
                 draggable
@@ -155,28 +255,11 @@ function LF_List({ searchText }: { searchText: string }) {
                 onDrop={onDrop}
             >
                 <BG />
-                <div className="icon">{mod.getIcon()}</div>
+                <Icon />
                 <div className="label">{mod.about.name}</div>
             </li>
         )
     }), []);
-    // const Item_R = React.useCallback(React.memo(function Item_R({ data, index, style }: ListChildComponentProps<ItemData_R>) {
-    //     const mod = data.list[index]!;
-    //     const errorType = data.errors[mod.about.packageId]!;
-    //     return (
-    //         <Box style={style}>
-    //             <Item mod={mod} errorType={errorType} />
-    //         </Box>
-    //     );
-    // }, (prev, next) => {
-    //     const prevMod = prev.data.list[prev.index]!;
-    //     const nextMod = next.data.list[next.index]!;
-
-    //     const prevErrorType = prev.data.errors[prevMod.about.packageId]!;
-    //     const nextErrorType = next.data.errors[nextMod.about.packageId]!;
-
-    //     return prevMod.dirPath === nextMod.dirPath && prevErrorType === nextErrorType && prev.index === next.index;
-    // }), []);
 
     function LoadingElement() {
         return (
@@ -187,58 +270,87 @@ function LF_List({ searchText }: { searchText: string }) {
     }
 
 
-
-    const filter = React.useCallback(function filter(mods: Mod_ALL[]) {
-        return mods.filter(mod =>
-            mod.about.name.toLowerCase().includes(searchText.toLowerCase()) &&
-            (!filterByTags.size || mod.tags.some(t => filterByTags.has(t))))
-    }, [searchText, filterByTags]);
+    const checkByTags = React.useCallback(function checkByTags(mod: Mod) {
+        return !filterByTags.size || mod.tags.some(t => filterByTags.has(t))
+    }, [filterByTags]);
 
 
-    const LeftList = React.useCallback(function LeftList({ modErrors }: { modErrors: typeof errors }) {
-        const isLoaded = __GlobalStores__.isLoaded.use();
-        const unactives = __ModListStores__.unactives.use();
-        const filteredUnactivesMods = React.useMemo(() => filter(unactives), [unactives, filter]);
+    // const filter = React.useCallback(function filter(mods: Mod_ALL[]) {
+    //     return mods.filter(mod =>
+    //         mod.about.name.toLowerCase().includes(searchTextD.toLowerCase()) &&
+    //         checkByTags(mod)
+    //     )
+    // }, [searchTextD, filterByTags]);
+
+
+    const DisabledList = React.useCallback(function LeftList({ modErrors }: { modErrors: typeof errors }) {
+        const RenderList = React.useCallback(React.memo(function RenderList() {
+            const isLoaded = __GlobalStores__.isLoaded.use();
+            const disabledList = __ModListStores__.disabled.use();
+            const searchTextD = __ModListStores__.searchTextD.use();
+
+            const filteredUnactivesMods = React.useMemo(() =>
+                disabledList.filter(mod =>
+                    mod.about.name.toLowerCase().includes(searchTextD.toLowerCase()) &&
+                    checkByTags(mod)
+                ),
+                [searchTextD, disabledList, checkByTags]
+            );
+
+
+            if (!isLoaded) return <LoadingElement />;
+            return (
+                <Virtuoso
+                    ref={LListRef}
+                    data={filteredUnactivesMods}
+                    totalCount={filteredUnactivesMods.length}
+                    style={{ flex: 1 }}
+                    // fixedItemHeight={itemHeight}
+                    itemContent={(index, item) => (
+                        <Item
+                            mod={item}
+                            errorType={modErrors[item.about.packageId]!}
+                        />
+                    )}
+                />
+            )
+        }), []);
+
         return (
             <List
+                size="sm"
                 variant="outlined"
                 sx={{ flex: 1, overflow: "hidden" }}
             >
-                {!isLoaded ? <LoadingElement />
-                    : <Virtuoso
-                        ref={LListRef}
-                        data={filteredUnactivesMods}
-                        totalCount={filteredUnactivesMods.length}
-                        style={{ flex: 1 }}
-                        fixedItemHeight={itemHeight}
-                        itemContent={(index, item) => (
-                            <Item
-                                mod={item}
-                                errorType={modErrors[item.about.packageId]!}
-                            />
-                        )}
-                    />
-                }
+                <RenderList />
             </List>
         )
-    }, [filter]);
-    const RightList = React.useCallback(function RightList({ modErrors }: { modErrors: typeof errors }) {
+    }, [checkByTags]);
+    const EnabledList = React.useCallback(function RightList({ modErrors }: { modErrors: typeof errors }) {
         const isLoaded = __GlobalStores__.isLoaded.use();
-        const actives = __ModListStores__.actives.use();
-        const filteredActivesMods = React.useMemo(() => filter(actives), [actives, filter]);
+        const enabledList = __ModListStores__.enabled.use();
+        const searchTextE = __ModListStores__.searchTextE.use();
+        const filteredActivesMods = React.useMemo(() =>
+            enabledList.filter(mod =>
+                mod.about.name.toLowerCase().includes(searchTextE.toLowerCase()) &&
+                checkByTags(mod)
+            ),
+            [searchTextE, enabledList, checkByTags]
+        );
         const activeModsErrorType = React.useMemo(() => {
             let prevE: ModErrorType = ModErrorType.None;
 
-            for (const m of actives) {
+            for (const m of enabledList) {
                 const e = modErrors[m.about.packageId];
                 if (e == ModErrorType.Error) return e;
                 else if (e !== undefined && prevE < e) prevE = e;
             }
             return prevE;
-        }, [modErrors, actives]);
+        }, [modErrors, enabledList]);
 
         return (
             <List
+                size="sm"
                 variant="outlined"
                 sx={{ flex: 1, overflow: "hidden" }}
                 color={activeModsErrorType == ModErrorType.Error ? "danger" : activeModsErrorType == ModErrorType.Warn ? "warning" : undefined}
@@ -249,7 +361,7 @@ function LF_List({ searchText }: { searchText: string }) {
                         data={filteredActivesMods}
                         totalCount={filteredActivesMods.length}
                         style={{ flex: 1 }}
-                        fixedItemHeight={itemHeight}
+                        // fixedItemHeight={itemHeight}
                         itemContent={(index, item) => (
                             <Item
                                 mod={item}
@@ -260,14 +372,14 @@ function LF_List({ searchText }: { searchText: string }) {
                 }
             </List>
         )
-    }, [filter]);
+    }, [checkByTags]);
 
 
 
     return (
         <>
-            <LeftList modErrors={errors} />
-            <RightList modErrors={errors} />
+            <DisabledList modErrors={errors} />
+            <EnabledList modErrors={errors} />
         </>
     )
 }
@@ -337,7 +449,7 @@ ModTooltip.Content = function Content({ mod, errorType }: {
             key={mod.about.packageId}
             onClick={e => {
                 if (e.target instanceof HTMLElement && e.target.classList.contains("MuiButton-root")) return
-                __ModListStores__.selectedMod.set(mod);
+                __ModListStores__.selectedMods.set([mod]);
             }}
         >
             <Typography level="body-xs">{mod.about.name} ({mod.about.packageId})</Typography>
@@ -405,13 +517,7 @@ ModTooltip.Content = function Content({ mod, errorType }: {
         <Stack spacing={2} p={1} divider={<Divider />} maxWidth={500}>
             {ErrorReport}
             <ModTagList mod={mod} />
-            <ButtonGroup>
-                <Button sx={{ pointerEvents: "none" }}>{Localize("actions.open")}</Button>
-                <IconButton variant="solid" onClick={() => mod.openDir()}><FolderIcon /></IconButton>
-                {mod.hasSourceUrl() && <IconButton variant="solid" onClick={() => mod.openSource()}><LinkIcon /></IconButton>}
-                {mod.isSteam() && <IconButton variant="solid" onClick={() => mod.openInSteam()}><SteamIcon /></IconButton>}
-                {mod.isGit() && <IconButton variant="solid" onClick={() => mod.openInGit()}><GithubIcon /></IconButton>}
-            </ButtonGroup>
+            <ModActions mod={mod} />
         </Stack>
     )
 }
@@ -427,28 +533,30 @@ function useKeyControls({ LListRef, RListRef }: {
     LListRef: React.RefObject<VirtuosoHandle | null>,
     RListRef: React.RefObject<VirtuosoHandle | null>,
 }) {
-    const lastUnaI = React.useRef(0);
-    const lastAI = React.useRef(0);
-
-    // const selectedMod = __ContextStores__.selectedMod.use();
+    const lastDIndex = React.useRef(0);
+    const lastEIndex = React.useRef(0);
 
     function getData(dataOfValue: boolean) {
         return dataOfValue
-            ? { index: lastAI, list: __ModListStores__.actives.get(), ref: RListRef }
-            : { index: lastUnaI, list: __ModListStores__.unactives.get(), ref: LListRef };
+            ? { index: lastEIndex, list: __ModListStores__.enabled.get(), ref: RListRef }
+            : { index: lastDIndex, list: __ModListStores__.disabled.get(), ref: LListRef };
     }
 
     React.useEffect(() => {
-        const move_up = ["KeyW", "ArrowUp"] as const;
-        const move_down = ["KeyS", "ArrowDown"] as const;
-        const move_vertical = [...move_up, ...move_down];
+        const keys_move_up = ["KeyW", "ArrowUp"] as const;
+        const keys_move_down = ["KeyS", "ArrowDown"] as const;
+        const keys_move_vertical = [...keys_move_up, ...keys_move_down];
 
-        const move_left = ["KeyA", "ArrowLeft"] as const;
-        const move_right = ["KeyD", "ArrowRight"] as const;
-        const move_horizontal = [...move_left, ...move_right];
+        const keys_move_left = ["KeyA", "ArrowLeft"] as const;
+        const keys_move_right = ["KeyD", "ArrowRight"] as const;
+        const keys_move_horizontal = [...keys_move_left, ...keys_move_right];
 
-        const move_all = [...move_horizontal, ...move_vertical]
-        const move_arrowNav = move_all.filter(k => k.startsWith("Arrow")) as Extract<typeof move_all[number], `Arrow${string}`>[]
+        const keys_action_blur = ["Escape"] as const;
+        const keys_action_toggle = ["Enter", "Space"] as const;
+
+        const keys_move_all = [...keys_move_horizontal, ...keys_move_vertical];
+        const keys_actions_all = [...keys_action_toggle, ...keys_action_blur];
+        const keys_all = [...keys_move_all, ...keys_actions_all];
 
         function onKeyDown(ev: KeyboardEvent) {
             const target = ev.target as HTMLElement;
@@ -459,38 +567,58 @@ function useKeyControls({ LListRef, RListRef }: {
                 target.isContentEditable
             ) return;
 
-            const currentDataValue = (__ModListStores__.selectedMod.get()?.isActive() ?? false)
+            const currentDataValue = (__ModListStores__.selectedMods.get().some(m => m.isActive()));
 
-            let targetData = getData(currentDataValue);
+            const currentData = getData(currentDataValue) as Readonly<ReturnType<typeof getData>>;
+            let targetData = { ...currentData };
 
-            if (typedInclude(["Escape"], ev.code)) {
-                __ModListStores__.selectedMod.set(undefined);
-            } else if (typedInclude(["Enter"], ev.code)) {
-                __ModListStores__.selectedMod.get()?.toggleState();
-            } else if (typedInclude(move_all, ev.code)) {
-                if (typedInclude(move_vertical, ev.code)) {
-                    if (typedInclude(move_up, ev.code)) targetData.index.current--;
-                    else if (typedInclude(move_down, ev.code)) targetData.index.current++;
+
+            if (typedInclude(keys_action_blur, ev.code)) {
+                __ModListStores__.selectedMods.set([]);
+            } else if (typedInclude(keys_action_toggle, ev.code)) {
+                __ModListStores__.selectedMods.get().forEach(m => m.toggleState());
+            } else if (typedInclude(keys_move_all, ev.code)) {
+                if (typedInclude(keys_move_vertical, ev.code)) {
+                    if (typedInclude(keys_move_up, ev.code)) targetData.index.current--;
+                    else if (typedInclude(keys_move_down, ev.code)) targetData.index.current++;
                     else throw Error("Never");
                 }
 
-                if (typedInclude(move_horizontal, ev.code)) {
+                if (typedInclude(keys_move_horizontal, ev.code) && !ev.shiftKey) {
                     targetData = getData(!currentDataValue);
                 }
 
                 if (targetData.index.current >= targetData.list.length) targetData.index.current = 0;
                 else if (targetData.index.current < 0) targetData.index.current = targetData.list.length - 1;
 
+                targetData.ref.current?.scrollToIndex({ index: targetData.index.current, align: "center" });
 
-                const t = targetData.list[targetData.index.current];
-                targetData.ref.current?.scrollToIndex({
-                    index: targetData.index.current,
-                    align: "center",
-                });
-                __ModListStores__.selectedMod.set(t);
+                if (ev.shiftKey) {
+                    const firstMod = __ModListStores__.selectedMods.get()[0];
+                    const range: [number, number] = [
+                        firstMod ? currentData.list.indexOf(firstMod) : currentData.index.current,
+                        targetData.index.current
+                    ];
+                    const needReverse = range[0] > range[1];
+                    if (needReverse) range.reverse();
+
+                    const resultRange = currentData.list.slice(range[0], range[1] + 1);
+                    if (needReverse) resultRange.reverse();
+
+                    __ModListStores__.selectedMods.set(
+                        Select.FromTo(
+                            currentData.list,
+                            firstMod ? currentData.list.indexOf(firstMod) : currentData.index.current,
+                            targetData.index.current
+                        )
+                    );
+                } else {
+                    const t = targetData.list[targetData.index.current];
+                    if (t) __ModListStores__.selectedMods.set([t]);
+                }
             }
 
-            if (typedInclude(move_arrowNav, ev.code)) ev.preventDefault();
+            if (typedInclude(keys_all, ev.code)) ev.preventDefault();
 
         }
 
@@ -500,14 +628,38 @@ function useKeyControls({ LListRef, RListRef }: {
 
     React.useEffect(() => {
         function watcher() {
-            const selectedMod = __ModListStores__.selectedMod.get();
+            const selectedMod = __ModListStores__.selectedMods.get().at(-1);
             if (!selectedMod) return;
             let targetData = getData(selectedMod.isActive());
 
             targetData.index.current = targetData.list.indexOf(selectedMod);
         }
 
-        __ModListStores__.selectedMod.subscribe(watcher);
-        return () => __ModListStores__.selectedMod.unsubscribe(watcher);
+        __ModListStores__.selectedMods.subscribe(watcher);
+        return () => __ModListStores__.selectedMods.unsubscribe(watcher);
     }, []);
+}
+
+
+namespace Select {
+    export function FromTo(list: Mod[], from: number, to: number): Mod_ALL[];
+    export function FromTo(list: Mod[], from: Mod, to: Mod): Mod_ALL[];
+    export function FromTo(list: Mod[], from: Mod | number, to: Mod | number) {
+        if (typeof from == "number" && typeof to == "number") {
+            const range: [number, number] = [from, to];
+            const needReverse = range[0] > range[1];
+            if (needReverse) range.reverse();
+
+            const resultRange = list.slice(range[0], range[1] + 1);
+            if (needReverse) resultRange.reverse();
+
+            return resultRange;
+        } else if (from instanceof Mod && to instanceof Mod) {
+            const fromI = list.indexOf(from);
+            const toI = list.indexOf(to);
+            // if (fromI == -1 || toI == -1) return null;
+
+            return FromTo(list, fromI, toI);
+        } else throw Error("400");
+    }
 }

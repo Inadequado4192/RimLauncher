@@ -56,18 +56,23 @@ abstract class Store_Base {
 
 
 
-interface IStoreParams<Data> extends StoreCreatorParams_Base {
+type IStoreParamsActions<Data> = Record<string, (data: Data) => any>
+interface IStoreParams<
+    Data,
+    Actions extends IStoreParamsActions<Data> | undefined
+> extends StoreCreatorParams_Base {
     value: (() => Promise<Data> | Data) | Data,
     watcher?: (listener: (data: Data) => void) => void,
-    // geter?: (data: Data) => NData
-    clone?: (original: Data) => Data
+    clone?: (original: Data) => Data,
+    // action?: Actions;
 }
-export class Store<Data> extends Store_Base {
+export class Store<
+    Data,
+    Actions extends IStoreParamsActions<Data> | undefined = undefined
+> extends Store_Base {
     protected __data!: Data;
-    // protected firstValue!: Data;
-    // public geter: IStoreParams<Data, NData>["geter"] & {} = () => this.__data as NData;
-
-    public constructor(params: IStoreParams<Data>) {
+    
+    public constructor(params: IStoreParams<Data, Actions>) {
         super(params);
 
 
@@ -91,7 +96,7 @@ export class Store<Data> extends Store_Base {
 
         params.watcher?.(res => {
             if (params.debugName) console.log(params.debugName, "Watched Data", res);
-            upd(res)
+            upd(res);
         });
 
         if (params.clone) this.clone = params.clone;
@@ -129,10 +134,6 @@ export class Store<Data> extends Store_Base {
         }
     }
 
-    // public clear() {
-    //     this.__data = this.firstValue;
-    // }
-
     public get() {
         return this.__data;
     }
@@ -146,7 +147,7 @@ export class Store<Data> extends Store_Base {
         this.__data = value;
     }
 
-    public clone: IStoreParams<Data>["clone"] & {} = () => { throw Error("Not implemented"); }
+    public clone: IStoreParams<Data, Actions>["clone"] & {} = () => { throw Error("Not implemented"); }
 
     public update(mutator: (draft: Data) => void) {
         const copy = this.clone(this.__data);
@@ -277,7 +278,7 @@ export function deepEqual(a: any, b: any): boolean {
 
 
 export namespace StoreCompares {
-    export function primitiveArraysEqual(a: string[], b: string[]): boolean {
+    export function primitiveArraysEqual(a: any[], b: any[]): boolean {
         if (a.length !== b.length) return false;
         return a.every((v, i) => v === b[i]);
     }

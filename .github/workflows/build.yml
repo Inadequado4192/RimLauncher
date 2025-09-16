@@ -71,7 +71,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ github.event_name == 'workflow_dispatch' && format('temp-{0}', github.sha) || github.ref_name }}
-          name: Release ${{ github.event_name == 'workflow_dispatch' && format('Temp {0}', github.sha) || github.ref_name }}
+          name: ${{ github.event_name == 'workflow_dispatch' && format('Temp {0}', github.sha) || github.ref_name }}
           bodyFile: RELEASE.md
           artifacts: dist/**
           draft: true

@@ -20,6 +20,7 @@
             "gameVersion": "Версія гри",
             "DLC": "DLC",
             "countOfMods": "Кількість модів",
+            "details": "Детальніше",
             "validation": {
                 "thisNameAlreadyUsed": "Ця назва вже використовується."
             }
@@ -144,7 +145,8 @@
             "notFound": "{0} не знайдено",
             "missingSteamId": "Відсутній Steam ID",
             "loadingErrors": "Помилки завантаження: {0}",
-            "unableRetrieveChangeNotes": "Не вдалося отримати примітки до змін. Можливо, відсутнє з’єднання. Повідомлення: {0}"
+            "unableRetrieveChangeNotes": "Не вдалося отримати примітки до змін. Можливо, відсутнє з’єднання.",
+            "checkForUpdatesAndNotify": "Помилка під час перевірки оновлень"
         },
         "info": {
             "authors": "Автори",

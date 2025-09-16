@@ -20,6 +20,7 @@
             "gameVersion": "Game Version",
             "DLC": "DLC",
             "countOfMods": "Count of Mods",
+            "details": "details",
             "validation": {
                 "thisNameAlreadyUsed": "This name is already used."
             }
@@ -144,7 +145,8 @@
             "notFound": "{0} not found",
             "missingSteamId": "Missing Steam id",
             "loadingErrors": "Loading Errors: {0}",
-            "unableRetrieveChangeNotes": "Unable to retrieve сhange notes. There may be a missing connection. Message: {0}"
+            "unableRetrieveChangeNotes": "Unable to retrieve сhange notes. There may be a missing connection.",
+            "checkForUpdatesAndNotify": "Error during update check"
         },
         "info": {
             "authors": "Authors",

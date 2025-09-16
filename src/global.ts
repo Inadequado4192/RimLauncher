@@ -34,6 +34,7 @@ declare global {
         dirPath: string,
         about: ModMetaData,
         previewPath?: string,
+        iconPath?: string,
         warnings: ModReadingProblem[],
     }
     type ModReadingInfo_ALL = ModReadingInfo_DLC | ModReadingInfo_Steam | ModReadingInfo_Local | ModReadingInfo_Git;

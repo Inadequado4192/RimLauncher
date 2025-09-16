@@ -3,8 +3,9 @@ import { Button, Modal, ModalDialog, DialogContent, DialogActions, DialogTitle, 
 import React from "react";
 import { createService } from "./BaseService";
 import Localize from "@Common/Localize";
-import { AlertService, createErrorAlert } from "./Alert";
+import { AlertService } from "./Alert";
 import { AlertBigService } from "./AlertBig";
+import TemplateServices from "./TemplateServices";
 
 
 
@@ -16,7 +17,7 @@ export interface Data {
         setValues(progress: number, message: string): void;
         close(): void,
         onError(err: any): void
-    }): Promise<void>
+    }): Promise<void> | void
 }
 
 
@@ -31,23 +32,26 @@ export const {
         const [message, setMessage] = React.useState<string>();
 
         React.useEffect(() => {
-            props.effect({
-                setProgress,
-                setMessage,
-                setValues(progress, message) {
-                    setProgress(progress);
-                    setMessage(message);
-                },
-                close: () => props._close(),
-                onError(err) {
-                    props._close()
-                    createErrorAlert(err);
-                },
-            })
-                .catch(err => {
+            (async () => {
+                try {
+                    await props.effect({
+                        setProgress,
+                        setMessage,
+                        setValues(progress, message) {
+                            setProgress(progress);
+                            setMessage(message);
+                        },
+                        close: () => props._close(),
+                        onError(err) {
+                            props._close()
+                            TemplateServices.createErrorAlert(err);
+                        },
+                    });
+                } catch (err) {
                     props._close();
-                    createErrorAlert(err);
-                });
+                    TemplateServices.createErrorAlert(err);
+                }
+            })();
         }, []);
 
         return (

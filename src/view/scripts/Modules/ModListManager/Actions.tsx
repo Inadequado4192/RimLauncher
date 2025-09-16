@@ -48,7 +48,7 @@ function OpenPacks() {
 
     return (
         <>
-            <Button size="sm" onClick={onLoad} startDecorator={<ListAltIcon />}>{Localize("mods.modPacks")}</Button>
+            <Button onClick={onLoad} startDecorator={<ListAltIcon />}>{Localize("mods.modPacks")}</Button>
             <ModPackListWindowModal open={isOpen} onClose={onClose} />
         </>
     )
@@ -172,7 +172,7 @@ function Sort() {
     }, [DirectedAcyclicGraph]);
 
     function onSort() {
-        const result = trySortMods([...__ModListStores__.actives.get()]).map(a => a.about.packageId);
+        const result = trySortMods([...__ModListStores__.enabled.get()]).map(a => a.about.packageId);
         $invoke.setActiveMods(result);
     }
     return (
@@ -196,7 +196,7 @@ function ClearActiveMods() {
 
 function Stats() {
     const Count = React.useCallback(React.memo(function Count() {
-        const activesLength = __ModListStores__.actives.use(l => l.length);
+        const activesLength = __ModListStores__.enabled.use(l => l.length);
         const modsLength = __GlobalStores__.mods.use(l => Object.keys(l).length);
 
         return Localize("mods.activeMods", [activesLength, modsLength]);
@@ -215,7 +215,7 @@ function Stats() {
                     val.count++;
                     map.set(type, val);
                 } else {
-                    map.set(type, { count: 1, icon: mod.getIcon({ fontSize: "small" }) });
+                    map.set(type, { count: 1, icon: mod.getTypeIcon({ fontSize: "small" }) });
                 }
             }
 
