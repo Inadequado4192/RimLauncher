@@ -1,5 +1,12 @@
 # Changelog
 
+## [v2.0.0] - 2026-11-16
+
+### Changed
+- Completely restructured the project architecture.
+- Improved application performance.
+- Updated configuration and mod pack formats. Previous configurations and mod packs are no longer compatible.
+
 ## [v1.0.3] - 2025-09-16
 
 ### Added

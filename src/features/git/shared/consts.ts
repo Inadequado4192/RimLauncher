@@ -1,0 +1,1 @@
+export const GitInfoFileName = "git-info.json";

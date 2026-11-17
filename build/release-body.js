@@ -13,4 +13,4 @@ for (const line of CHANGELOG.split("\n")) {
     if (start) result += line + "\n";
 }
 
-fs.writeFileSync("RELEASE.md", result.trim());
+fs.writeFileSync("release-notes.md", result.trim());

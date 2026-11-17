@@ -1,0 +1,226 @@
+{
+    "name": "Українська",
+    "code": "uk",
+    "keys": {
+        "common": {
+            "status": {
+                "loading": "Завантаження...",
+                "downloading": "Завантаження...",
+                "error": "Помилка"
+            },
+            "answers": {
+                "yes": "Так",
+                "no": "Ні"
+            },
+            "actions": {
+                "open": "Відкрити",
+                "close": "Закрити",
+                "cancel": "Скасувати",
+                "save": "Зберегти",
+                "load": "Завантажити",
+                "add": "Додати",
+                "create": "Створити",
+                "refresh": "Оновити",
+                "delete": "Видалити",
+                "rename": "Перейменувати",
+                "change": "Змінити",
+                "update": "Оновити",
+                "install": "Встановити",
+                "import": "Імпортувати",
+                "use": "Використати",
+                "run": "Запустити",
+                "sort": "Сортувати",
+                "search": "Пошук",
+                "enable": "Увімкнути",
+                "disable": "Вимкнути",
+                "removeAll": "Видалити все",
+                "review": "Перевірити",
+                "report": "Повідомити",
+                "select": "Вибрати",
+                "next": "Далі",
+                "later": "Пізніше",
+                "recolor": "Змінити колір",
+                "continue": "Продовжити",
+                "confirmAction": "Підтвердити дію",
+                "openConfig": "Відкрити налаштування"
+            },
+            "fields": {
+                "name": "Назва",
+                "version": "Версія",
+                "size": "Розмір",
+                "url": "URL",
+                "color": "Колір",
+                "details": "Деталі",
+                "warnings": "Попередження",
+                "actions": "Дії",
+                "DLC": "DLC",
+                "issues": "Проблеми",
+                "updateTime": "Час оновлення"
+            },
+            "validation": {
+                "nameAlreadyUsed": "Ця назва вже використовується.",
+                "blank": "Це поле не може бути порожнім"
+            },
+            "errors": {
+                "pathEmpty": "Шлях порожній",
+                "notFound": "«{0}» не знайдено",
+                "notFoundIn": "«{0}» не знайдено в «{1}»",
+                "pathNotFound": "Шлях не існує",
+                "fileNameTaken": "Ця назва файлу вже використовується",
+                "unexpected": "Непередбачена помилка"
+            },
+            "confirm": {
+                "delete": "Підтвердити видалення"
+            }
+        },
+        "mainWindow": {
+            "tabs": {
+                "modListManager": "Менеджер списку модів",
+                "xmlModBuilder": "Редактор XML-модів"
+            },
+            "directories": {
+                "openMenu": "Відкрити...",
+                "_modPacks": "Збірки модів",
+                "_steam": "Папка Steam",
+                "_game": "Папка гри",
+                "_gameConfig": "Налаштування гри",
+                "_userConfig": "Налаштування користувача"
+            },
+            "settings": {
+                "title": "Налаштування",
+                "closeWindowAfterRun": "Закривати вікно після запуску",
+                "theme": {
+                    "label": "Тема",
+                    "dark": "Темна",
+                    "light": "Світла"
+                },
+                "paths": {
+                    "title": "Шляхи",
+                    "steam": "Шлях до Steam",
+                    "game": "Шлях до гри"
+                },
+                "errors": {
+                    "notFound": "Шлях не існує",
+                    "notSteamDir": "Це не схоже на папку Steam",
+                    "notGameDir": "У цій папці не знайдено файл RimWorld"
+                }
+            },
+            "bugReport": {
+                "title": "Звіт про помилку",
+                "message": "Знайшли помилку або хочете запропонувати покращення?\nСтворіть нове Issue на GitHub.\n\nЩоб ми могли швидше розібратися, додайте:\n• що ви очікували побачити\n• що сталося насправді\n• кроки для відтворення\n• версію лаунчера.",
+                "reportWithAI": {
+                    "label": "Створити звіт за допомогою ШІ",
+                    "prompt": "Створити Issue у {0}, щоб"
+                }
+            }
+        },
+        "game-info": {
+            "errors": {
+                "noGamePath": "Шлях до гри не вказано."
+            }
+        },
+        "language": {
+            "config": "Мова"
+        },
+        "mods": {
+            "list": {
+                "activeCount": "Активні моди: {0} / {1}",
+                "clearActive": "Очистити список активних модів",
+                "loadingErrors": "Помилки завантаження: {0}",
+                "sections": {
+                    "windows": "Вікна",
+                    "modList": "Список модів",
+                    "stats": "Статистика",
+                    "tags": "Теги"
+                }
+            },
+            "details": {
+                "empty": "Виберіть мод",
+                "authors": "Автори",
+                "description": "Опис",
+                "supportedVersions": "Підтримувані версії",
+                "gameVersion": "Версія гри",
+                "multiplayerCompatibility": "Сумісність із мультиплеєром",
+                "tags": "Теги"
+            },
+            "actions": {
+                "openDirectory": "Відкрити папку",
+                "openSource": "Відкрити джерело",
+                "openInSteam": "Відкрити в Steam",
+                "unsubscribe": "Скасувати підписку"
+            },
+            "issues": {
+                "wrongVersion": "Неправильна версія мода",
+                "missingVersion": "Не вказано версію мода",
+                "missingDependencies": "Відсутні залежності",
+                "incompatibleWith": "Несумісний із",
+                "loadBefore": "Завантажити перед",
+                "loadAfter": "Завантажити після",
+                "duplicate": "Дублікат мода"
+            },
+            "unknownPackageIds": {
+                "title": "Невідомі PackageId",
+                "message": "Ці PackageId є в списку активних модів, але відповідні моди не завантажені. Видалити їх?"
+            },
+            "modInfo": {
+                "selectMod": "Виберіть мод"
+            },
+            "errors": {
+                "badAboutXml": "У файлі «About.xml» є помилки:\n{0}",
+                "missingSteamId": "Відсутній Steam ID",
+                "modsConfigXmlNotFound": "Не вдалося знайти шлях до «ModsConfig.xml». Зверніться до служби підтримки. Шлях, за яким шукаємо файл: {0}"
+            }
+        },
+        "modPacks": {
+            "title": "Збірки модів",
+            "modCount": "Кількість модів",
+            "packVersion": "Версія збірки",
+            "missingMods": "Ці моди відсутні",
+            "confirm": {
+                "update": "Оновити цю збірку модів?"
+            }
+        },
+        "tags": {
+            "title": "Теги"
+        },
+        "steamUpdates": {
+            "title": "Оновлення Steam",
+            "hint": "Оновлення модів зі Steam перевіряються через Майстерню, а не шляхом зміни файлів. Тому нові оновлення можуть бути ще не завантажені.",
+            "lastUpdate": "Останнє оновлення"
+        },
+        "appUpdates": {
+            "checking": "Перевірка оновлень",
+            "latestVersion": "Остання версія",
+            "available": "Доступне оновлення",
+            "autoUpdateNotSupported": "Цей формат не підтримує автооновлення",
+            "checkFailed": "Помилка під час перевірки оновлень",
+            "changeNotesFailed": "Не вдалося отримати список змін. Можливо, немає з'єднання.",
+            "ready": {
+                "title": "Оновлення готове до встановлення",
+                "message": "Останню версію завантажено. Перезапустити зараз, щоб встановити оновлення?"
+            }
+        },
+        "git": {
+            "title": "Git",
+            "openInGit": "Відкрити в Git",
+            "fields": {
+                "provider": "Провайдер",
+                "brench": "Гілка"
+            },
+            "errors": {
+                "badGitInfo": "У файлі «gitInfo.xml» є помилки:\n{0}"
+            }
+        },
+        "mods-config": {
+            "title": "Налаштування модів"
+        },
+        "user-config": {
+            "title": "Налаштування користувача",
+            "paths": {
+                "local-mods": "Локальні моди",
+                "official-mods": "Офіційні моди",
+                "workshop-mods": "Моди з Майстерні"
+            }
+        }
+    }
+}

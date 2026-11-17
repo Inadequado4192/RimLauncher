@@ -1,12 +1,8 @@
 {
     "appId": "com.inadequado4192.rimlauncher",
     "files": [
-        "./.webpack/*",
-        "!node_modules",
-        {
-            "from": "src/resources",
-            "to": "."
-        }
+        ".webpack/**/*",
+        "!node_modules"
     ],
     "directories": {
         "buildResources": "."
@@ -19,6 +15,9 @@
             "repo": "RimLauncher"
         }
     ],
+    "releaseInfo": {
+        "releaseNotesFile": "release-notes.md"
+    },
     "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
     "extraMetadata": {
     "archMapping": {

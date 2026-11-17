@@ -1,0 +1,1 @@
+export const startFeatures = (inits: (() => void | Promise<void>)[]) => inits.forEach((i) => i());

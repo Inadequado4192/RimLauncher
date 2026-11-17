@@ -1,0 +1,221 @@
+{
+    "name": "English",
+    "code": "en",
+    "keys": {
+        "common": {
+            "status": {
+                "loading": "Loading...",
+                "downloading": "Downloading...",
+                "error": "Error"
+            },
+            "answers": {
+                "yes": "Yes",
+                "no": "No"
+            },
+            "actions": {
+                "open": "Open",
+                "close": "Close",
+                "cancel": "Cancel",
+                "save": "Save",
+                "load": "Load",
+                "add": "Add",
+                "create": "Create",
+                "refresh": "Refresh",
+                "delete": "Delete",
+                "rename": "Rename",
+                "change": "Change",
+                "update": "Update",
+                "install": "Install",
+                "import": "Import",
+                "use": "Use",
+                "run": "Run",
+                "sort": "Sort",
+                "search": "Search",
+                "enable": "Enable",
+                "disable": "Disable",
+                "removeAll": "Remove all",
+                "review": "Review",
+                "report": "Report",
+                "select": "Select",
+                "next": "Next",
+                "later": "Later",
+                "recolor": "Recolor",
+                "continue": "Continue",
+                "confirmAction": "Confirm action",
+                "openConfig": "Open config"
+            },
+            "fields": {
+                "name": "Name",
+                "version": "Version",
+                "size": "Size",
+                "url": "URL",
+                "color": "Color",
+                "details": "Details",
+                "warnings": "Warnings",
+                "actions": "Actions",
+                "DLC": "DLC",
+                "issues": "Issues",
+                "updateTime": "Update Time"
+            },
+            "validation": {
+                "nameAlreadyUsed": "This name is already in use.",
+                "blank": "This field cannot be left blank"
+            },
+            "errors": {
+                "pathEmpty": "The path is empty",
+                "notFound": "“{0}” not found",
+                "notFoundIn": "“{0}” not found in “{1}”",
+                "pathNotFound": "The path does not exist",
+                "fileNameTaken": "The file name is already in use",
+                "unexpected": "An Unexpected Error"
+            },
+            "confirm": {
+                "delete": "Confirm deletion"
+            }
+        },
+        "mainWindow": {
+            "tabs": {
+                "modListManager": "Mod List Manager",
+                "xmlModBuilder": "XML Mod Builder"
+            },
+            "directories": {
+                "openMenu": "Open..."
+            },
+            "settings": {
+                "title": "Config",
+                "closeWindowAfterRun": "Close window after run",
+                "theme": {
+                    "label": "Theme",
+                    "dark": "Dark",
+                    "light": "Light"
+                },
+                "paths": {
+                    "title": "Paths",
+                    "steam": "Path to Steam",
+                    "game": "Path to Game"
+                },
+                "errors": {
+                    "notFound": "The path does not exist",
+                    "notSteamDir": "This does not look like a Steam directory",
+                    "notGameDir": "RimWorld executable not found in this directory"
+                }
+            },
+            "bugReport": {
+                "title": "Bug Report",
+                "message": "Did you find a bug or want to suggest an improvement?\nPlease create a new Issue on GitHub.\n\nTo help us fix it faster, please include:\n• what you expected to see\n• what actually happened\n• steps to reproduce\n• launcher version.",
+                "reportWithAI": {
+                    "label": "Report With AI",
+                    "prompt": "Create an issue in {0} to"
+                }
+            }
+        },
+        "game-info": {
+            "errors": {
+                "noGamePath": "The path to the game is not provided."
+            }
+        },
+        "language": {
+            "config": "Language"
+        },
+        "mods": {
+            "list": {
+                "activeCount": "Active Mods: {0} / {1}",
+                "clearActive": "Clear active mods",
+                "loadingErrors": "Loading Errors: {0}",
+                "sections": {
+                    "windows": "Windows",
+                    "modList": "Mod List",
+                    "stats": "Stats",
+                    "tags": "Tags"
+                }
+            },
+            "details": {
+                "empty": "Select Mod",
+                "authors": "Authors",
+                "description": "Description",
+                "supportedVersions": "Supported Versions",
+                "gameVersion": "Game Version",
+                "multiplayerCompatibility": "Multiplayer Compatibility",
+                "tags": "Tags"
+            },
+            "actions": {
+                "openDirectory": "Open Directory",
+                "openSource": "Open Source",
+                "openInSteam": "Open in Steam",
+                "unsubscribe": "Unsubscribe"
+            },
+            "issues": {
+                "wrongVersion": "Wrong Mod Version",
+                "missingVersion": "Missing Mod Version",
+                "missingDependencies": "Missing Dependencies",
+                "incompatibleWith": "Incompatible With",
+                "loadBefore": "Load Before",
+                "loadAfter": "Load After",
+                "duplicate": "Duplicate Mod"
+            },
+            "unknownPackageIds": {
+                "title": "Unknown PackageIds",
+                "message": "These PackageIds are active in the mod list but have not been downloaded. Would you like to delete them?"
+            },
+            "modInfo": {
+                "selectMod": "Select a Mod"
+            },
+            "errors": {
+                "badAboutXml": "“About.xml” contains errors:\n{0}",
+                "missingSteamId": "Missing Steam ID",
+                "modsConfigXmlNotFound": "The program could not find the path to “ModsConfig.xml”. Contact Support. The path where we are looking for the file: {0}"
+            }
+        },
+        "modPacks": {
+            "title": "Mod Packs",
+            "modCount": "Count of Mods",
+            "packVersion": "Modpack version",
+            "missingMods": "These mods are missing",
+            "confirm": {
+                "update": "Are you sure you want to update this modpack?"
+            }
+        },
+        "tags": {
+            "title": "Tags"
+        },
+        "steamUpdates": {
+            "title": "Steam Updates",
+            "hint": "Updates for Steam mods are checked via the Workshop rather than by modifying your files, which means new updates might not have been downloaded yet.",
+            "lastUpdate": "Last Update"
+        },
+        "appUpdates": {
+            "checking": "Checking for updates",
+            "latestVersion": "Latest Version",
+            "available": "Update Available",
+            "autoUpdateNotSupported": "This format does not support auto-update",
+            "checkFailed": "Error during update check",
+            "changeNotesFailed": "Unable to retrieve change notes. There may be no connection.",
+            "ready": {
+                "title": "Update Ready to Install",
+                "message": "The latest version has been downloaded. Restart now to apply the update?"
+            }
+        },
+        "git": {
+            "title": "Git",
+            "openInGit": "Open in Git",
+            "fields": {
+                "provider": "Provider",
+                "brench": "Brench"
+            },
+            "errors": {
+                "badGitInfo": "“gitInfo.xml” contains errors:\n{0}"
+            }
+        },
+        "mods-config": {
+            "title": "Mods config"
+        },
+        "user-config": {
+            "title": "User Config",
+            "paths": {
+                "local-mods": "Local mods",
+                "official-mods": "Offiail mods",
+                "workshop-mods": "Workshop mods"
+            }
+        }
+    }
+}
