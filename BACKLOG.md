@@ -9,3 +9,4 @@
 - [ ] Update packages (electron)
 - [ ] Display the load progress on the Badge (SteamModsButton)
 - [ ] Track the game’s launch
+- [ ] Fix ChangeLog dialog (add wrap)
