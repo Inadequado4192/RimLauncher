@@ -6,3 +6,4 @@ RELEASE.md
 tmp/
 release-notes.md
 dev-app-update.yml
+tsconfig.tsbuildinfo
