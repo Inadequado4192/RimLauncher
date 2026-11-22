@@ -4,6 +4,8 @@ import { localize, useLocalize } from "#features/localization/renderer";
 import { createBackgroundTask, createConfirm, createDialog } from "#features/overlays/renderer";
 import { Box, Button, DialogActions, DialogContent, DialogTitle, Link, ModalDialog } from "@mui/joy";
 import { useEffect, useState } from "react";
+import DOMPurify from "dompurify";
+import { marked } from "marked";
 
 export function CheckAppUpdates() {
     const [loading, setLoading] = useState(true);
@@ -57,6 +59,11 @@ export function CheckAppUpdates() {
 
 function MoreAboutVersionDialog({ updateCheckResult }: { updateCheckResult: CheckForUpdatesResult }) {
     const t = useLocalize();
+    const releaseNotes = updateCheckResult.updateInfo.releaseNotes;
+    const markdown = typeof releaseNotes === "string"
+        ? releaseNotes
+        : releaseNotes?.map(note => note.note).filter(Boolean).join("\n\n") ?? "";
+    const releaseNotesHtml = DOMPurify.sanitize(marked.parse(markdown, { async: false }) as string);
 
 
     return (
@@ -73,7 +80,7 @@ function MoreAboutVersionDialog({ updateCheckResult }: { updateCheckResult: Chec
                             color: "var(--joy-palette-text-primary)"
                         }
                     }}
-                    dangerouslySetInnerHTML={{ __html: String(updateCheckResult.updateInfo.releaseNotes) }}
+                    dangerouslySetInnerHTML={{ __html: releaseNotesHtml }}
                 />
                 <Link href="https://github.com/Inadequado4192/RimLauncher/blob/main/CHANGELOG.md">CHANGELOG</Link>
             </DialogContent>
