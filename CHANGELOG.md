@@ -1,9 +1,16 @@
 # Changelog
 
-## [Unreleased]
+## [v2.1.0] - 2026-11-22
+
+### Added
+- Added launch and stop controls for the RimWorld process, including live running-state detection.
 
 ### Changed
 - Improved update indicators and handling for mod update states.
+- Marked macOS as unsupported and removed macOS from release builds.
+
+### Fixed
+- Fixed Markdown formatting in application update release notes.
 
 ## [v2.0.0] - 2026-11-16
 

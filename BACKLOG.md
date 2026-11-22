@@ -8,5 +8,5 @@
 - [ ] Improve error handling
 - [ ] Update packages (electron)
 - [x] Display the load progress on the Badge (SteamModsButton)
-- [ ] Track the game’s launch
-- [ ] Fix ChangeLog dialog (add wrap)
+- [x] Track the game’s launch
+- [x] Fix ChangeLog dialog (add wrap)
