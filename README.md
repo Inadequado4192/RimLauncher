@@ -12,7 +12,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-Supported-112233?logo=windows&logoColor=fff" />
   <img src="https://img.shields.io/badge/Linux-Untested-303030?logo=linux&logoColor=fff" />
-  <img src="https://img.shields.io/badge/macOS-Untested-303030?logo=apple&logoColor=fff" />
+  <img src="https://img.shields.io/badge/macOS-Not supported (yet)-603030?logo=apple&logoColor=fff" />
 </p>
 
 <p align="center">
