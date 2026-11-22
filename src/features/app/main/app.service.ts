@@ -12,8 +12,6 @@ export class AppService implements Initializable {
     ) { }
 
     public async initialize() {
-        handle(AppIpc.GetInfo, () => ({ name: app.getName(), version: app.getVersion() }))
-
         handle(AppIpc.RunGame, async (_) => {
             shell.openExternal(`steam://launch/${SteamGameId}`);
             const doClose = await this._userConfigService.getField(CloseAfterRunField);

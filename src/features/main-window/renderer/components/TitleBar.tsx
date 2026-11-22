@@ -3,13 +3,12 @@ import CropSquareIcon from "@mui/icons-material/CropSquare";
 import CloseIcon from "@mui/icons-material/Close";
 import { useEffect, useState } from "react";
 import { ipc } from "#features/base/renderer";
-import { WindowControlsIpc } from "#features/window-controls/shared";
-import { AppIpc } from "#features/app/shared";
+import { ElectronIpc } from "#features/electron/shared";
 
 function useAppTitle() {
     const [title, setTitle] = useState("");
     useEffect(() => {
-        ipc.invoke(AppIpc.GetInfo).then((i) => setTitle(`${i.name} v${i.version}`));
+        ipc.invoke(ElectronIpc.GetAppInfo).then((i) => setTitle(`${i.name} v${i.version}`));
     }, []);
     return title;
 }
@@ -27,9 +26,9 @@ export function TitleBar() {
                 <Typography level="body-xs">{title}</Typography>
             </Stack>
             <Stack direction="row">
-                <IconButton color="neutral" onClick={() => ipc.invoke(WindowControlsIpc.Minimize)}><MiddleMinimizeIcon /></IconButton>
-                <IconButton color="neutral" onClick={() => ipc.invoke(WindowControlsIpc.ToggleMaximize)}><CropSquareIcon /></IconButton>
-                <IconButton color="danger" onClick={() => ipc.invoke(WindowControlsIpc.Close)}><CloseIcon /></IconButton>
+                <IconButton color="neutral" onClick={() => ipc.invoke(ElectronIpc.MinimizeWindow)}><MiddleMinimizeIcon /></IconButton>
+                <IconButton color="neutral" onClick={() => ipc.invoke(ElectronIpc.ToggleMaximizeWindow)}><CropSquareIcon /></IconButton>
+                <IconButton color="danger" onClick={() => ipc.invoke(ElectronIpc.CloseWindow)}><CloseIcon /></IconButton>
             </Stack>
         </Stack>
     )
