@@ -1,4 +1,4 @@
-import { PackageIdAny } from "#features/base/shared";
+import { PackageIdAny } from "#features/app/shared";
 import { ModEntry } from "#features/mod-type/shared";
 
 export function samePackageId(a1: PackageIdAny | ModEntry, a2: PackageIdAny | ModEntry, _ignorePostfix = false) {

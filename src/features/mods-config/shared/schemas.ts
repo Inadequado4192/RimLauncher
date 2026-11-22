@@ -1,4 +1,4 @@
-import { PackageId } from "#features/base/shared";
+import { PackageId } from "#features/app/shared";
 import { XMLList } from "#features/XML/shared";
 import { z } from "zod";
 

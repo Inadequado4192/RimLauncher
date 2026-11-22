@@ -1,4 +1,4 @@
-import { PackageId } from "#features/base/shared";
+import { PackageId } from "#features/app/shared";
 import z from "zod";
 
 export const modTagWriteSchema = z.object({
