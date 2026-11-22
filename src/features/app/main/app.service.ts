@@ -1,23 +1,12 @@
-import { handle, Initializable } from "#features/base/main";
+import { Initializable } from "#features/base/main";
 import { injectable } from "tsyringe";
-import { AppIpc, SteamGameId } from "../shared";
-import { UserConfigService } from "#features/user-config/main";
-import { CloseAfterRunField } from "#features/user-config/shared";
-import { app, dialog, session, shell } from "electron";
+import { app, dialog, session } from "electron";
 
 @injectable()
 export class AppService implements Initializable {
-    public constructor(
-        private _userConfigService: UserConfigService,
-    ) { }
+    public constructor() { }
 
     public async initialize() {
-        handle(AppIpc.RunGame, async (_) => {
-            shell.openExternal(`steam://launch/${SteamGameId}`);
-            const doClose = await this._userConfigService.getField(CloseAfterRunField);
-            if (doClose) _.window?.close();
-        });
-
         app.on("window-all-closed", () => {
             if (process.platform !== "darwin") app.quit();
         });

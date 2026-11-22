@@ -2,8 +2,6 @@ import { LocalizedString } from "#features/localization/shared";
 import { CheckForUpdatesResult } from "./types";
 
 export enum AppIpc {
-    RunGame = "app:run-game",
-
     CheckForUpdates = "app:check-for-updates",
     QuitAndInstall = "app:quit-and-install",
     DownloadUpdate = "app:download-update",
@@ -19,8 +17,6 @@ export type ProgressEvent = { progressId: string } & (
 
 declare module "#features/base/shared" {
     interface IpcInvokeMap {
-        [AppIpc.RunGame]: () => void,
-
         [AppIpc.CheckForUpdates]: () => CheckForUpdatesResult | null,
         [AppIpc.QuitAndInstall]: () => void,
         [AppIpc.DownloadUpdate]: () => { progressId: string },

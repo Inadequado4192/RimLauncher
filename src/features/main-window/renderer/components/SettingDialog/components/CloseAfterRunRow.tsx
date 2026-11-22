@@ -1,6 +1,6 @@
+import { CloseAfterRunField } from "#features/game-process/shared";
 import { useLocalize } from "#features/localization/renderer";
 import { useConfigField, setConfigField } from "#features/user-config/renderer";
-import { CloseAfterRunField } from "#features/user-config/shared";
 import { Typography, RadioGroup, Radio } from "@mui/joy";
 
 export function CloseAfterRunRow() {

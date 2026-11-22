@@ -41,6 +41,7 @@
                 "later": "Пізніше",
                 "recolor": "Змінити колір",
                 "continue": "Продовжити",
+                "stop": "Зупинити",
                 "confirmAction": "Підтвердити дію",
                 "openConfig": "Відкрити налаштування"
             },
@@ -221,6 +222,10 @@
                 "official-mods": "Офіційні моди",
                 "workshop-mods": "Моди з Майстерні"
             }
+        },
+        "game-process": {
+            "launching": "Запуск",
+            "stopping": "Зупинка"
         }
     }
 }

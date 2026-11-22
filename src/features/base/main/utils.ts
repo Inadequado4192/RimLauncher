@@ -2,7 +2,7 @@ import path from "path";
 
 export const isTempDir = (p: string) => path.basename(p).startsWith("~");
 
-type AccessPlatforms = Extract<typeof process.platform, "win32" | "linux" | "darwin">;
+export type AccessPlatforms = Extract<typeof process.platform, "win32" | "linux" | "darwin">;
 export function byPlatform<T>(data: Record<AccessPlatforms, () => T>): T {
     const platform = process.platform;
     if (platform === "win32" || platform === "linux" || platform === "darwin") {

@@ -10,7 +10,7 @@ import { LocalKey } from "#features/localization/shared";
 import { PublicPathsRegistry } from "#features/public-paths/main";
 import {
     ConfigField, RawConfig, PathKey, UserConfigIpc,
-    SteamPathField, GamePathField, CloseAfterRunField,
+    SteamPathField, GamePathField
 } from "../shared";
 import {
     FindGamePath, FindSteamPath, getUserConfigPath,
@@ -28,7 +28,7 @@ export class UserConfigService implements Initializable {
     private normalized: Promise<void> | null = null;
 
     public constructor(private _publicPathsRegistry: PublicPathsRegistry) {
-        [SteamPathField, GamePathField, CloseAfterRunField].forEach((f) => this.registerField(f));
+        [SteamPathField, GamePathField].forEach((f) => this.registerField(f));
     }
 
     // ---------- реєстрація полів ----------

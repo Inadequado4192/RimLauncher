@@ -41,6 +41,7 @@
                 "later": "Later",
                 "recolor": "Recolor",
                 "continue": "Continue",
+                "stop": "Stop",
                 "confirmAction": "Confirm action",
                 "openConfig": "Open config"
             },
@@ -216,6 +217,10 @@
                 "official-mods": "Offiail mods",
                 "workshop-mods": "Workshop mods"
             }
+        },
+        "game-process": {
+            "launching": "Launching",
+            "stopping": "Stopping"
         }
     }
 }
