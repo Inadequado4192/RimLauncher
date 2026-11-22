@@ -9,13 +9,14 @@ import { openInSteam } from "#features/steam/renderer";
 import { createBackgroundTask, createDialog } from "#features/overlays/renderer";
 import DOMPurify from "dompurify";
 import { ipc } from "#features/base/renderer";
+import { ResultView } from "#features/ui-kit/renderer";
 
 export function SteamUpdatesDialog({ onClose }: {
     onClose: () => void
 }) {
     const t = useLocalize();
 
-    const data = useSteamModDetails();
+    const files = useSteamModDetails();
     const [lastViewAt, setLastViewAt] = useState(0);
 
 
@@ -30,49 +31,49 @@ export function SteamUpdatesDialog({ onClose }: {
             <ModalClose onClick={onClose} />
             <DialogTitle>{t("steamUpdates.title")}</DialogTitle>
             <DialogContent>
-                {
-                    !data
-                        ? <LinearProgress />
-                        : (
-                            <TableVirtuoso
-                                style={{ height: 500 }}
-                                data={data}
-                                components={{
-                                    Table(props) {
-                                        return <Table {...props} />;
-                                    },
-                                    TableRow(props) {
-                                        const highlight = props.item.time_updated > (lastViewAt ?? Infinity)
+                <ResultView
+                    result={files}
+                    loading={<LinearProgress />}
+                    renderError={(error) => <Typography>{error}</Typography>}
+                >{(data) => (
+                    <TableVirtuoso
+                        style={{ height: 500 }}
+                        data={data}
+                        components={{
+                            Table(props) {
+                                return <Table {...props} />;
+                            },
+                            TableRow(props) {
+                                const highlight = props.item.time_updated > (lastViewAt ?? Infinity)
 
-                                        return (
-                                            <tr
-                                                {...props}
-                                                style={{
-                                                    ...props.style,
-                                                    background: highlight ? "var(--joy-palette-success-softBg)" : void 0,
-                                                    color: highlight ? "var(--joy-palette-success-softColor)" : void 0,
-                                                    verticalAlign: "baseline",
-                                                }}
-                                            />
-                                        )
-                                    }
-                                }}
-                                fixedHeaderContent={function fixedHeaderContent() {
-                                    return (
-                                        <tr>
-                                            <th style={{ width: 150 }}> {t("common.fields.updateTime")}</th >
-                                            <th style={{ width: 300 }}>{t("common.fields.name")}</th>
-                                            <th style={{ width: 100 }} align="right">{t("common.fields.size")}</th>
-                                            <th>{t("mods.details.description")}</th>
-                                        </tr>
-                                    )
-                                }}
-                                itemContent={function ItemContent(index, publishedFile) {
-                                    return <Content publishedFile={publishedFile} />;
-                                }}
-                            />
-                        )
-                }
+                                return (
+                                    <tr
+                                        {...props}
+                                        style={{
+                                            ...props.style,
+                                            background: highlight ? "var(--joy-palette-success-softBg)" : void 0,
+                                            color: highlight ? "var(--joy-palette-success-softColor)" : void 0,
+                                            verticalAlign: "baseline",
+                                        }}
+                                    />
+                                )
+                            }
+                        }}
+                        fixedHeaderContent={function fixedHeaderContent() {
+                            return (
+                                <tr>
+                                    <th style={{ width: 150 }}> {t("common.fields.updateTime")}</th >
+                                    <th style={{ width: 300 }}>{t("common.fields.name")}</th>
+                                    <th style={{ width: 100 }} align="right">{t("common.fields.size")}</th>
+                                    <th>{t("mods.details.description")}</th>
+                                </tr>
+                            )
+                        }}
+                        itemContent={function ItemContent(index, publishedFile) {
+                            return <Content publishedFile={publishedFile} />;
+                        }}
+                    />
+                )}</ResultView>
             </DialogContent>
         </ModalDialog>
     )
@@ -98,44 +99,7 @@ const Content = memo(function Content({ publishedFile }: { publishedFile: Publis
     )
 });
 
-// async function loadChanges() {
 
-//     createDialog(<ChangeNotesDialog />);
-//     // AlertBigService.create(({
-//     //     message() {
-//     //         const [changes, setChanges] = React.useState<Awaited<ReturnType<typeof fetchChangeNote>>>();
-
-//     //         React.useEffect(() => {
-//     //             fetchChangeNote(publishedFile.publishedfileid)
-//     //                 .then(setChanges);
-//     //         }, []);
-
-//     //         return (
-//     //             <Box sx={{ whiteSpace: "break-spaces" }}>
-//     //                 {changes === undefined ? <LinearProgress /> : (
-//     //                     !changes ? "ERROR" : changes.map((b, i) => (
-//     //                         <React.Fragment key={i}>
-//     //                             <Typography color="warning">{b.time}</Typography>
-//     //                             <div
-//     //                                 dangerouslySetInnerHTML={{
-//     //                                     __html: DOMPurify.sanitize(b.text, {
-//     //                                         ALLOWED_TAGS: ["br", "a"],
-//     //                                         ALLOWED_ATTR: ["href"],
-//     //                                     })
-//     //                                 }}
-//     //                             />
-//     //                             {i !== changes.length - 1 ? <br /> : null}
-//     //                         </React.Fragment>
-//     //                     ))
-//     //                 )}
-//     //             </Box>
-//     //         )
-//     //     },
-//     //     dialogProps: {
-//     //         minWidth: "75vw"
-//     //     }
-//     // }))
-// }
 function ChangeNotesDialog({ publishedfileid }: { publishedfileid: string }) {
     const [changes, setChanges] = useState<Awaited<ReturnType<typeof fetchChangeNote>>>();
 

@@ -13,11 +13,11 @@ import { createPrompt, createDialog, createBackgroundTask, createConfirm } from 
 import z from "zod";
 import { ipc } from "#features/base/renderer";
 import { ArchiveEntry, InspectedArchive } from "#features/archive/shared";
-import { FileEntry, FileTree, Stepper, useStepper, type StepperStep } from "#features/ui-kit/renderer";
+import { FileEntry, FileTree, ResultView, Stepper, useStepper, type StepperStep } from "#features/ui-kit/renderer";
 import { SystemIpc } from "#features/system/shared";
 import { useGitMods, useGitModsUpdates } from "./hooks";
 import { samePackageId } from "#features/mod-core/shared";
-import { PackageIdLower } from "#features/base/shared";
+import { PackageIdLower } from "#features/app/shared";
 
 
 export function GitModsDialog({ onClose }: {
@@ -26,7 +26,7 @@ export function GitModsDialog({ onClose }: {
     const t = useLocalize();
     const [selectedMod, setSelectedMod] = useState<GitMod>();
     const [updatingMods, setUpdatingMods] = useState<PackageIdLower[]>([]);
-    const { hasUpdateSha } = useGitModsUpdates();
+    const updates = useGitModsUpdates();
 
     const gitMods = useGitMods();
 
@@ -66,32 +66,41 @@ export function GitModsDialog({ onClose }: {
             <DialogTitle>Git</DialogTitle>
             <Divider />
             <DialogContent>
-                {hasUpdateSha.length > 0 && <Typography level="body-sm">Some mods highlighted in green may have updates available. Updates are detected by comparing the SHA of the latest installed commit with the SHA of the latest commit in the repository.</Typography>}
-                <Table
-                    variant="outlined"
-                    sx={(t) => ({
-                        background: t.palette.background.body,
-                    })}
+                <ResultView
+                    result={updates}
+                    renderError={e => <Typography color="danger">{e}</Typography>}
                 >
-                    <thead>
-                        <tr>
-                            <th style={{ width: 200 }}>{t("common.fields.name")}</th>
-                            <th>{t("git.fields.brench")}</th>
-                            <th>{t("git.fields.provider")}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {gitMods.map(m =>
-                            <ItemRow
-                                key={m.dirPath}
-                                mod={m}
-                                onClick={() => setSelectedMod(m)}
-                                disabled={updatingMods.includes(m.about.packageId)}
-                                selected={selectedMod === m}
-                                hasUpdate={hasUpdateSha.some(sha => m.data.gitInfo.ok && m.data.gitInfo.data.state.installedVersionCommit === sha)}
-                            />)}
-                    </tbody>
-                </Table>
+                    {hasUpdateSha => (
+                        <>
+                            {hasUpdateSha.length > 0 && <Typography level="body-sm">Some mods highlighted in green may have updates available. Updates are detected by comparing the SHA of the latest installed commit with the SHA of the latest commit in the repository.</Typography>}
+                            <Table
+                                variant="outlined"
+                                sx={(t) => ({
+                                    background: t.palette.background.body,
+                                })}
+                            >
+                                <thead>
+                                    <tr>
+                                        <th style={{ width: 200 }}>{t("common.fields.name")}</th>
+                                        <th>{t("git.fields.brench")}</th>
+                                        <th>{t("git.fields.provider")}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {gitMods.map(m =>
+                                        <ItemRow
+                                            key={m.dirPath}
+                                            mod={m}
+                                            onClick={() => setSelectedMod(m)}
+                                            disabled={updatingMods.includes(m.about.packageId)}
+                                            selected={selectedMod === m}
+                                            hasUpdate={hasUpdateSha.some(sha => m.data.gitInfo.ok && m.data.gitInfo.data.state.installedVersionCommit === sha)}
+                                        />)}
+                                </tbody>
+                            </Table>
+                        </>
+                    )}
+                </ResultView>
             </DialogContent>
             <Divider />
             <DialogActions>
@@ -103,7 +112,7 @@ export function GitModsDialog({ onClose }: {
                     onClick={() => selectedMod && selectedMod.data.gitInfo.ok && ipc.invoke(SystemIpc.OpenExternal, getRepoUrl(selectedMod.data.gitInfo.data))}
                 >{t("git.openInGit")}</Button>
                 <Button
-                    color={selectedMod && selectedMod.data.gitInfo.ok && hasUpdateSha.includes(selectedMod.data.gitInfo.data.state.installedVersionCommit)
+                    color={selectedMod && selectedMod.data.gitInfo.ok && updates?.data?.includes(selectedMod.data.gitInfo.data.state.installedVersionCommit)
                         ? "success"
                         : "neutral"}
                     startDecorator={<UpdateIcon />}

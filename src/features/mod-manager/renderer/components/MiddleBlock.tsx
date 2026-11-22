@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { Stack, Divider, Typography, Button, IconButton, Badge } from "@mui/joy";
+import { Stack, Divider, Typography, Button, IconButton, Badge, LinearProgress } from "@mui/joy";
 import ClearIcon from "@mui/icons-material/Clear";
 import SwapVertIcon from "@mui/icons-material/SwapVert";
 import ListAltIcon from "@mui/icons-material/ListAlt";
@@ -20,6 +20,7 @@ import { useConfigSelector } from "#features/user-config/renderer";
 import { useModListView } from "../store";
 import { SteamUpdatesDialog, useSteamModsUpdates } from "#features/steam-updates/renderer";
 import { samePackageId } from "#features/mod-core/shared";
+import { ResultView } from "#features/ui-kit/renderer";
 
 export function MiddleBlock() {
     const t = useLocalize();
@@ -60,7 +61,15 @@ function GitButton() {
     return (
         <Badge
             badgeInset={8}
-            badgeContent={notify.hasUpdateSha.length}
+            invisible={notify?.success && !notify.data.length}
+            badgeContent={
+                <ResultView
+                    result={notify}
+                    renderError={() => "!"}
+                    loading={<LinearProgress size="sm" />}
+                >{data => data.length}</ResultView>
+            }
+            color={!notify ? "neutral" : notify.success ? "primary" : "danger"}
             size="sm"
             sx={{ "& button": { flex: 1 } }}
             slotProps={{
@@ -85,7 +94,15 @@ function SteamModsButton() {
     return (
         <Badge
             badgeInset={8}
-            badgeContent={notify?.length ?? 0}
+            invisible={notify?.success && !notify.data.length}
+            badgeContent={
+                <ResultView
+                    result={notify}
+                    renderError={() => "!"}
+                    loading={<LinearProgress size="sm" />}
+                >{data => data.length}</ResultView>
+            }
+            color={!notify ? "neutral" : notify.success ? "primary" : "danger"}
             size="sm"
             sx={{ "& button": { flex: 1 } }}
             slotProps={{

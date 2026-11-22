@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- Improved update indicators and handling for mod update states.
+
 ## [v2.0.0] - 2026-11-16
 
 ### Changed
