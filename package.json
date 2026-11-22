@@ -79,7 +79,7 @@
         "cross-env": "^10.1.0",
         "css-loader": "^7.1.5",
         "dependency-cruiser": "^18.7.2",
-        "electron": "^30.5.1",
+        "electron": "^42.11.16",
         "electron-builder": "^26.0.12",
         "electron-devtools-installer": "^4.0.0",
         "esbuild-loader": "^4.5.0",
