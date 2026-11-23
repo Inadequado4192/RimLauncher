@@ -6,7 +6,7 @@ const directives: Record<string, string[]> = {
     "style-src": ["'self'", "'unsafe-inline'"],
     "img-src": ["'self'", "data:", "https:", "mod-file:"],
     "font-src": ["'self'", "data:"],
-    "connect-src": ["'self'", ...(isDev ? ["ws:", "http:"] : [])],
+    "connect-src": ["'self'", ...(isDev ? ["ws://localhost:*", "http://localhost:*", "webpack:"] : []),],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
     "form-action": ["'self'"],

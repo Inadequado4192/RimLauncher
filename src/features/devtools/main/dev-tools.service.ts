@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { app } from "electron";
+import { app, session } from "electron";
 import { Initializable } from "#features/base/main";
 
 const isDevBuild = () => process.env.NODE_ENV !== "production" && !app.isPackaged;
@@ -18,18 +18,28 @@ export class DevToolsService implements Initializable {
     }
 
     private async install(): Promise<void> {
-        console.log("devtools: install start")
         await app.whenReady();
 
         try {
-            const { default: installExtension, REACT_DEVELOPER_TOOLS } =
+            const { REACT_DEVELOPER_TOOLS } =
                 await import("electron-devtools-installer");
+            const { downloadChromeExtension } =
+                await import("electron-devtools-installer/dist/downloadChromeExtension");
 
-            const ext = await installExtension(REACT_DEVELOPER_TOOLS, {
-                loadExtensionOptions: { allowFileAccess: true },
+            const extensionId = REACT_DEVELOPER_TOOLS.id;
+            const targetSession = session.defaultSession;
+            const installed = targetSession.extensions
+                .getAllExtensions()
+                .find(extension => extension.id === extensionId);
+
+            if (installed) return;
+
+            const extensionFolder = await downloadChromeExtension(extensionId);
+            const extension = await targetSession.extensions.loadExtension(extensionFolder, {
+                allowFileAccess: true,
             });
 
-            console.log(`Added Extension: ${ext.name}`);
+            console.log(`Added Extension: ${extension.name}`);
         } catch (err) {
             console.error("Failed to install extension:", err);
         }

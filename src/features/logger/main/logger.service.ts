@@ -39,12 +39,12 @@ export class LoggerService implements Initializable {
     public attachWindow(window: BrowserWindow): void {
         window.webContents.on(
             "console-message",
-            (_, level, message, line, sourceId) => {
-                if (level < 2) return;
+            (details) => {
+                if (details.level === "debug" || details.level === "info") return;
 
-                this.write(level === 2 ? "WARN" : "ERROR", message, {
-                    line,
-                    sourceId,
+                this.write(details.level === "warning" ? "WARN" : "ERROR", details.message, {
+                    lineNumber: details.lineNumber,
+                    sourceId: details.sourceId,
                 });
             },
         );

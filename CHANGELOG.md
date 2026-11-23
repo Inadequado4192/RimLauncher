@@ -1,5 +1,14 @@
 # Changelog
 
+## [v2.2.0] - 2026-11-23
+
+### Changed
+- Upgraded the Electron runtime from 30 to 45 and updated Electron packaging and update dependencies.
+
+### Fixed
+- Updated DevTools extension installation and console logging for the newer Electron APIs.
+- Fixed development Content Security Policy connections to the webpack dev server.
+
 ## [v2.1.0] - 2026-11-22
 
 ### Added
